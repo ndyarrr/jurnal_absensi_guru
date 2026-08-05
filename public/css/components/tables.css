@@ -1,0 +1,126 @@
+/* ==========================================================================
+   Table Component Styles
+   ========================================================================== */
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: #ffffff;
+    box-shadow: var(--shadow-sm);
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+    text-align: left;
+}
+
+.custom-table thead tr {
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.custom-table th {
+    padding: 14px 18px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+.custom-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.custom-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+.custom-table td {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-main);
+    vertical-align: middle;
+}
+
+.custom-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Status Chips / Badges */
+.badge-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.775rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.badge-chip.badge-success {
+    background-color: var(--success-bg);
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+.badge-chip.badge-warning {
+    background-color: var(--warning-bg);
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.badge-chip.badge-danger {
+    background-color: var(--danger-bg);
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.badge-chip.badge-info {
+    background-color: var(--info-bg);
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+}
+
+.badge-chip.badge-neutral {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+.badge-chip.badge-primary {
+    background-color: var(--primary-light);
+    color: var(--primary);
+    border: 1px solid #c7d2fe;
+}
+
+/* Empty State Table */
+.empty-state {
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.empty-state-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    opacity: 0.7;
+}
+
+.empty-state h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.empty-state p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}

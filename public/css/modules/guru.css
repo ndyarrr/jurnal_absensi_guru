@@ -1,0 +1,32 @@
+/* ==========================================================================
+   Guru Module Styles
+   ========================================================================== */
+
+.guru-nuptk-pill {
+    font-family: monospace;
+    font-weight: 600;
+    color: var(--secondary);
+    background: #f1f5f9;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.825rem;
+}
+
+.guru-name {
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.guru-hp-link {
+    color: #10b981;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.guru-hp-link:hover {
+    text-decoration: underline;
+}

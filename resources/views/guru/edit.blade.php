@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Jurusan')
+@section('title', 'Edit Guru')
 
 @section('content')
 <div class="form-card">
     <div class="form-card-header">
         <div>
-            <h2> Edit Data Jurusan</h2>
-            <p>Ubah kode atau nama jurusan terpilih.</p>
+            <h2> Edit Data Guru</h2>
+            <p>Perbarui informasi data guru pengajar.</p>
         </div>
     </div>
 
@@ -26,25 +26,30 @@
             </div>
         @endif
 
-        <form action="{{ route('jurusan.update', $jurusan) }}" method="POST">
+        <form action="{{ route('guru.update', $guru) }}" method="POST">
             @csrf
             @method('PUT')
 
             <div class="form-grid">
                 <div class="form-group col-6">
-                    <label for="kode_jurusan">Kode Jurusan <span class="required">*</span></label>
-                    <input type="text" name="kode_jurusan" id="kode_jurusan" class="form-control" value="{{ old('kode_jurusan', $jurusan->kode_jurusan) }}" required>
+                    <label for="nuptk">NUPTK / NIP <span class="required">*</span></label>
+                    <input type="text" name="nuptk" id="nuptk" class="form-control" value="{{ old('nuptk', $guru->nuptk) }}" required>
                 </div>
 
                 <div class="form-group col-6">
-                    <label for="nama_jurusan">Nama Jurusan <span class="required">*</span></label>
-                    <input type="text" name="nama_jurusan" id="nama_jurusan" class="form-control" value="{{ old('nama_jurusan', $jurusan->nama_jurusan) }}" required>
+                    <label for="nama_guru">Nama Lengkap Guru <span class="required">*</span></label>
+                    <input type="text" name="nama_guru" id="nama_guru" class="form-control" value="{{ old('nama_guru', $guru->nama_guru) }}" required>
+                </div>
+
+                <div class="form-group col-12">
+                    <label for="no_hp">Nomor Telepon / WhatsApp</label>
+                    <input type="text" name="no_hp" id="no_hp" class="form-control" value="{{ old('no_hp', $guru->no_hp) }}">
                 </div>
             </div>
 
             <div class="btn-group">
                 <button type="submit" class="btn btn-primary">🔄 Perbarui Data</button>
-                <a href="{{ route('jurusan.index') }}" class="btn btn-secondary">Batal</a>
+                <a href="{{ route('guru.index') }}" class="btn btn-secondary">Batal</a>
             </div>
         </form>
     </div>

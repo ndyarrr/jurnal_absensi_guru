@@ -1,0 +1,136 @@
+/* ==========================================================================
+   Button & Action Component Styles
+   ========================================================================== */
+
+.btn-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+
+.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 18px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+    line-height: 1.25;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border-radius: var(--radius-sm);
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(79, 70, 229, 0.3);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background-color: #ffffff;
+    color: var(--text-muted);
+    border-color: var(--border);
+}
+
+.btn-secondary:hover {
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    border-color: var(--border-hover);
+}
+
+/* Action Specific Buttons */
+.btn-action-show {
+    background-color: var(--info-bg);
+    color: var(--info);
+    border: 1px solid #bae6fd;
+}
+
+.btn-action-show:hover {
+    background-color: var(--info);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(6, 182, 212, 0.25);
+}
+
+.btn-action-edit {
+    background-color: var(--warning-bg);
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.btn-action-edit:hover {
+    background-color: #f59e0b;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+}
+
+.btn-action-delete {
+    background-color: var(--danger-bg);
+    color: var(--danger);
+    border: 1px solid #fecaca;
+}
+
+.btn-action-delete:hover {
+    background-color: var(--danger);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+}
+
+.btn-add {
+    background-color: var(--primary-light);
+    color: var(--primary);
+    border: 1px dashed var(--primary);
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-add:hover {
+    background-color: #e0e7ff;
+}
+
+.btn-danger-light {
+    background-color: var(--danger-bg);
+    color: var(--danger);
+    border: 1px solid #fecaca;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border-radius: var(--radius-sm);
+}
+
+.btn-danger-light:hover {
+    background-color: var(--danger);
+    color: #ffffff;
+}

@@ -1,0 +1,32 @@
+/* ==========================================================================
+   Siswa Module Styles
+   ========================================================================== */
+
+.siswa-nisn-badge {
+    font-family: monospace;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    background: #f1f5f9;
+    color: #334155;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.825rem;
+    border: 1px solid var(--border);
+}
+
+.siswa-name-cell {
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.siswa-kelas-tag {
+    background: var(--primary-light);
+    color: var(--primary);
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}

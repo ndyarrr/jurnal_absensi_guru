@@ -1,156 +1,89 @@
 @extends('layouts.app')
 
+@section('title', 'Edit Jadwal Pelajaran')
+
 @section('content')
-    <h2>Edit Jurnal Mengajar</h2>
+<div class="form-card">
+    <div class="form-card-header">
+        <div>
+            <h2> Edit Jadwal Pelajaran</h2>
+            <p>Perbarui alokasi jam mengajar atau ganti guru pengampu.</p>
+        </div>
+    </div>
 
-    @if($errors->any())
-        <ul style="color:red;">
-            @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    @endif
+    <div class="form-card-body">
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <span>⚠️</span>
+                <div>
+                    <strong>Terjadi kesalahan input:</strong>
+                    <ul>
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        @endif
 
-    <form action="{{ route('jurnal.update', $jurnal) }}" method="POST">
-        @csrf
-        @method('PUT')
+        <form action="{{ route('jadwal.update', $jadwal) }}" method="POST">
+            @csrf
+            @method('PUT')
 
-        <label>Jadwal</label><br>
-        <select name="id_jadwal" id="id_jadwal" required>
-            @foreach($jadwal as $j)
-                <option value="{{ $j->id_jadwal }}" {{ old('id_jadwal', $jurnal->id_jadwal) == $j->id_jadwal ? 'selected' : '' }}>
-                    {{ $j->kelas->tingkat }} {{ $j->kelas->jurusan->kode_jurusan ?? '' }} {{ $j->kelas->rombel }}
-                    - {{ $j->mapel->nama_mapel }} ({{ $j->hari }}, jam ke-{{ $j->jam_ke }}, {{ $j->guru->nama_guru }})
-                </option>
-            @endforeach
-        </select><br><br>
-
-        <label>Tanggal</label><br>
-        <input type="date" name="tanggal" value="{{ old('tanggal', $jurnal->tanggal) }}" required><br><br>
-
-        <label>Status Kehadiran Guru</label><br>
-        <select name="status_kehadiran" required>
-            @foreach(['Hadir','Izin','Sakit','Tanpa Keterangan'] as $status)
-                <option value="{{ $status }}" {{ old('status_kehadiran', $jurnal->status_kehadiran) == $status ? 'selected' : '' }}>
-                    {{ $status }}
-                </option>
-            @endforeach
-        </select><br><br>
-
-        <label>Guru Pengganti</label><br>
-        <select name="id_guru_pengganti">
-            <option value="">-- Tidak ada --</option>
-            @foreach($guru as $g)
-                <option value="{{ $g->id_guru }}" {{ old('id_guru_pengganti', $jurnal->id_guru_pengganti) == $g->id_guru ? 'selected' : '' }}>
-                    {{ $g->nama_guru }}
-                </option>
-            @endforeach
-        </select><br><br>
-
-        <label>Materi</label><br>
-        <input type="text" name="materi" value="{{ old('materi', $jurnal->materi) }}" style="width:100%;"><br><br>
-
-        <label>Jumlah Hadir</label><br>
-        <input type="number" name="jumlah_hadir" value="{{ old('jumlah_hadir', $jurnal->jumlah_hadir) }}" min="0"><br><br>
-
-        <label>Jumlah Tidak Hadir</label><br>
-        <input type="number" name="jumlah_tidak_hadir" value="{{ old('jumlah_tidak_hadir', $jurnal->jumlah_tidak_hadir) }}" min="0"><br><br>
-
-        <label>Catatan</label><br>
-        <textarea name="catatan" style="width:100%;">{{ old('catatan', $jurnal->catatan) }}</textarea><br><br>
-
-        <hr>
-        <h3>Siswa Tidak Hadir</h3>
-        <p style="font-size:13px; color:#666;">Data lama sudah ditampilkan. Kalau ganti Jadwal ke kelas lain, baris di bawah akan dikosongkan.</p>
-
-        <table border="1" cellpadding="6" cellspacing="0" style="width:100%;">
-            <thead>
-                <tr>
-                    <th style="width:60%;">Siswa</th>
-                    <th style="width:25%;">Status</th>
-                    <th style="width:15%;"></th>
-                </tr>
-            </thead>
-            <tbody id="detail-rows"></tbody>
-        </table>
-        <br>
-        <button type="button" id="add-row">+ Tambah Siswa Tidak Hadir</button>
-        <br><br>
-
-        <button type="submit">Update</button>
-        <a href="{{ route('jurnal.index') }}">Batal</a>
-    </form>
-
-    <script>
-        const siswaList = @json($siswa->map(fn($s) => ['id' => $s->id_siswa, 'nama' => $s->nama_siswa, 'id_kelas' => $s->id_kelas]));
-        const jadwalKelasMap = @json($jadwalKelasMap);
-        const existingDetail = @json($jurnal->detailKetidakhadiran->map(fn($d) => ['id_siswa' => $d->id_siswa, 'status' => $d->status]));
-
-        let rowIndex = 0;
-
-        function getKelasIdTerpilih() {
-            const jadwalId = document.getElementById('id_jadwal').value;
-            return jadwalKelasMap[jadwalId] || null;
-        }
-
-        function buatBaris(selectedSiswaId = '', selectedStatus = 'S') {
-            const kelasId = getKelasIdTerpilih();
-            if (!kelasId) return;
-
-            const filtered = siswaList.filter(s => s.id_kelas == kelasId);
-            const optionsHtml = filtered.map(s =>
-                `<option value="${s.id}" ${s.id == selectedSiswaId ? 'selected' : ''}>${s.nama}</option>`
-            ).join('');
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>
-                    <select name="detail[${rowIndex}][id_siswa]" required style="width:100%;">
-                        <option value="">-- Pilih Siswa --</option>
-                        ${optionsHtml}
+            <div class="form-grid">
+                <div class="form-group col-6">
+                    <label for="id_kelas">Kelas <span class="required">*</span></label>
+                    <select name="id_kelas" id="id_kelas" class="form-control" required>
+                        @foreach($kelas as $k)
+                            <option value="{{ $k->id_kelas }}" {{ old('id_kelas', $jadwal->id_kelas) == $k->id_kelas ? 'selected' : '' }}>
+                                Kelas {{ $k->tingkat }} {{ $k->jurusan->kode_jurusan ?? '' }} {{ $k->rombel }}
+                            </option>
+                        @endforeach
                     </select>
-                </td>
-                <td>
-                    <select name="detail[${rowIndex}][status]" required style="width:100%;">
-                        <option value="S" ${selectedStatus == 'S' ? 'selected' : ''}>Sakit (S)</option>
-                        <option value="I" ${selectedStatus == 'I' ? 'selected' : ''}>Izin (I)</option>
-                        <option value="A" ${selectedStatus == 'A' ? 'selected' : ''}>Alpa (A)</option>
+                </div>
+
+                <div class="form-group col-6">
+                    <label for="id_mapel">Mata Pelajaran <span class="required">*</span></label>
+                    <select name="id_mapel" id="id_mapel" class="form-control" required>
+                        @foreach($mapel as $m)
+                            <option value="{{ $m->id_mapel }}" {{ old('id_mapel', $jadwal->id_mapel) == $m->id_mapel ? 'selected' : '' }}>
+                                {{ $m->nama_mapel }}
+                            </option>
+                        @endforeach
                     </select>
-                </td>
-                <td>
-                    <button type="button" onclick="this.closest('tr').remove()">Hapus</button>
-                </td>
-            `;
-            document.getElementById('detail-rows').appendChild(tr);
-            rowIndex++;
-        }
+                </div>
 
-        function tambahBaris() {
-            const kelasId = getKelasIdTerpilih();
-            if (!kelasId) {
-                alert('Pilih Jadwal terlebih dahulu.');
-                return;
-            }
-            const filtered = siswaList.filter(s => s.id_kelas == kelasId);
-            if (filtered.length === 0) {
-                alert('Tidak ada siswa terdaftar di kelas ini.');
-                return;
-            }
-            buatBaris();
-        }
+                <div class="form-group col-6">
+                    <label for="hari">Hari <span class="required">*</span></label>
+                    <select name="hari" id="hari" class="form-control" required>
+                        @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $h)
+                            <option value="{{ $h }}" {{ old('hari', $jadwal->hari) == $h ? 'selected' : '' }}>{{ $h }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
-        document.getElementById('add-row').addEventListener('click', tambahBaris);
+                <div class="form-group col-6">
+                    <label for="jam_ke">Jam Ke- <span class="required">*</span></label>
+                    <input type="number" name="jam_ke" id="jam_ke" class="form-control" value="{{ old('jam_ke', $jadwal->jam_ke) }}" min="1" max="12" required>
+                </div>
 
-        document.getElementById('id_jadwal').addEventListener('change', function () {
-            document.getElementById('detail-rows').innerHTML = '';
-            rowIndex = 0;
-        });
+                <div class="form-group col-12">
+                    <label for="id_guru">Guru Pengampu <span class="required">*</span></label>
+                    <select name="id_guru" id="id_guru" class="form-control" required>
+                        @foreach($guru as $g)
+                            <option value="{{ $g->id_guru }}" {{ old('id_guru', $jadwal->id_guru) == $g->id_guru ? 'selected' : '' }}>
+                                {{ $g->nama_guru }} (NUPTK: {{ $g->nuptk ?? '-' }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
 
-        // prefill data lama saat halaman dibuka
-        window.addEventListener('DOMContentLoaded', function () {
-            existingDetail.forEach(function (d) {
-                buatBaris(d.id_siswa, d.status);
-            });
-        });
-    </script>
+            <div class="btn-group">
+                <button type="submit" class="btn btn-primary">🔄 Perbarui Data</button>
+                <a href="{{ route('jadwal.index') }}" class="btn btn-secondary">Batal</a>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection

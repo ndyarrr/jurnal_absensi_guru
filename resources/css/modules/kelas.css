@@ -1,0 +1,50 @@
+/* ==========================================================================
+   Kelas Module Styles - Harmonious & Cohesive Badges
+   ========================================================================== */
+
+.kelas-badge-group {
+    display: inline-flex;
+    align-items: center;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--radius-md);
+    padding: 3px;
+    gap: 4px;
+    box-shadow: var(--shadow-sm);
+    vertical-align: middle;
+}
+
+.kelas-badge-group .badge-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 26px;
+    padding: 0 10px;
+    font-size: 0.775rem;
+    font-weight: 700;
+    border-radius: var(--radius-sm);
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.kelas-badge-group .badge-item.tingkat {
+    background-color: var(--primary);
+    color: #ffffff;
+}
+
+.kelas-badge-group .badge-item.jurusan {
+    background-color: var(--primary-light);
+    color: var(--primary-hover);
+}
+
+.kelas-badge-group .badge-item.rombel {
+    background-color: #ffffff;
+    color: var(--text-main);
+    border: 1px solid #cbd5e1;
+}
+
+.wali-kelas-tag {
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 0.85rem;
+}

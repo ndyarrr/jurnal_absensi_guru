@@ -1,36 +1,63 @@
 @extends('layouts.app')
 
+@section('title', 'Edit Siswa')
+
 @section('content')
-    <h2>Edit Siswa</h2>
+<div class="form-card">
+    <div class="form-card-header">
+        <div>
+            <h2> Edit Data Siswa</h2>
+            <p>Perbarui NISN, Nama, atau Kelas siswa.</p>
+        </div>
+    </div>
 
-    @if($errors->any())
-        <ul style="color:red;">
-            @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    @endif
+    <div class="form-card-body">
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <span>⚠️</span>
+                <div>
+                    <strong>Terjadi kesalahan input:</strong>
+                    <ul>
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        @endif
 
-    <form action="{{ route('siswa.update', $siswa) }}" method="POST">
-        @csrf
-        @method('PUT')
+        <form action="{{ route('siswa.update', $siswa) }}" method="POST">
+            @csrf
+            @method('PUT')
 
-        <label>NISN</label><br>
-        <input type="text" name="nisn" value="{{ old('nisn', $siswa->nisn) }}" required><br><br>
+            <div class="form-grid">
+                <div class="form-group col-6">
+                    <label for="nisn">NISN / NIS <span class="required">*</span></label>
+                    <input type="text" name="nisn" id="nisn" class="form-control" value="{{ old('nisn', $siswa->nisn) }}" required>
+                </div>
 
-        <label>Nama Siswa</label><br>
-        <input type="text" name="nama_siswa" value="{{ old('nama_siswa', $siswa->nama_siswa) }}" required><br><br>
+                <div class="form-group col-6">
+                    <label for="nama_siswa">Nama Lengkap Siswa <span class="required">*</span></label>
+                    <input type="text" name="nama_siswa" id="nama_siswa" class="form-control" value="{{ old('nama_siswa', $siswa->nama_siswa) }}" required>
+                </div>
 
-        <label>Kelas</label><br>
-        <select name="id_kelas" required>
-            @foreach($kelas as $k)
-                <option value="{{ $k->id_kelas }}" {{ old('id_kelas', $siswa->id_kelas) == $k->id_kelas ? 'selected' : '' }}>
-                    {{ $k->tingkat }} {{ $k->rombel }} - {{ $k->jurusan->kode_jurusan ?? '' }}
-                </option>
-            @endforeach
-        </select><br><br>
+                <div class="form-group col-12">
+                    <label for="id_kelas">Kelas <span class="required">*</span></label>
+                    <select name="id_kelas" id="id_kelas" class="form-control" required>
+                        @foreach($kelas as $k)
+                            <option value="{{ $k->id_kelas }}" {{ old('id_kelas', $siswa->id_kelas) == $k->id_kelas ? 'selected' : '' }}>
+                                Kelas {{ $k->tingkat }} {{ $k->jurusan->kode_jurusan ?? '' }} {{ $k->rombel }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
 
-        <button type="submit">Update</button>
-        <a href="{{ route('siswa.index') }}">Batal</a>
-    </form>
+            <div class="btn-group">
+                <button type="submit" class="btn btn-primary">🔄 Perbarui Data</button>
+                <a href="{{ route('siswa.index') }}" class="btn btn-secondary">Batal</a>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection

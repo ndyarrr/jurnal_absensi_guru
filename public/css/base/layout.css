@@ -1,0 +1,219 @@
+/* ==========================================================================
+   Base Layout & Typography
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --primary-light: #eef2ff;
+    --primary-ring: rgba(79, 70, 229, 0.2);
+    
+    --secondary: #64748b;
+    --secondary-hover: #475569;
+    
+    --bg-body: #f8fafc;
+    --bg-surface: #ffffff;
+    
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
+    
+    --border: #e2e8f0;
+    --border-hover: #cbd5e1;
+    
+    --success: #10b981;
+    --success-bg: #ecfdf5;
+    --danger: #ef4444;
+    --danger-bg: #fef2f2;
+    --warning: #f59e0b;
+    --warning-bg: #fffbe6;
+    --info: #06b6d4;
+    --info-bg: #ecfeff;
+    
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+    
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 60px;
+}
+
+/* App Navbar */
+.app-navbar {
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow-sm);
+}
+
+.navbar-container {
+    max-width: 1140px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 68px;
+}
+
+.navbar-brand {
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: var(--primary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: -0.02em;
+}
+
+.navbar-brand .logo-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--primary-light);
+    color: var(--primary);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.navbar-brand span.badge {
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: 0.725rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+}
+
+.navbar-menu {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    list-style: none;
+    overflow-x: auto;
+}
+
+.navbar-menu a {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.navbar-menu a:hover {
+    color: var(--primary);
+    background: var(--primary-light);
+}
+
+.navbar-menu a.active {
+    color: var(--primary);
+    background: var(--primary-light);
+    font-weight: 700;
+}
+
+/* Main Content Wrapper */
+.main-wrapper {
+    max-width: 1140px;
+    margin: 36px auto;
+    padding: 0 20px;
+}
+
+/* Base Card Container */
+.card-panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.card-header-bar {
+    padding: 24px 30px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(to right, #fafafa, #ffffff);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.card-header-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.card-header-title h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.card-header-title p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.card-body {
+    padding: 30px;
+}
+
+/* Alert Boxes */
+.alert {
+    padding: 14px 18px;
+    border-radius: var(--radius-md);
+    margin-bottom: 24px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.alert-success {
+    background-color: var(--success-bg);
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+}
+
+.alert-danger {
+    background-color: var(--danger-bg);
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+.alert ul {
+    margin-left: 18px;
+    margin-top: 4px;
+}

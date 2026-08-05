@@ -1,26 +1,52 @@
 @extends('layouts.app')
 
+@section('title', 'Tambah Jurusan')
+
 @section('content')
-    <h2>Tambah Jurusan</h2>
+<div class="form-card">
+    <div class="form-card-header">
+        <div>
+            <h2>🎓 Tambah Jurusan</h2>
+            <p>Tambah program keahlian / jurusan sekolah baru.</p>
+        </div>
+    </div>
 
-    @if($errors->any())
-        <ul style="color:red;">
-            @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    @endif
+    <div class="form-card-body">
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <span>⚠️</span>
+                <div>
+                    <strong>Terjadi kesalahan input:</strong>
+                    <ul>
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        @endif
 
-    <form action="{{ route('jurusan.store') }}" method="POST">
-        @csrf
+        <form action="{{ route('jurusan.store') }}" method="POST">
+            @csrf
 
-        <label>Kode Jurusan</label><br>
-        <input type="text" name="kode_jurusan" value="{{ old('kode_jurusan') }}" required><br><br>
+            <div class="form-grid">
+                <div class="form-group col-6">
+                    <label for="kode_jurusan">Kode Jurusan <span class="required">*</span></label>
+                    <input type="text" name="kode_jurusan" id="kode_jurusan" class="form-control" value="{{ old('kode_jurusan') }}" placeholder="Contoh: RPL, TKJ, AKL" required>
+                    <span class="help-text">Singkatan atau kode unik jurusan.</span>
+                </div>
 
-        <label>Nama Jurusan</label><br>
-        <input type="text" name="nama_jurusan" value="{{ old('nama_jurusan') }}" required><br><br>
+                <div class="form-group col-6">
+                    <label for="nama_jurusan">Nama Jurusan <span class="required">*</span></label>
+                    <input type="text" name="nama_jurusan" id="nama_jurusan" class="form-control" value="{{ old('nama_jurusan') }}" placeholder="Contoh: Rekayasa Perangkat Lunak" required>
+                </div>
+            </div>
 
-        <button type="submit">Simpan</button>
-        <a href="{{ route('jurusan.index') }}">Batal</a>
-    </form>
+            <div class="btn-group">
+                <button type="submit" class="btn btn-primary">💾 Simpan Jurusan</button>
+                <a href="{{ route('jurusan.index') }}" class="btn btn-secondary">Batal</a>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection

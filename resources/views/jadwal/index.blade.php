@@ -1,42 +1,80 @@
 @extends('layouts.app')
 
-@section('content')
-    <h2>Jadwal Pelajaran</h2>
-    <a href="{{ route('jadwal.create') }}">+ Tambah Jadwal</a>
+@section('title', 'Jadwal Pelajaran')
 
-    <table border="1" cellpadding="8" cellspacing="0" style="width:100%; margin-top:15px; border-collapse: collapse;">
-        <thead>
-            <tr>
-                <th>Hari</th>
-                <th>Jam Ke</th>
-                <th>Kelas</th>
-                <th>Mapel</th>
-                <th>Guru</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($jadwal as $j)
-                <tr>
-                    <td>{{ $j->hari }}</td>
-                    <td>{{ $j->jam_ke }}</td>
-                    <td>{{ $j->kelas->tingkat ?? '-' }} {{ $j->kelas->jurusan->kode_jurusan ?? '' }} {{ $j->kelas->rombel ?? '' }}</td>
-                    <td>{{ $j->mapel->nama_mapel ?? '-' }}</td>
-                    <td>{{ $j->guru->nama_guru ?? '-' }}</td>
-                    <td>
-                        <a href="{{ route('jadwal.show', $j) }}">Detail</a> |
-                        <a href="{{ route('jadwal.edit', $j) }}">Edit</a> |
-                        <form action="{{ route('jadwal.destroy', $j) }}" method="POST" style="display:inline;"
-                              onsubmit="return confirm('Yakin hapus data ini?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit">Hapus</button>
-                        </form>
-                    </td>
-                </tr>
-            @empty
-                <tr><td colspan="6">Belum ada data jadwal.</td></tr>
-            @endforelse
-        </tbody>
-    </table>
+@section('content')
+<div class="card-panel">
+    <div class="card-header-bar">
+        <div class="card-header-title">
+            <h2> Jadwal Pelajaran</h2>
+            <p>Jadwal mata pelajaran dan alokasi jam mengajar guru.</p>
+        </div>
+        <a href="{{ route('jadwal.create') }}" class="btn btn-primary">
+            <span><i class="fa-solid fa-plus"></i></span> Tambah Jadwal Baru
+        </a>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Hari & Jam</th>
+                        <th style="width: 20%;">Kelas</th>
+                        <th style="width: 30%;">Mata Pelajaran</th>
+                        <th style="width: 20%;">Guru Pengampu</th>
+                        <th style="width: 15%; text-align: center;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($jadwal as $j)
+                        <tr>
+                            <td>
+                                <span class="jadwal-hari-badge">{{ $j->hari }}</span>
+                                <div style="margin-top: 4px;">
+                                    <span class="jadwal-jam-pill">Jam ke-{{ $j->jam_ke }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="kelas-badge-group">
+                                    <span class="badge-item tingkat">{{ $j->kelas->tingkat ?? '-' }}</span>
+                                    <span class="badge-item jurusan">{{ $j->kelas->jurusan->kode_jurusan ?? '-' }}</span>
+                                    <span class="badge-item rombel">{{ $j->kelas->rombel ?? '-' }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="mapel-name-tag">{{ $j->mapel->nama_mapel ?? '-' }}</span>
+                            </td>
+                            <td>
+                                <span class="guru-name">{{ $j->guru->nama_guru ?? '-' }}</span>
+                            </td>
+                            <td style="text-align: center;">
+                                <div class="action-buttons" style="justify-content: center;">
+                                    <a href="{{ route('jadwal.show', $j) }}" class="btn btn-sm btn-action-show" title="Detail"> Detail</a>
+                                    <a href="{{ route('jadwal.edit', $j) }}" class="btn btn-sm btn-action-edit" title="Edit">Edit</a>
+                                    <form action="{{ route('jadwal.destroy', $j) }}" method="POST" style="display:inline;"
+                                          onsubmit="return confirm('Yakin hapus jadwal ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-action-delete" title="Hapus">Hapus</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon"></div>
+                                    <h4>Belum Ada Jadwal Pelajaran</h4>
+                                    <p>Silakan klik tombol <strong>+ Tambah Jadwal Baru</strong> untuk mengatur jadwal mengajar.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 @endsection
