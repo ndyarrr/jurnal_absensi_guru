@@ -1,0 +1,44 @@
+/* ==========================================================================
+   User & Role Module Styles
+   ========================================================================== */
+
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: 0.775rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.role-badge.role-admin {
+    background-color: #f3e8ff;
+    color: #6b21a8;
+    border: 1px solid #d8b4fe;
+}
+
+.role-badge.role-guru_mengajar {
+    background-color: #eef2ff;
+    color: #3730a3;
+    border: 1px solid #c7d2fe;
+}
+
+.role-badge.role-wali_kelas {
+    background-color: #ecfeff;
+    color: #0e7490;
+    border: 1px solid #a5f3fc;
+}
+
+.role-badge.role-guru_piket {
+    background-color: #fffbe6;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.user-email-text {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}

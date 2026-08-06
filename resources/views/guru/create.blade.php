@@ -45,6 +45,21 @@
                     <input type="text" name="no_hp" id="no_hp" class="form-control" value="{{ old('no_hp') }}" placeholder="Contoh: 08123456789">
                     <span class="help-text">Nomor kontak aktif yang dapat dihubungi.</span>
                 </div>
+
+                <div class="form-group col-12">
+                    <label>Mata Pelajaran yang Diampu</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 8px; background: rgba(255,255,255,0.03); padding: 16px; border-radius: 8px; border: 1px solid var(--border-color, #e2e8f0);">
+                        @forelse($mapel as $m)
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.95rem;">
+                                <input type="checkbox" name="mapel[]" value="{{ $m->id_mapel }}" {{ is_array(old('mapel')) && in_array($m->id_mapel, old('mapel')) ? 'checked' : '' }}>
+                                <span>{{ $m->nama_mapel }}</span>
+                            </label>
+                        @empty
+                            <span style="color: var(--text-light); grid-column: 1 / -1;">Belum ada data mata pelajaran.</span>
+                        @endforelse
+                    </div>
+                    <span class="help-text" style="margin-top: 6px; display: block;">Pilih satu atau lebih mata pelajaran yang diajarkan oleh guru ini.</span>
+                </div>
             </div>
 
             <div class="btn-group">

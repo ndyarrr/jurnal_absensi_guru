@@ -19,10 +19,11 @@
             <table class="custom-table">
                 <thead>
                     <tr>
-                        <th style="width: 25%;">NUPTK / NIP</th>
-                        <th style="width: 40%;">Nama Guru</th>
-                        <th style="width: 20%;">No. Telepon / WA</th>
-                        <th style="width: 15%; text-align: center;">Aksi</th>
+                        <th style="width: 20%;">NUPTK / NIP</th>
+                        <th style="width: 25%;">Nama Guru</th>
+                        <th style="width: 25%;">Mapel Diampu</th>
+                        <th style="width: 18%;">No. Telepon / WA</th>
+                        <th style="width: 12%; text-align: center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -33,6 +34,15 @@
                             </td>
                             <td>
                                 <span class="guru-name">{{ $g->nama_guru }}</span>
+                            </td>
+                            <td>
+                                @forelse($g->mapel as $mp)
+                                    <span style="display: inline-block; background: rgba(79, 70, 229, 0.1); color: #6366f1; padding: 2px 8px; border-radius: 4px; font-size: 0.82rem; font-weight: 500; margin: 2px 2px 2px 0; border: 1px solid rgba(79, 70, 229, 0.2);">
+                                        {{ $mp->nama_mapel }}
+                                    </span>
+                                @empty
+                                    <span style="color: var(--text-light); font-size: 0.85rem;">-</span>
+                                @endforelse
                             </td>
                             <td>
                                 @if($g->no_hp)
@@ -58,7 +68,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4">
+                            <td colspan="5">
                                 <div class="empty-state">
                                     <div class="empty-state-icon"></div>
                                     <h4>Belum Ada Data Guru</h4>

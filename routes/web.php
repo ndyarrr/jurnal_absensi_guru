@@ -8,6 +8,7 @@ use App\Http\Controllers\MapelController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\JadwalPelajaranController;
 use App\Http\Controllers\JurnalMengajarController;
+use App\Http\Controllers\UserController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -15,10 +16,9 @@ Route::get('/', function () {
 
 Route::resource('guru', GuruController::class);
 Route::resource('jurusan', JurusanController::class);
-// routes/web.php
 Route::resource('kelas', KelasController::class)->parameters(['kelas' => 'kelas']);
 Route::resource('mapel', MapelController::class);
 Route::resource('siswa', SiswaController::class);
 Route::resource('jadwal', JadwalPelajaranController::class);
 Route::resource('jurnal', JurnalMengajarController::class);
-?>
+Route::resource('users', UserController::class);

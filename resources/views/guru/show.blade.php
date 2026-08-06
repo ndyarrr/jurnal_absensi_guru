@@ -39,6 +39,18 @@
                             @endif
                         </td>
                     </tr>
+                    <tr>
+                        <th>Mata Pelajaran Diampu</th>
+                        <td>
+                            @forelse($guru->mapel as $mp)
+                                <span style="display: inline-block; background: rgba(79, 70, 229, 0.1); color: #6366f1; padding: 4px 10px; border-radius: 6px; font-size: 0.88rem; font-weight: 500; margin: 2px 4px 2px 0; border: 1px solid rgba(79, 70, 229, 0.2);">
+                                    {{ $mp->nama_mapel }}
+                                </span>
+                            @empty
+                                <span style="color: var(--text-light);">-</span>
+                            @endforelse
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>

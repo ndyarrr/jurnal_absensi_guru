@@ -9,7 +9,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
     <!-- Modular CSS Architecture -->
     <link rel="stylesheet" href="{{ asset('css/base/layout.css') }}">
@@ -25,6 +24,7 @@
     <link rel="stylesheet" href="{{ asset('css/modules/jadwal.css') }}">
     <link rel="stylesheet" href="{{ asset('css/modules/jurnal.css') }}">
     <link rel="stylesheet" href="{{ asset('css/modules/mapel.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/modules/user.css') }}">
 </head>
 <body>
 
@@ -32,7 +32,7 @@
     <nav class="app-navbar">
         <div class="navbar-container">
             <a href="{{ url('/') }}" class="navbar-brand">
-                <span class="logo-icon"></span>
+                <span class="logo-icon">📖</span>
                 <span>Jurnal Absensi</span>
                 <span class="badge">v1.0</span>
             </a>
@@ -44,6 +44,7 @@
                 <li><a href="{{ route('kelas.index') }}" class="{{ request()->is('kelas*') ? 'active' : '' }}">Kelas</a></li>
                 <li><a href="{{ route('jurusan.index') }}" class="{{ request()->is('jurusan*') ? 'active' : '' }}">Jurusan</a></li>
                 <li><a href="{{ route('mapel.index') }}" class="{{ request()->is('mapel*') ? 'active' : '' }}">Mapel</a></li>
+                <li><a href="{{ route('users.index') }}" class="{{ request()->is('users*') ? 'active' : '' }}">Pengguna</a></li>
             </ul>
         </div>
     </nav>
@@ -55,6 +56,15 @@
                 <span>✅</span>
                 <div>
                     <strong>Berhasil!</strong> {{ session('success') }}
+                </div>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger">
+                <span>⚠️</span>
+                <div>
+                    <strong>Perhatian!</strong> {{ session('error') }}
                 </div>
             </div>
         @endif
