@@ -1,0 +1,353 @@
+/* ==========================================================================
+   Login Page Styling - Split Mockup Design
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --login-bg-warm: #f7f2e7;
+    --login-input-bg: #efe7d7;
+    --login-input-border: #dfd5c2;
+    --login-navy: #252b3e;
+    --login-navy-hover: #1b2030;
+    --login-text-dark: #1e293b;
+    --login-text-muted: #847e73;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body.login-page-body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+    background-color: #f7f3eb;
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.85) 45%, rgba(255, 255, 255, 0.45) 100%), url('../../assets/image/backgrounds/background-login.jpeg');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    color: var(--login-text-dark);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Full Page Split Container */
+.login-split-container {
+    width: 100vw;
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 480px;
+    position: relative;
+    overflow: hidden;
+}
+
+@media (max-width: 1024px) {
+    .login-split-container {
+        grid-template-columns: 1fr 420px;
+    }
+}
+
+@media (max-width: 868px) {
+    .login-split-container {
+        grid-template-columns: 1fr;
+        padding: 24px 16px;
+    }
+}
+
+/* Left Hero Section (Tagline & Illustration overlay) */
+.login-left-hero {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 60px 80px;
+    z-index: 2;
+}
+
+@media (max-width: 1024px) {
+    .login-left-hero {
+        padding: 40px 40px;
+    }
+}
+
+@media (max-width: 868px) {
+    .login-left-hero {
+        display: none;
+    }
+}
+
+.login-tagline-box {
+    max-width: 620px;
+    animation: fadeInUp 0.5s ease;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 32px 36px;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.login-tagline-title {
+    font-size: 2.35rem;
+    font-weight: 800;
+    color: #1e2538;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    margin-bottom: 14px;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+.login-tagline-subtitle {
+    font-size: 0.98rem;
+    color: #334155;
+    line-height: 1.65;
+    font-weight: 600;
+}
+
+/* Right Section - Login Card Container */
+.login-right-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 32px 32px 16px;
+    z-index: 5;
+}
+
+@media (max-width: 868px) {
+    .login-right-section {
+        padding: 16px;
+        width: 100%;
+    }
+}
+
+/* Warm Cream Card Matching Mockup */
+.login-card-mockup {
+    width: 100%;
+    max-width: 440px;
+    background: #f7f2e7;
+    border-radius: 24px;
+    padding: 36px 36px 40px 36px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+/* Admin Quick Badge at Top Right */
+.admin-badge-btn {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    background: var(--login-navy);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 0.825rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s ease, transform 0.2s ease;
+    text-decoration: none;
+}
+
+.admin-badge-btn:hover {
+    background: var(--login-navy-hover);
+    transform: translateY(-1px);
+}
+
+/* Header Typography */
+.mockup-header {
+    margin-bottom: 28px;
+    margin-top: 12px;
+}
+
+.mockup-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+}
+
+.mockup-subtitle {
+    font-size: 0.9rem;
+    color: var(--login-text-muted);
+    font-weight: 500;
+}
+
+/* Alerts */
+.mockup-alert {
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 0.825rem;
+    margin-bottom: 20px;
+}
+
+.mockup-alert-danger {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+.mockup-alert-success {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+}
+
+/* Form Controls */
+.mockup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.form-group-mockup {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group-mockup label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #2b2b2b;
+}
+
+.input-wrapper-relative {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-mockup {
+    width: 100%;
+    padding: 13px 16px;
+    font-family: inherit;
+    font-size: 0.925rem;
+    font-weight: 500;
+    color: #1e293b;
+    background-color: var(--login-input-bg);
+    border: 1px solid var(--login-input-border);
+    border-radius: 10px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-mockup:focus {
+    border-color: var(--login-navy);
+    background-color: #fcf9f2;
+    box-shadow: 0 0 0 3px rgba(37, 43, 62, 0.12);
+}
+
+.select-mockup {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%3C333333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+    cursor: pointer;
+}
+
+/* Password Toggle Icon */
+.toggle-pwd-icon {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #78716c;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+}
+
+.toggle-pwd-icon:hover {
+    color: #1c1917;
+}
+
+/* Primary Sign In Button */
+.btn-mockup-signin {
+    width: 100%;
+    padding: 14px;
+    margin-top: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffffff;
+    background-color: var(--login-navy);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 12px rgba(37, 43, 62, 0.2);
+}
+
+.btn-mockup-signin:hover {
+    background-color: var(--login-navy-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(37, 43, 62, 0.28);
+}
+
+.btn-mockup-signin:active {
+    transform: translateY(0);
+}
+
+/* Demo Accounts Bar */
+.mockup-demo-bar {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--login-input-border);
+}
+
+.mockup-demo-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--login-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+}
+
+.mockup-demo-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.mockup-demo-tag {
+    background: var(--login-input-bg);
+    border: 1px solid var(--login-input-border);
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mockup-demo-tag:hover {
+    background: var(--login-navy);
+    color: #ffffff;
+    border-color: var(--login-navy);
+}

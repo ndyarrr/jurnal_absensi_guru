@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Guru;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -18,6 +19,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'id_guru',
     ];
 
     protected $hidden = [
@@ -57,6 +59,26 @@ class User extends Authenticatable
         return $this->role === 'guru_piket';
     }
 
+    public function isKepalaSekolah(): bool
+    {
+        return $this->role === 'kepala_sekolah';
+    }
+
+    public function isWaka(): bool
+    {
+        return $this->role === 'waka';
+    }
+
+    public function isWakaSdm(): bool
+    {
+        return $this->role === 'waka_sdm';
+    }
+
+    public function isSatpam(): bool
+    {
+        return $this->role === 'satpam';
+    }
+
     public function hasRole(string $role): bool
     {
         return $this->role === $role;
@@ -67,6 +89,19 @@ class User extends Authenticatable
         return in_array($this->role, $roles, true);
     }
 
+    /* ==========================================================================
+       Relationships
+       ========================================================================== */
+
+    /**
+     * Relasi ke profil guru (untuk user dengan role guru).
+     * Admin/Satpam mungkin tidak memiliki profil guru (id_guru = null).
+     */
+    public function guru()
+    {
+        return $this->belongsTo(Guru::class, 'id_guru', 'id_guru');
+    }
+
     public function getRoleLabelAttribute(): string
     {
         return match ($this->role) {
@@ -74,6 +109,10 @@ class User extends Authenticatable
             'guru_mengajar' => 'Guru Mengajar',
             'wali_kelas' => 'Wali Kelas',
             'guru_piket' => 'Guru Piket',
+            'kepala_sekolah' => 'Kepala Sekolah',
+            'waka' => 'Waka',
+            'waka_sdm' => 'Waka SDM',
+            'satpam' => 'Satpam',
             default => 'Guru Mengajar',
         };
     }

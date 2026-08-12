@@ -23,4 +23,19 @@ class Guru extends Model
     {
         return $this->belongsToMany(Mapel::class, 'guru_mapel', 'id_guru', 'id_mapel');
     }
+
+    public function user()
+    {
+        return $this->hasOne(User::class, 'id_guru', 'id_guru');
+    }
+
+    public function kelasWali()
+    {
+        return $this->hasOne(Kelas::class, 'id_guru_wali', 'id_guru');
+    }
+
+    public function permohonanIzin()
+    {
+        return $this->hasMany(PermohonanIzin::class, 'id_guru', 'id_guru');
+    }
 }

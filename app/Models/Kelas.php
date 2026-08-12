@@ -11,12 +11,17 @@ class Kelas extends Model
     protected $table = 'kelas';
     protected $primaryKey = 'id_kelas';
     public $timestamps = false;
-    protected $fillable = ['tingkat', 'id_jurusan', 'rombel', 'wali_kelas', 'jumlah_siswa'];
+    protected $fillable = ['tingkat', 'id_jurusan', 'rombel', 'id_guru_wali', 'wali_kelas', 'jumlah_siswa'];
 
     // supaya route model binding {kela} mencari berdasarkan id_kelas, bukan id
     public function getRouteKeyName()
     {
         return 'id_kelas';
+    }
+
+    public function waliKelasGuru()
+    {
+        return $this->belongsTo(Guru::class, 'id_guru_wali', 'id_guru');
     }
 
     public function jurusan()

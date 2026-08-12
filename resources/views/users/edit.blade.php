@@ -48,12 +48,26 @@
 
                 <div class="form-group col-6">
                     <label for="role">Role / Hak Akses <span class="required">*</span></label>
-                    <select name="role" id="role" class="form-control" required>
+                    <select name="role" id="role" class="form-control" required onchange="toggleGuruField(this.value)">
                         <option value="guru_mengajar" {{ old('role', $user->role) == 'guru_mengajar' ? 'selected' : '' }}>👨‍🏫 Guru Mengajar</option>
                         <option value="wali_kelas" {{ old('role', $user->role) == 'wali_kelas' ? 'selected' : '' }}>🏫 Wali Kelas</option>
                         <option value="guru_piket" {{ old('role', $user->role) == 'guru_piket' ? 'selected' : '' }}>📋 Guru Piket</option>
                         <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>⚡ Admin</option>
                     </select>
+                </div>
+
+                @php $selectedGuru = old('id_guru', $user->id_guru); @endphp
+                <div class="form-group col-12" id="guruFieldWrapper" style="{{ $user->role !== 'admin' ? 'display:block' : 'display:none' }}">
+                    <label for="id_guru">Tautkan ke Profil Guru</label>
+                    <select name="id_guru" id="id_guru" class="form-control">
+                        <option value="">-- Tidak ditautkan --</option>
+                        @foreach($guru as $g)
+                            <option value="{{ $g->id_guru }}" {{ $selectedGuru == $g->id_guru ? 'selected' : '' }}>
+                                {{ $g->nama_guru }} ({{ $g->nuptk }})
+                            </option>
+                        @endforeach
+                    </select>
+                    <span class="help-text">Hubungkan akun ini dengan data profil guru yang sudah ada di sistem.</span>
                 </div>
             </div>
 
@@ -64,4 +78,17 @@
         </form>
     </div>
 </div>
+
+<script>
+    function toggleGuruField(role) {
+        const wrapper = document.getElementById('guruFieldWrapper');
+        const select = document.getElementById('id_guru');
+        if (role && role !== 'admin') {
+            wrapper.style.display = 'block';
+        } else {
+            wrapper.style.display = 'none';
+            select.value = '';
+        }
+    }
+</script>
 @endsection
