@@ -8,67 +8,123 @@ use Illuminate\Http\Request;
 
 class GuruController extends Controller
 {
-    public function index()
+    /**
+     * Display Master Data - Guru page matching the exact mockup design.
+     */
+    public function index(Request $request)
     {
-        $guru = Guru::with('mapel')->orderBy('nama_guru')->get();
-        return view('guru.index', compact('guru'));
+        $query = Guru::with(['mapel', 'user']);
+
+        // Search Filter (NUPTK or Nama Guru)
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('nuptk', 'like', "%{$search}%")
+                  ->orWhere('nama_guru', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by Mapel
+        if ($request->filled('id_mapel')) {
+            $idMapel = $request->input('id_mapel');
+            $query->whereHas('mapel', function ($q) use ($idMapel) {
+                $q->where('mapel.id_mapel', $idMapel);
+            });
+        }
+
+        $guru = $query->orderBy('nama_guru', 'asc')->paginate(8)->withQueryString();
+        $totalGuruCount = Guru::count();
+        $mapelList = Mapel::orderBy('nama_mapel')->get();
+
+        return view('guru.index', compact('guru', 'totalGuruCount', 'mapelList'));
     }
 
-    public function create()
-    {
-        $mapel = Mapel::orderBy('nama_mapel')->get();
-        return view('guru.create', compact('mapel'));
-    }
-
+    /**
+     * Store a newly created Guru.
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nuptk' => 'required|string|max:50',
+            'nuptk'     => 'required|string|max:50|unique:guru,nuptk',
             'nama_guru' => 'required|string|max:255',
-            'no_hp' => 'nullable|string|max:20',
-            'mapel' => 'nullable|array',
-            'mapel.*' => 'exists:mapel,id_mapel',
+            'no_hp'     => 'nullable|string|max:20',
+            'mapel'     => 'nullable|array',
+            'mapel.*'   => 'exists:mapel,id_mapel',
+        ], [
+            'nuptk.required'     => 'NUPTK wajib diisi.',
+            'nuptk.unique'       => 'NUPTK sudah terdaftar.',
+            'nama_guru.required' => 'Nama guru wajib diisi.',
         ]);
 
-        $guru = Guru::create($validated);
-        $guru->mapel()->sync($request->input('mapel', []));
+        $guru = Guru::create([
+            'nuptk'     => $validated['nuptk'],
+            'nama_guru' => $validated['nama_guru'],
+            'no_hp'     => $validated['no_hp'] ?? null,
+        ]);
+
+        if (!empty($request->input('mapel'))) {
+            $guru->mapel()->sync($request->input('mapel'));
+        }
 
         return redirect()->route('guru.index')->with('success', 'Data guru berhasil ditambahkan');
     }
 
+    /**
+     * Show details of a specific Guru via JSON AJAX for modal.
+     */
     public function show(Guru $guru)
     {
-        $guru->load('mapel');
-        return view('guru.show', compact('guru'));
+        $guru->load(['mapel', 'user']);
+
+        $mapelNames = $guru->mapel->pluck('nama_mapel')->join(', ');
+        if (empty($mapelNames)) {
+            $mapelNames = '-';
+        }
+
+        return response()->json([
+            'id_guru'     => $guru->id_guru,
+            'nuptk'       => $guru->nuptk,
+            'nama_guru'   => $guru->nama_guru,
+            'no_hp'       => $guru->no_hp ?? '-',
+            'mapel_names' => $mapelNames,
+            'mapel_ids'   => $guru->mapel->pluck('id_mapel')->toArray(),
+            'user_email'  => optional($guru->user)->email ?? '-',
+            'user_role'   => optional($guru->user)->role_label ?? 'Belum Punya Akun',
+        ]);
     }
 
-    public function edit(Guru $guru)
-    {
-        $guru->load('mapel');
-        $mapel = Mapel::orderBy('nama_mapel')->get();
-        return view('guru.edit', compact('guru', 'mapel'));
-    }
-
+    /**
+     * Update the specified Guru in database.
+     */
     public function update(Request $request, Guru $guru)
     {
         $validated = $request->validate([
-            'nuptk' => 'required|string|max:50',
+            'nuptk'     => 'required|string|max:50|unique:guru,nuptk,' . $guru->id_guru . ',id_guru',
             'nama_guru' => 'required|string|max:255',
-            'no_hp' => 'nullable|string|max:20',
-            'mapel' => 'nullable|array',
-            'mapel.*' => 'exists:mapel,id_mapel',
+            'no_hp'     => 'nullable|string|max:20',
+            'mapel'     => 'nullable|array',
+            'mapel.*'   => 'exists:mapel,id_mapel',
+        ], [
+            'nuptk.unique' => 'NUPTK ini sudah digunakan oleh guru lain.',
         ]);
 
-        $guru->update($validated);
+        $guru->update([
+            'nuptk'     => $validated['nuptk'],
+            'nama_guru' => $validated['nama_guru'],
+            'no_hp'     => $validated['no_hp'] ?? null,
+        ]);
+
         $guru->mapel()->sync($request->input('mapel', []));
 
         return redirect()->route('guru.index')->with('success', 'Data guru berhasil diperbarui');
     }
 
+    /**
+     * Remove the specified Guru.
+     */
     public function destroy(Guru $guru)
     {
         $guru->delete();
         return redirect()->route('guru.index')->with('success', 'Data guru berhasil dihapus');
     }
 }
-

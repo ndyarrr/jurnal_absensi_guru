@@ -307,10 +307,11 @@
                     <table class="siswa-table">
                         <thead>
                             <tr>
-                                <th style="width: 6%;">No</th>
-                                <th style="width: 24%;">NISN</th>
-                                <th style="width: 35%;">Nama</th>
-                                <th style="width: 20%;">Kelas</th>
+                                <th style="width: 5%;">No</th>
+                                <th style="width: 18%;">NISN</th>
+                                <th style="width: 32%;">Nama Siswa</th>
+                                <th style="width: 18%;">Kelas</th>
+                                <th style="width: 12%; text-align: center;">Status</th>
                                 <th style="width: 15%; text-align: center;">Aksi</th>
                             </tr>
                         </thead>
@@ -318,37 +319,56 @@
                             @forelse($siswa as $index => $s)
                                 <tr>
                                     <td class="td-siswa-no">{{ $loop->iteration + ($siswa->currentPage() - 1) * $siswa->perPage() }}</td>
-                                    <td class="td-siswa-nisn">{{ $s->nisn }}</td>
-                                    <td class="td-siswa-nama">{{ $s->nama_siswa }}</td>
+                                    <td class="td-siswa-nisn">
+                                        <span class="nisn-badge">{{ $s->nisn }}</span>
+                                    </td>
+                                    <td class="td-siswa-nama">
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <div class="avatar-initial">
+                                                {{ strtoupper(substr($s->nama_siswa, 0, 1)) }}
+                                            </div>
+                                            <div>
+                                                <div style="font-weight: 700; color: #1e2538;">{{ $s->nama_siswa }}</div>
+                                                <small style="color: #64748b; font-weight: 500;">ID: SIS-{{ str_pad($s->id_siswa, 4, '0', STR_PAD_LEFT) }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
                                     <td class="td-siswa-kelas">
-                                        {{ $s->kelas ? ($s->kelas->tingkat . ' ' . optional($s->kelas->jurusan)->kode_jurusan . ' ' . $s->kelas->rombel) : '-' }}
+                                        @if($s->kelas)
+                                            <span class="badge-tag-guru">{{ $s->kelas->tingkat }} {{ optional($s->kelas->jurusan)->kode_jurusan }} {{ $s->kelas->rombel }}</span>
+                                        @else
+                                            <span style="color: #94a3b8;">-</span>
+                                        @endif
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <span class="badge-status-aktif">
+                                            <span class="dot-green"></span> Aktif
+                                        </span>
                                     </td>
                                     <td>
-                                        <div class="siswa-action-group">
-                                            <!-- View Detail Action (Cyan Document Search Icon) -->
-                                            <button type="button" class="siswa-action-btn view" title="Lihat Detail Siswa" onclick="openViewModal({{ $s->id_siswa }})">
-                                                <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                                    <polyline points="14 2 14 8 20 8"></polyline>
-                                                    <circle cx="11.5" cy="14.5" r="2.5"></circle>
-                                                    <line x1="13.25" y1="16.25" x2="16" y2="19"></line>
+                                        <div class="action-icons-cell">
+                                            <!-- View Action -->
+                                            <button type="button" class="action-btn-icon view" title="Lihat Detail Siswa" onclick="openViewModal({{ $s->id_siswa }})">
+                                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                    <circle cx="12" cy="12" r="3"></circle>
                                                 </svg>
                                             </button>
 
-                                            <!-- Edit Action (Tan Pencil Icon) -->
-                                            <button type="button" class="siswa-action-btn edit" title="Edit Data Siswa" onclick="openEditModal({{ $s->id_siswa }}, '{{ addslashes($s->nisn) }}', '{{ addslashes($s->nama_siswa) }}', '{{ $s->id_kelas }}')">
-                                                <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <!-- Edit Action -->
+                                            <button type="button" class="action-btn-icon edit" title="Edit Data Siswa" onclick="openEditModal({{ $s->id_siswa }}, '{{ addslashes($s->nisn) }}', '{{ addslashes($s->nama_siswa) }}', '{{ $s->id_kelas }}')">
+                                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                                                 </svg>
                                             </button>
 
-                                            <!-- Delete Action (Red Trash Icon) -->
+                                            <!-- Delete Action -->
                                             <form action="{{ route('siswa.destroy', $s) }}" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data siswa {{ $s->nama_siswa }}?')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="siswa-action-btn delete" title="Hapus Siswa">
-                                                    <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <button type="submit" class="action-btn-icon delete" title="Hapus Siswa">
+                                                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                         <polyline points="3 6 5 6 21 6"></polyline>
                                                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                                                     </svg>
@@ -359,7 +379,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" style="text-align: center; padding: 40px; color: #847e73;">
+                                    <td colspan="6" style="text-align: center; padding: 40px; color: #847e73;">
                                         Belum ada data siswa.
                                     </td>
                                 </tr>

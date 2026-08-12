@@ -1,7 +1,7 @@
 <div align="center">
 <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=220&section=header&text=E-JURNAL&fontSize=60&fontColor=ffffff&fontAlignY=35&desc=Sistem%20Jurnal%20%26%20Absensi%20Guru%20Digital&descSize=18&descAlignY=55&animation=fadeIn" />
 
-<a href="https://github.com/[username]/e-jurnal">
+<a href="https://github.com/ndyarrr/jurnal_absensi_guru">
   <img src="https://img.shields.io/badge/GITHUB-e--jurnal-6f42c1?style=for-the-badge&logo=github&logoColor=white&labelColor=181717" />
 </a>
 <a href="mailto:youremail@example.com">
