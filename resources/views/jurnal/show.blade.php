@@ -56,7 +56,7 @@
                     @if($jurnal->guruPengganti)
                         <tr>
                             <th>Guru Pengganti</th>
-                            <td><strong class="guru-name">👤 {{ $jurnal->guruPengganti->nama_guru }}</strong></td>
+                            <td><strong class="guru-name">{{ $jurnal->guruPengganti->nama_guru }}</strong></td>
                         </tr>
                     @endif
                     <tr>

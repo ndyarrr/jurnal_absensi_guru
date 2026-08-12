@@ -1024,6 +1024,27 @@ table.pengguna-table tr:hover td {
     gap: 6px;
 }
 
+/* Laravel Pagination Override matching mockup */
+.pagination-nav-group ul.pagination,
+ul.pagination {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 6px !important;
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.pagination-nav-group ul.pagination li.page-item,
+ul.pagination li.page-item {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.pagination-nav-group ul.pagination li.page-item .page-link,
+ul.pagination li.page-item .page-link,
 .page-num-btn {
     min-width: 32px;
     height: 32px;
@@ -1039,17 +1060,31 @@ table.pengguna-table tr:hover td {
     justify-content: center;
     text-decoration: none;
     transition: all 0.2s ease;
+    box-sizing: border-box;
 }
 
+.pagination-nav-group ul.pagination li.page-item.active .page-link,
+ul.pagination li.page-item.active .page-link,
 .page-num-btn.active {
     background-color: var(--dash-navy);
-    color: #ffffff;
+    color: #ffffff !important;
     border-color: var(--dash-navy);
 }
 
+.pagination-nav-group ul.pagination li.page-item.disabled .page-link,
+ul.pagination li.page-item.disabled .page-link {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background-color: #f8fafc;
+    color: #94a3b8 !important;
+}
+
+.pagination-nav-group ul.pagination li.page-item:not(.active):not(.disabled) .page-link:hover,
+ul.pagination li.page-item:not(.active):not(.disabled) .page-link:hover,
 .page-num-btn:hover:not(.active) {
     background-color: #f8fafc;
     border-color: #cbd5e1;
+    color: var(--dash-navy) !important;
 }
 
 /* Modal Popup Form Component */
@@ -1178,3 +1213,352 @@ table.pengguna-table tr:hover td {
     font-weight: 700;
     cursor: pointer;
 }
+
+/* ==========================================================================
+   Searchable Select (Custom Combobox)
+   ========================================================================== */
+
+.searchable-select {
+    position: relative;
+    width: 100%;
+}
+
+.ss-input {
+    cursor: text;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2394a3b8' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
+    padding-right: 38px !important;
+}
+
+.ss-dropdown {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background-color: #ffffff;
+    border: 1px solid var(--dash-cream-border);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 100;
+    padding: 6px;
+    display: none;
+}
+
+/* Default: dropdown goes DOWN */
+.ss-dropdown.ss-down {
+    top: calc(100% + 4px);
+    bottom: auto;
+}
+
+/* Flipped: dropdown goes UP */
+.ss-dropdown.ss-up {
+    bottom: calc(100% + 4px);
+    top: auto;
+}
+
+.ss-dropdown.ss-open {
+    display: block;
+    animation: ssReveal 0.15s ease;
+}
+
+@keyframes ssReveal {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.ss-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ss-dropdown::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.ss-dropdown::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.ss-option {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1e2538;
+    transition: background-color 0.15s ease;
+}
+
+.ss-option:hover {
+    background-color: #f7f3eb;
+}
+
+.ss-option strong {
+    font-weight: 700;
+    color: #1e2538;
+}
+
+.ss-option small {
+    font-size: 0.775rem;
+    font-weight: 500;
+}
+
+/* ==========================================================================
+   Master Data - Siswa Styling (Matching Exact Mockup)
+   ========================================================================== */
+
+.siswa-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 4px;
+    margin-bottom: 12px;
+}
+
+.siswa-search-box {
+    position: relative;
+    width: 320px;
+}
+
+.siswa-search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+.siswa-search-input {
+    width: 100%;
+    padding: 11px 16px 11px 42px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--dash-text-dark);
+    background-color: #ffffff;
+    border: 1px solid var(--dash-cream-border);
+    border-radius: 14px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.siswa-search-input:focus {
+    border-color: var(--dash-navy);
+    box-shadow: 0 0 0 3px rgba(35, 41, 59, 0.08);
+}
+
+.siswa-action-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-siswa-tambah {
+    background-color: #ffffff;
+    color: var(--dash-text-dark);
+    border: 1px solid var(--dash-cream-border);
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-siswa-tambah:hover {
+    background-color: #f7f3eb;
+    transform: translateY(-1px);
+}
+
+.btn-filter-pill {
+    background-color: #ffffff;
+    color: var(--dash-text-dark);
+    border: 1px solid var(--dash-cream-border);
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-filter-pill:hover {
+    background-color: #f7f3eb;
+}
+
+.badge-siswa-count {
+    background-color: #ffffff;
+    color: var(--dash-text-dark);
+    border: 1px solid var(--dash-cream-border);
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Siswa Table Styling */
+.siswa-table-card {
+    background-color: #ffffff;
+    border: 1px solid var(--dash-border-subtle);
+    border-radius: 20px;
+    padding: 20px 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+table.siswa-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+}
+
+table.siswa-table th {
+    background-color: var(--dash-navy);
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 14px 20px;
+    text-align: left;
+    letter-spacing: 0.02em;
+}
+
+table.siswa-table th:first-child {
+    border-radius: 12px 0 0 12px;
+}
+
+table.siswa-table th:last-child {
+    border-radius: 0 12px 12px 0;
+    text-align: center;
+}
+
+table.siswa-table td {
+    padding: 16px 20px;
+    font-size: 0.9rem;
+    color: #1e2538;
+    background-color: #fcf8f2;
+    vertical-align: middle;
+    border-top: 1px solid #f1ebd9;
+    border-bottom: 1px solid #f1ebd9;
+}
+
+table.siswa-table tr td:first-child {
+    border-left: 1px solid #f1ebd9;
+    border-radius: 14px 0 0 14px;
+}
+
+table.siswa-table tr td:last-child {
+    border-right: 1px solid #f1ebd9;
+    border-radius: 0 14px 14px 0;
+    text-align: center;
+}
+
+table.siswa-table tr:hover td {
+    background-color: #f7eedf;
+}
+
+.td-siswa-no {
+    font-weight: 700;
+    color: #475569;
+    width: 50px;
+}
+
+.td-siswa-nisn {
+    font-family: monospace;
+    font-weight: 700;
+    color: #1e2538;
+    letter-spacing: 0.5px;
+}
+
+.td-siswa-nama {
+    font-weight: 700;
+    color: #1e2538;
+}
+
+.td-siswa-kelas {
+    font-weight: 700;
+    color: #334155;
+}
+
+/* Siswa Filled Action Icons */
+.siswa-action-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.siswa-action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.siswa-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+}
+
+/* Blue Document Eye Button */
+.siswa-action-btn.view {
+    background-color: #7dd3fc;
+    color: #0369a1;
+}
+
+.siswa-action-btn.view:hover {
+    background-color: #38bdf8;
+    color: #ffffff;
+}
+
+/* Tan Edit Button */
+.siswa-action-btn.edit {
+    background-color: #e2d8c3;
+    color: #78350f;
+}
+
+.siswa-action-btn.edit:hover {
+    background-color: #d4c7ac;
+    color: #451a03;
+}
+
+/* Red Delete Button */
+.siswa-action-btn.delete {
+    background-color: #f87171;
+    color: #ffffff;
+}
+
+.siswa-action-btn.delete:hover {
+    background-color: #ef4444;
+}
+

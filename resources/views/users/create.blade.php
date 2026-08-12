@@ -6,7 +6,7 @@
 <div class="form-card">
     <div class="form-card-header">
         <div>
-            <h2>👤 Tambah Pengguna Baru</h2>
+            <h2>Tambah Pengguna Baru</h2>
             <p>Buat akun pengguna baru dan tentukan role hak aksesnya.</p>
         </div>
     </div>
@@ -52,7 +52,7 @@
                         <option value="guru_mengajar" {{ old('role') == 'guru_mengajar' ? 'selected' : '' }}>👨‍🏫 Guru Mengajar</option>
                         <option value="wali_kelas" {{ old('role') == 'wali_kelas' ? 'selected' : '' }}>🏫 Wali Kelas</option>
                         <option value="guru_piket" {{ old('role') == 'guru_piket' ? 'selected' : '' }}>📋 Guru Piket</option>
-                        <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>⚡ Admin</option>
+                        <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
                     </select>
                     <span class="help-text">Tentukan peran akses pengguna di dalam aplikasi.</span>
                 </div>

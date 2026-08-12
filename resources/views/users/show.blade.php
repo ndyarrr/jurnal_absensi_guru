@@ -6,7 +6,7 @@
 <div class="card-panel">
     <div class="card-header-bar">
         <div class="card-header-title">
-            <h2>👤 Detail Pengguna</h2>
+            <h2>Detail Pengguna</h2>
             <p>Informasi profil akun pengguna.</p>
         </div>
         <div class="action-buttons">
@@ -35,7 +35,7 @@
                         <th>Role / Hak Akses</th>
                         <td>
                             @if($user->role === 'admin')
-                                <span class="role-badge role-admin">⚡ Admin</span>
+                                <span class="role-badge role-admin">Admin</span>
                             @elseif($user->role === 'guru_mengajar')
                                 <span class="role-badge role-guru_mengajar">👨‍🏫 Guru Mengajar</span>
                             @elseif($user->role === 'wali_kelas')

@@ -52,7 +52,7 @@
                         <option value="guru_mengajar" {{ old('role', $user->role) == 'guru_mengajar' ? 'selected' : '' }}>👨‍🏫 Guru Mengajar</option>
                         <option value="wali_kelas" {{ old('role', $user->role) == 'wali_kelas' ? 'selected' : '' }}>🏫 Wali Kelas</option>
                         <option value="guru_piket" {{ old('role', $user->role) == 'guru_piket' ? 'selected' : '' }}>📋 Guru Piket</option>
-                        <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>⚡ Admin</option>
+                        <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Admin</option>
                     </select>
                 </div>
 

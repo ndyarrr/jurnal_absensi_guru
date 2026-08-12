@@ -1,58 +1,202 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<div align="center">
+<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=220&section=header&text=E-JURNAL&fontSize=60&fontColor=ffffff&fontAlignY=35&desc=Sistem%20Jurnal%20%26%20Absensi%20Guru%20Digital&descSize=18&descAlignY=55&animation=fadeIn" />
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+<a href="https://github.com/[username]/e-jurnal">
+  <img src="https://img.shields.io/badge/GITHUB-e--jurnal-6f42c1?style=for-the-badge&logo=github&logoColor=white&labelColor=181717" />
+</a>
+<a href="mailto:youremail@example.com">
+  <img src="https://img.shields.io/badge/CONTACT-Email-e91e63?style=for-the-badge&logo=gmail&logoColor=white&labelColor=181717" />
+</a>
+<img src="https://img.shields.io/badge/STATUS-Tugas%20Akhir-00bcd4?style=for-the-badge&logo=googleclassroom&logoColor=white&labelColor=181717" />
 
-## About Laravel
+<br/><br/>
+</div>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+<img width="100%" src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.gif" />
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Overview
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+$ cat about.txt
+> E-Jurnal — sistem jurnal mengajar & absensi guru berbasis web
+> Mengelola: jurnal mengajar, absensi siswa, perizinan guru & siswa
+> Notifikasi otomatis via WhatsApp
+> Multi-role: Admin/TU, Guru Mapel, Guru Piket, Wali Kelas, Waka, Waka SDM, Kepsek, Satpam
+> Dibuat untuk Tugas Akhir
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+<img width="100%" src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.gif" />
 
-## Contributing
+## ✨ Fitur
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+<div align="center">
 
-## Code of Conduct
+| Fitur | Deskripsi |
+|-------|-----------|
+| 🔐 **Login Multi-Role** | Admin/TU, Guru Mapel, Guru Piket, Wali Kelas, Waka, Waka SDM, Kepala Sekolah, Satpam |
+| 📝 **Jurnal Mengajar** | Tombol pengisian aktif otomatis hanya saat jam mengajar berlangsung |
+| ⏰ **Reminder Otomatis WA** | Notifikasi WhatsApp jika jurnal belum diisi 15 menit sebelum jam berakhir |
+| 🙋 **Perizinan Guru (Hybrid)** | Guru Piket kirim izin guru paralel ke Waka, Waka SDM, dan Kepala Sekolah |
+| 🎓 **Perizinan & Absensi Siswa** | Guru Piket input surat izin siswa, otomatis update rekap absensi kelas |
+| 👀 **Pantauan Wali Kelas** | Rekap kehadiran & izin siswa per kelas |
+| 🚧 **Pos Satpam** | Cek status izin siswa di gerbang, lapor ke Wali Kelas & Guru Piket |
+| 📊 **Dashboard Admin/TU** | Kelola data guru, kelas, jurusan, mapel, dan jadwal pelajaran |
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+</div>
 
-## Security Vulnerabilities
+<img width="100%" src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.gif" />
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 🛠️ Tech Stack
 
-## License
+<div align="center">
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**Backend**
+<br/>
+<img src="https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white" />
+<img src="https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" />
+<img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white" />
+<br/><br/>
+
+**Frontend**
+<br/>
+<img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" />
+<img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" />
+<img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" />
+<br/><br/>
+
+**Notifikasi & Tools**
+<br/>
+<img src="https://img.shields.io/badge/WhatsApp%20Gateway-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" />
+<img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white" />
+<img src="https://img.shields.io/badge/VS_Code-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white" />
+
+</div>
+
+<img width="100%" src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.gif" />
+
+## 🚀 Cara Install (Pertama Kali)
+
+### Prasyarat
+- PHP >= 8.1 · Composer · MySQL / XAMPP / Laragon · Node.js & NPM · Git
+
+### Langkah-langkah
+
+```bash
+# Verifikasi contributor
+git config --global user.name "nama lu"
+git config --global user.email "email_lu_@example.com"
+
+# 1. Clone repo
+git clone https://github.com/[username]/e-jurnal.git
+
+# 2. Masuk ke folder project
+cd e-jurnal
+
+# 3. Install dependency PHP
+composer install
+
+# 4. Install dependency frontend
+npm install
+```
+
+5. **Konfigurasi environment** → copy `.env.example` menjadi `.env`, sesuaikan koneksi database & token WhatsApp gateway
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+6. **Import database** → phpMyAdmin → import `database/jurnal_absensi_guru.sql`, **atau** jalankan migrasi:
+   ```bash
+   php artisan migrate
+   ```
+7. Build asset frontend & jalankan server:
+   ```bash
+   npm run dev
+   php artisan serve
+   ```
+8. Buka browser → `http://localhost:8000`
+
+> ⚠️ Untuk reminder WhatsApp otomatis, pastikan queue worker jalan:
+> ```bash
+> php artisan queue:work
+> ```
+
+<img width="100%" src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.gif" />
+
+## 🔄 Workflow Sebelum Ngoding
+
+> Wajib dilakukan setiap kali mau mulai kerja!
+
+```bash
+git status
+git pull origin main
+```
+
+## 📤 Upload Perubahan
+
+```bash
+git add .
+git commit -m "tambah fitur"
+git push -u origin main
+```
+
+<img width="100%" src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.gif" />
+
+## 👥 Role Pengguna
+
+| Role | Tugas Utama |
+|------|--------------|
+| **Admin/TU** | Kelola data master (guru, kelas, jurusan, mapel, jadwal) |
+| **Guru Mapel** | Isi jurnal mengajar, ajukan izin/sakit |
+| **Guru Piket** | Input izin siswa & guru, cari guru pengganti, teruskan izin guru ke Waka/Waka SDM/Kepsek |
+| **Wali Kelas** | Pantau rekap absensi & izin siswa di kelasnya |
+| **Waka** | Approval izin guru mapel |
+| **Waka SDM** | Approval izin guru mapel & rekap kehadiran guru |
+| **Kepala Sekolah** | Approval izin guru mapel & lihat laporan keseluruhan |
+| **Satpam** | Cek status izin siswa di gerbang, lapor ke Wali Kelas & Guru Piket |
+
+<img width="100%" src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.gif" />
+
+## 📁 Struktur Folder
+
+```
+$ tree
+.
+├── app/
+│   ├── Http/Controllers/
+│   ├── Models/
+│   └── Jobs/              # Job reminder WA
+├── database/
+│   ├── migrations/
+│   └── jurnal_absensi_guru.sql
+├── resources/
+│   └── views/
+│       ├── admin/
+│       ├── guru-mapel/
+│       ├── guru-piket/
+│       ├── wali-kelas/
+│       ├── waka/
+│       ├── waka-sdm/
+│       ├── kepala-sekolah/
+│       └── satpam/
+├── routes/
+│   └── web.php
+├── public/
+├── .env.example
+└── README.md
+```
+
+> 📌 *Struktur folder di atas mengikuti konvensi standar Laravel — sesuaikan dengan struktur folder proyek kalian yang sebenarnya.*
+
+<img width="100%" src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.gif" />
+
+<div align="center">
+
+## 👥 Tim
+
+**[Nama Tim Kalian]** — *Tugas Akhir.*
+
+<img src="https://komarev.com/ghpvc/?username=e-jurnal&color=blueviolet&style=for-the-badge&label=README+VIEWS" />
+
+<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=20,11,6&height=120&section=footer" />
+
+</div>

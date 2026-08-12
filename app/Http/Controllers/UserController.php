@@ -16,7 +16,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         // 1. Summary Cards Counts
-        $adminCount      = User::where('role', 'admin')->count();
+        $adminCount      = User::whereIn('role', ['admin', 'super_admin'])->count();
         $guruPiketCount  = User::where('role', 'guru_piket')->count();
         $guruMapelCount  = User::where('role', 'guru_mengajar')->count();
         $waliKelasCount  = User::where('role', 'wali_kelas')->count();
@@ -60,7 +60,7 @@ class UserController extends Controller
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
-            'role'     => 'required|in:admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_sdm,satpam',
+            'role'     => 'required|in:admin,super_admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_sdm,satpam',
             'id_guru'  => [
                 'nullable',
                 'integer',
@@ -78,7 +78,7 @@ class UserController extends Controller
         $validated['password'] = Hash::make($validated['password']);
 
         // Admin & Satpam do not require guru profile mapping
-        if (in_array($validated['role'], ['admin', 'satpam'], true)) {
+        if (in_array($validated['role'], ['admin', 'super_admin', 'satpam'], true)) {
             $validated['id_guru'] = null;
         }
 
@@ -123,7 +123,7 @@ class UserController extends Controller
             'name'     => 'required|string|max:255',
             'email'    => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:6',
-            'role'     => 'required|in:admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_sdm,satpam',
+            'role'     => 'required|in:admin,super_admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_sdm,satpam',
             'id_guru'  => [
                 'nullable',
                 'integer',
@@ -140,7 +140,7 @@ class UserController extends Controller
             unset($validated['password']);
         }
 
-        if (in_array($validated['role'], ['admin', 'satpam'], true)) {
+        if (in_array($validated['role'], ['admin', 'super_admin', 'satpam'], true)) {
             $validated['id_guru'] = null;
         }
 

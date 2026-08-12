@@ -169,8 +169,8 @@
                             <rect x="7" y="14" width="3" height="3" fill="currentColor"></rect>
                         </svg>
                         <div class="dash-date-info">
-                            <span class="date-str">{{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}</span>
-                            <span class="time-str">{{ \Carbon\Carbon::now()->format('H:i') }} WIB</span>
+                            <span class="date-str" id="live_date_str">{{ \Carbon\Carbon::now('Asia/Jakarta')->translatedFormat('l, d F Y') }}</span>
+                            <span class="time-str" id="live_time_str">{{ \Carbon\Carbon::now('Asia/Jakarta')->format('H:i:s') }} WIB</span>
                         </div>
                     </div>
 
@@ -287,7 +287,7 @@
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
-                    <input type="text" name="search" class="pengguna-search-input" placeholder="Cari Pengguna...." value="{{ request('search') }}" onchange="this.form.submit()">
+                    <input type="text" name="search" id="userSearchInput" class="pengguna-search-input" placeholder="Cari Pengguna...." value="{{ request('search') }}" autocomplete="off">
                 </form>
 
                 <!-- Right Action Buttons -->
@@ -310,7 +310,8 @@
                         </button>
                         <div id="filterMenuDropdown" style="display: none; position: absolute; right: 0; top: 48px; background: #ffffff; border: 1px solid var(--dash-cream-border); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 8px; width: 180px; z-index: 50;">
                             <a href="{{ route('users.index') }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Semua Role</a>
-                            <a href="{{ route('users.index', ['role' => 'admin']) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Admin</a>
+                            <a href="{{ route('users.index', ['role' => 'super_admin']) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Admin Super</a>
+                            <a href="{{ route('users.index', ['role' => 'admin']) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Admin Biasa</a>
                             <a href="{{ route('users.index', ['role' => 'guru_mengajar']) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Guru Mapel</a>
                             <a href="{{ route('users.index', ['role' => 'wali_kelas']) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Wali Kelas</a>
                             <a href="{{ route('users.index', ['role' => 'guru_piket']) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Guru Piket</a>
@@ -340,12 +341,28 @@
                                 <tr>
                                     <td class="td-no">{{ $loop->iteration + ($users->currentPage() - 1) * $users->perPage() }}</td>
                                     <td class="td-nama">{{ $user->name }}</td>
-                                    <td><span class="pwd-dots">••••••••••••</span></td>
+                                    <td>
+                                        <div style="display: inline-flex; align-items: center; gap: 8px;">
+                                            <button type="button" onclick="toggleTablePassword({{ $user->id }})" style="background: none; border: none; cursor: pointer; padding: 2px; color: #94a3b8; display: inline-flex; align-items: center;" title="Tampilkan / Sembunyikan Password">
+                                                <svg id="table_eye_open_{{ $user->id }}" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <circle cx="12" cy="12" r="3"></circle>
+                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                </svg>
+                                                <svg id="table_eye_closed_{{ $user->id }}" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display: none;">
+                                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                                </svg>
+                                            </button>
+                                            <span id="table_pwd_{{ $user->id }}" class="pwd-dots" style="letter-spacing: 2px;">••••••••••••</span>
+                                        </div>
+                                    </td>
                                     <td>
                                         <div class="role-badge-cell">
                                             <span>{{ $user->role_label }}</span>
-                                            @if($user->role === 'admin')
+                                            @if($user->role === 'super_admin')
                                                 <span class="badge-tag-super">Super</span>
+                                            @elseif($user->role === 'admin')
+                                                <span class="badge-tag-super" style="background: #e0f2fe; color: #0284c7;">Biasa</span>
                                             @elseif($user->role === 'guru_mengajar')
                                                 <span class="badge-tag-guru">Mapel</span>
                                             @elseif($user->role === 'wali_kelas')
@@ -446,25 +463,35 @@
 
                 <div class="form-field-group">
                     <label for="create_role">Role Hak Akses</label>
-                    <select name="role" id="create_role" class="form-field-input" required>
-                        <option value="admin">Admin</option>
+                    <select name="role" id="create_role" class="form-field-input" onchange="handleRoleChange('create')" required>
+                        <option value="super_admin">Admin (Super Admin)</option>
+                        <option value="admin">Admin (Admin Biasa)</option>
                         <option value="guru_mengajar">Guru Mengajar</option>
                         <option value="wali_kelas">Wali Kelas</option>
                         <option value="guru_piket">Guru Piket</option>
                         <option value="kepala_sekolah">Kepala Sekolah</option>
+                        <option value="waka">Waka</option>
                         <option value="waka_sdm">Waka SDM</option>
                         <option value="satpam">Satpam</option>
                     </select>
                 </div>
 
-                <div class="form-field-group">
-                    <label for="create_id_guru">Relasi Profil Guru (Opsional)</label>
-                    <select name="id_guru" id="create_id_guru" class="form-field-input">
-                        <option value="">-- Tanpa Relasi Guru --</option>
-                        @foreach($guruList as $g)
-                            <option value="{{ $g->id_guru }}">{{ $g->nama_guru }} ({{ $g->nuptk }})</option>
-                        @endforeach
-                    </select>
+                <!-- Relasi Profil Guru (Hidden by default for Admin/Kepsek/Waka/Satpam) -->
+                <div class="form-field-group" id="create_guru_group" style="display: none;">
+                    <label>Relasi Profil Guru</label>
+                    <input type="hidden" name="id_guru" id="create_id_guru" value="">
+                    <div class="searchable-select" id="create_guru_ss">
+                        <input type="text" class="form-field-input ss-input" id="create_guru_input" placeholder="Ketik nama guru atau NUPTK..." autocomplete="off" onclick="openDropdown('create')" onkeyup="filterDropdown('create')">
+                        <div class="ss-dropdown" id="create_guru_dropdown">
+                            <div class="ss-option" data-value="" onclick="pickGuru('create','','-- Hapus Relasi --')">-- Hapus Relasi --</div>
+                            @foreach($guruList as $g)
+                                <div class="ss-option" data-value="{{ $g->id_guru }}" onclick="pickGuru('create','{{ $g->id_guru }}','{{ addslashes($g->nama_guru) }} ({{ $g->nuptk }})')">
+                                    <strong>{{ $g->nama_guru }}</strong>
+                                    <small style="color:#64748b;">NUPTK: {{ $g->nuptk }}</small>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-actions-footer">
@@ -506,25 +533,35 @@
 
                 <div class="form-field-group">
                     <label for="edit_role">Role Hak Akses</label>
-                    <select name="role" id="edit_role" class="form-field-input" required>
-                        <option value="admin">Admin</option>
+                    <select name="role" id="edit_role" class="form-field-input" onchange="handleRoleChange('edit')" required>
+                        <option value="super_admin">Admin (Super Admin)</option>
+                        <option value="admin">Admin (Admin Biasa)</option>
                         <option value="guru_mengajar">Guru Mengajar</option>
                         <option value="wali_kelas">Wali Kelas</option>
                         <option value="guru_piket">Guru Piket</option>
                         <option value="kepala_sekolah">Kepala Sekolah</option>
+                        <option value="waka">Waka</option>
                         <option value="waka_sdm">Waka SDM</option>
                         <option value="satpam">Satpam</option>
                     </select>
                 </div>
 
-                <div class="form-field-group">
-                    <label for="edit_id_guru">Relasi Profil Guru (Opsional)</label>
-                    <select name="id_guru" id="edit_id_guru" class="form-field-input">
-                        <option value="">-- Tanpa Relasi Guru --</option>
-                        @foreach($guruList as $g)
-                            <option value="{{ $g->id_guru }}">{{ $g->nama_guru }} ({{ $g->nuptk }})</option>
-                        @endforeach
-                    </select>
+                <!-- Relasi Profil Guru (Hidden for non-teacher roles) -->
+                <div class="form-field-group" id="edit_guru_group" style="display: none;">
+                    <label>Relasi Profil Guru</label>
+                    <input type="hidden" name="id_guru" id="edit_id_guru" value="">
+                    <div class="searchable-select" id="edit_guru_ss">
+                        <input type="text" class="form-field-input ss-input" id="edit_guru_input" placeholder="Ketik nama guru atau NUPTK..." autocomplete="off" onclick="openDropdown('edit')" onkeyup="filterDropdown('edit')">
+                        <div class="ss-dropdown" id="edit_guru_dropdown">
+                            <div class="ss-option" data-value="" onclick="pickGuru('edit','','-- Hapus Relasi --')">-- Hapus Relasi --</div>
+                            @foreach($guruList as $g)
+                                <div class="ss-option" data-value="{{ $g->id_guru }}" onclick="pickGuru('edit','{{ $g->id_guru }}','{{ addslashes($g->nama_guru) }} ({{ $g->nuptk }})')">
+                                    <strong>{{ $g->nama_guru }}</strong>
+                                    <small style="color:#64748b;">NUPTK: {{ $g->nuptk }}</small>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-actions-footer">
@@ -555,6 +592,22 @@
                     <div id="view_email" style="font-weight: 600; color: #334155;">-</div>
                 </div>
                 <div class="form-field-group">
+                    <label>Password Akun:</label>
+                    <div style="display: flex; align-items: center; justify-content: space-between; background-color: #f7f3eb; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--dash-cream-border);">
+                        <span id="view_password" style="font-family: monospace; font-size: 1rem; font-weight: 700; color: #1e2538; letter-spacing: 2px;">••••••••••••</span>
+                        <button type="button" id="btn_toggle_view_pwd" onclick="toggleViewPassword()" style="background: none; border: none; cursor: pointer; padding: 4px; color: #64748b; display: flex; align-items: center;" title="Tampilkan / Sembunyikan Password">
+                            <svg id="icon_eye_open" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            </svg>
+                            <svg id="icon_eye_closed" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display: none;">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-field-group">
                     <label>Role:</label>
                     <div id="view_role" style="font-weight: 700; color: var(--dash-navy);">-</div>
                 </div>
@@ -576,6 +629,88 @@
 
     <!-- Toggle & Modal Scripts -->
     <script>
+        /* ---- Guru data for JS lookup ---- */
+        const GURU_DATA = [
+            @foreach($guruList as $g)
+                { id: '{{ $g->id_guru }}', label: '{{ addslashes($g->nama_guru) }} ({{ $g->nuptk }})' },
+            @endforeach
+        ];
+
+        const TEACHER_ROLES = ['guru_mengajar', 'wali_kelas', 'guru_piket'];
+
+        /* ---- Role change: show/hide guru field ---- */
+        function handleRoleChange(prefix) {
+            const roleVal = document.getElementById(prefix + '_role').value;
+            const guruGroup = document.getElementById(prefix + '_guru_group');
+            if (TEACHER_ROLES.includes(roleVal)) {
+                guruGroup.style.display = 'flex';
+            } else {
+                guruGroup.style.display = 'none';
+                document.getElementById(prefix + '_id_guru').value = '';
+                document.getElementById(prefix + '_guru_input').value = '';
+            }
+        }
+
+        /* ---- Searchable Select: open dropdown with auto-flip ---- */
+        function openDropdown(prefix) {
+            const input = document.getElementById(prefix + '_guru_input');
+            const dd = document.getElementById(prefix + '_guru_dropdown');
+            const rect = input.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            const dropdownHeight = 228; // max-height 220 + padding
+
+            // Remove old direction classes
+            dd.classList.remove('ss-up', 'ss-down');
+
+            // Pick direction: if not enough space below AND more space above → flip up
+            if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+                dd.classList.add('ss-up');
+            } else {
+                dd.classList.add('ss-down');
+            }
+
+            dd.classList.add('ss-open');
+            filterDropdown(prefix);
+        }
+
+        /* ---- Searchable Select: filter items ---- */
+        function filterDropdown(prefix) {
+            const query = document.getElementById(prefix + '_guru_input').value.toLowerCase();
+            const dd = document.getElementById(prefix + '_guru_dropdown');
+            const items = dd.querySelectorAll('.ss-option');
+            let visibleCount = 0;
+            items.forEach(item => {
+                const val = item.getAttribute('data-value');
+                const txt = item.textContent.toLowerCase();
+                if (val === '' || txt.includes(query)) {
+                    item.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            dd.classList.add('ss-open');
+        }
+
+        /* ---- Searchable Select: pick option ---- */
+        function pickGuru(prefix, value, label) {
+            document.getElementById(prefix + '_id_guru').value = value;
+            document.getElementById(prefix + '_guru_input').value = value ? label : '';
+            document.getElementById(prefix + '_guru_dropdown').classList.remove('ss-open');
+        }
+
+        /* ---- Close dropdown on outside click ---- */
+        document.addEventListener('click', function(e) {
+            ['create', 'edit'].forEach(prefix => {
+                const ss = document.getElementById(prefix + '_guru_ss');
+                if (ss && !ss.contains(e.target)) {
+                    document.getElementById(prefix + '_guru_dropdown').classList.remove('ss-open');
+                }
+            });
+        });
+
+        /* ---- Sidebar toggle ---- */
         function toggleSubmenu(id) {
             const el = document.getElementById(id);
             if (el.style.display === 'none' || el.style.display === '') {
@@ -590,8 +725,12 @@
             el.style.display = el.style.display === 'none' ? 'block' : 'none';
         }
 
+        /* ---- Modal CRUD Functions ---- */
         function openCreateModal() {
+            document.getElementById('create_guru_input').value = '';
+            document.getElementById('create_id_guru').value = '';
             document.getElementById('createModal').style.display = 'flex';
+            handleRoleChange('create');
         }
 
         function closeCreateModal() {
@@ -604,6 +743,12 @@
             document.getElementById('edit_email').value = email;
             document.getElementById('edit_role').value = role;
             document.getElementById('edit_id_guru').value = idGuru || '';
+
+            // Set guru input display text from id
+            const guru = GURU_DATA.find(g => g.id == idGuru);
+            document.getElementById('edit_guru_input').value = guru ? guru.label : '';
+
+            handleRoleChange('edit');
             document.getElementById('editModal').style.display = 'flex';
         }
 
@@ -611,7 +756,54 @@
             document.getElementById('editModal').style.display = 'none';
         }
 
+        function toggleTablePassword(userId) {
+            const pwdEl = document.getElementById('table_pwd_' + userId);
+            const eyeOpen = document.getElementById('table_eye_open_' + userId);
+            const eyeClosed = document.getElementById('table_eye_closed_' + userId);
+
+            if (pwdEl.getAttribute('data-shown') === 'true') {
+                pwdEl.innerText = '••••••••••••';
+                pwdEl.style.letterSpacing = '2px';
+                pwdEl.setAttribute('data-shown', 'false');
+                eyeOpen.style.display = 'block';
+                eyeClosed.style.display = 'none';
+            } else {
+                pwdEl.innerText = 'password';
+                pwdEl.style.letterSpacing = 'normal';
+                pwdEl.setAttribute('data-shown', 'true');
+                eyeOpen.style.display = 'none';
+                eyeClosed.style.display = 'block';
+            }
+        }
+
+        let isPasswordVisible = false;
+
+        function toggleViewPassword() {
+            isPasswordVisible = !isPasswordVisible;
+            const pwdEl = document.getElementById('view_password');
+            const eyeOpen = document.getElementById('icon_eye_open');
+            const eyeClosed = document.getElementById('icon_eye_closed');
+
+            if (isPasswordVisible) {
+                pwdEl.innerText = 'password';
+                pwdEl.style.letterSpacing = 'normal';
+                eyeOpen.style.display = 'none';
+                eyeClosed.style.display = 'block';
+            } else {
+                pwdEl.innerText = '••••••••••••';
+                pwdEl.style.letterSpacing = '2px';
+                eyeOpen.style.display = 'block';
+                eyeClosed.style.display = 'none';
+            }
+        }
+
         function openViewModal(id) {
+            isPasswordVisible = false;
+            document.getElementById('view_password').innerText = '••••••••••••';
+            document.getElementById('view_password').style.letterSpacing = '2px';
+            document.getElementById('icon_eye_open').style.display = 'block';
+            document.getElementById('icon_eye_closed').style.display = 'none';
+
             fetch('/users/' + id)
                 .then(response => response.json())
                 .then(data => {
@@ -627,6 +819,62 @@
         function closeViewModal() {
             document.getElementById('viewModal').style.display = 'none';
         }
+
+        function updateLiveClock() {
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+            const now = new Date();
+            const dayName = days[now.getDay()];
+            const dateNum = now.getDate();
+            const monthName = months[now.getMonth()];
+            const year = now.getFullYear();
+
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+
+            const dateEl = document.getElementById('live_date_str');
+            const timeEl = document.getElementById('live_time_str');
+
+            if (dateEl) dateEl.innerText = `${dayName}, ${dateNum} ${monthName} ${year}`;
+            if (timeEl) timeEl.innerText = `${hours}:${minutes}:${seconds} WIB`;
+        }
+
+        setInterval(updateLiveClock, 1000);
+        updateLiveClock();
+
+        /* ---- Real-time Client-side Search (No Refresh) ---- */
+        (function() {
+            const input = document.getElementById('userSearchInput');
+            if (!input) return;
+
+            const tbody = document.querySelector('.pengguna-table tbody');
+            if (!tbody) return;
+
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            input.addEventListener('input', function() {
+                const q = this.value.toLowerCase().trim();
+
+                rows.forEach(function(row) {
+                    const name = (row.querySelector('.td-nama') || {}).textContent || '';
+                    const role = (row.querySelector('.role-badge-cell') || {}).textContent || '';
+                    const text = (name + ' ' + role).toLowerCase();
+
+                    if (q === '' || text.includes(q)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+
+            // Prevent form submit on Enter key
+            input.closest('form').addEventListener('submit', function(e) {
+                e.preventDefault();
+            });
+        })();
     </script>
 </body>
 </html>

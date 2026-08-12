@@ -91,7 +91,8 @@
                     <div class="form-group-mockup">
                         <label for="role">Role</label>
                         <select name="role" id="role" class="input-mockup select-mockup">
-                            <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                            <option value="super_admin" {{ old('role') == 'super_admin' ? 'selected' : '' }}>Admin Super</option>
+                            <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin Biasa</option>
                             <option value="guru_mengajar" {{ old('role') == 'guru_mengajar' ? 'selected' : '' }}>Guru Mengajar</option>
                             <option value="wali_kelas" {{ old('role') == 'wali_kelas' ? 'selected' : '' }}>Wali Kelas</option>
                             <option value="guru_piket" {{ old('role') == 'guru_piket' ? 'selected' : '' }}>Guru Piket</option>
@@ -112,7 +113,7 @@
                 <div class="mockup-demo-bar">
                     <div class="mockup-demo-title">💡 Akun Demo Cepat (Database Real)</div>
                     <div class="mockup-demo-tags">
-                        <button type="button" class="mockup-demo-tag" onclick="fillQuickAccount('Administrator', 'password', 'admin')">Admin</button>
+                        <button type="button" class="mockup-demo-tag" onclick="fillQuickAccount('Administrator', 'password', 'super_admin')">Admin Super</button>
                         <button type="button" class="mockup-demo-tag" onclick="fillQuickAccount('Trisno Wibowo (Guru)', 'password', 'guru_mengajar')">Guru Mengajar</button>
                         <button type="button" class="mockup-demo-tag" onclick="fillQuickAccount('Kurnila (Wali Kelas)', 'password', 'wali_kelas')">Wali Kelas</button>
                         <button type="button" class="mockup-demo-tag" onclick="fillQuickAccount('Budi Santoso (Guru Piket)', 'password', 'guru_piket')">Guru Piket</button>

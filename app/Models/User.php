@@ -41,7 +41,12 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return in_array($this->role, ['admin', 'super_admin'], true);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
     }
 
     public function isGuruMengajar(): bool
@@ -105,7 +110,8 @@ class User extends Authenticatable
     public function getRoleLabelAttribute(): string
     {
         return match ($this->role) {
-            'admin' => 'Admin',
+            'super_admin' => 'Admin Super',
+            'admin' => 'Admin Biasa',
             'guru_mengajar' => 'Guru Mengajar',
             'wali_kelas' => 'Wali Kelas',
             'guru_piket' => 'Guru Piket',
