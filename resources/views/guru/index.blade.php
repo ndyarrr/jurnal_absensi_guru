@@ -197,13 +197,13 @@
 
             <!-- Flash Alerts -->
             @if(session('success'))
-                <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">
+                <div class="flash-alert" style="background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">
                     ✅ {{ session('success') }}
                 </div>
             @endif
 
             @if(session('error'))
-                <div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">
+                <div class="flash-alert" style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">
                     ⚠️ {{ session('error') }}
                 </div>
             @endif
@@ -630,6 +630,15 @@
                 e.preventDefault();
             });
         })();
+
+        /* ---- Auto-fade Flash Feedback Alerts after 3 seconds ---- */
+        setTimeout(function() {
+            document.querySelectorAll('.flash-alert').forEach(function(el) {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(-10px)';
+                setTimeout(() => el.remove(), 500);
+            });
+        }, 3000);
     </script>
 </body>
 </html>

@@ -56,7 +56,10 @@ class SiswaController extends Controller
         $kelasList   = Kelas::with('jurusan')->orderBy('tingkat')->get();
         $jurusanList = Jurusan::orderBy('nama_jurusan')->get();
         $tingkatList = ['X', 'XI', 'XII'];
-        $rombelList  = ['1', '2', '3', '4'];
+
+        // Dynamic Rombel list fetched from database
+        $dbRombels  = Kelas::select('rombel')->distinct()->whereNotNull('rombel')->pluck('rombel')->map(fn($r) => (int)$r)->unique()->sort()->values()->toArray();
+        $rombelList = !empty($dbRombels) ? $dbRombels : [1, 2, 3, 4, 5];
 
         return view('siswa.index', compact(
             'siswa',

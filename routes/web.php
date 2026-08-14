@@ -36,6 +36,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('jadwal', JadwalPelajaranController::class);
         Route::resource('jurnal', JurnalMengajarController::class);
         Route::resource('users', UserController::class);
+        Route::get('/pengguna', [UserController::class, 'index'])->name('pengguna.index');
     });
 
 });

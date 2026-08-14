@@ -13,7 +13,6 @@ class Kelas extends Model
     public $timestamps = false;
     protected $fillable = ['tingkat', 'id_jurusan', 'rombel', 'id_guru_wali', 'wali_kelas', 'jumlah_siswa'];
 
-    // supaya route model binding {kela} mencari berdasarkan id_kelas, bukan id
     public function getRouteKeyName()
     {
         return 'id_kelas';
@@ -21,12 +20,12 @@ class Kelas extends Model
 
     public function waliKelasGuru()
     {
-        return $this->belongsTo(Guru::class, 'id_guru_wali', 'id_guru');
+        return $this->belongsTo(Guru::class, 'id_guru_wali', 'id_guru')->withTrashed();
     }
 
     public function jurusan()
     {
-        return $this->belongsTo(Jurusan::class, 'id_jurusan');
+        return $this->belongsTo(Jurusan::class, 'id_jurusan')->withTrashed();
     }
 
     public function siswa()

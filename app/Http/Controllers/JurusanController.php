@@ -26,7 +26,7 @@ class JurusanController extends Controller
         ]);
 
         Jurusan::create($validated);
-        return redirect()->route('jurusan.index')->with('success', 'Jurusan berhasil ditambahkan');
+        return redirect()->back()->with('success', 'Jurusan baru (' . $validated['kode_jurusan'] . ') berhasil ditambahkan');
     }
 
     public function show(Jurusan $jurusan)

@@ -21,7 +21,7 @@ class Siswa extends Model
 
     public function kelas()
     {
-        return $this->belongsTo(Kelas::class, 'id_kelas');
+        return $this->belongsTo(Kelas::class, 'id_kelas')->withTrashed();
     }
 
     public function ketidakhadiran()

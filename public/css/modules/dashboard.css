@@ -35,8 +35,9 @@ body.dashboard-body {
 /* Dashboard Layout Grid */
 .dash-layout {
     display: flex;
-    width: 100vw;
+    width: 100%;
     min-height: 100vh;
+    position: relative;
 }
 
 /* --------------------------------------------------------------------------
@@ -51,6 +52,12 @@ body.dashboard-body {
     flex-direction: column;
     gap: 20px;
     flex-shrink: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 100;
 }
 
 .dash-brand {
@@ -193,11 +200,14 @@ body.dashboard-body {
    -------------------------------------------------------------------------- */
 .dash-main {
     flex: 1;
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    min-height: 100vh;
     padding: 28px 36px;
     display: flex;
     flex-direction: column;
     gap: 24px;
-    overflow-y: auto;
+    box-sizing: border-box;
 }
 
 /* Top Header Bar */
@@ -713,9 +723,15 @@ body.dashboard-body {
         width: 100%;
         border-right: none;
         border-bottom: 1px solid var(--dash-border-subtle);
+        position: static;
+        height: auto;
+        overflow-y: visible;
+        z-index: auto;
     }
     .dash-main {
         padding: 20px 16px;
+        margin-left: 0;
+        height: auto;
     }
     .dash-summary-row {
         grid-template-columns: 1fr;
@@ -1793,5 +1809,1120 @@ table.guru-table tr:hover td {
     border: 1px solid #e2e8f0;
     letter-spacing: 0.5px;
 }
+
+/* ==========================================================================
+   Master Data - Kelas Styling & Collapsible Form Panel
+   ========================================================================== */
+
+.kelas-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 4px;
+    margin-bottom: 12px;
+}
+
+.kelas-search-box {
+    position: relative;
+    width: 320px;
+}
+
+.kelas-search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+.kelas-search-input {
+    width: 100%;
+    padding: 11px 16px 11px 42px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--dash-text-dark);
+    background-color: #ffffff;
+    border: 1px solid var(--dash-cream-border);
+    border-radius: 14px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.kelas-search-input:focus {
+    border-color: var(--dash-navy);
+    box-shadow: 0 0 0 3px rgba(35, 41, 59, 0.08);
+}
+
+.kelas-action-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-toggle-form {
+    background-color: #ffffff;
+    color: var(--dash-navy);
+    border: 1px solid var(--dash-cream-border);
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-toggle-form:hover {
+    background-color: #f7f3eb;
+    transform: translateY(-1px);
+}
+
+.btn-jurusan-tambah {
+    background-color: var(--dash-navy);
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-jurusan-tambah:hover {
+    background-color: #1e2538;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(35, 41, 59, 0.2);
+}
+
+.badge-kelas-count {
+    background-color: #ffffff;
+    color: var(--dash-text-dark);
+    border: 1px solid var(--dash-cream-border);
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Collapsible Form Panel Card (Hide & Unhide Panel) */
+.collapsible-form-panel {
+    background-color: #ffffff;
+    border: 1px solid var(--dash-border-subtle);
+    border-radius: 20px;
+    padding: 24px 28px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    margin-bottom: 16px;
+    animation: slideDown 0.25s ease;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.collapsible-form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--dash-cream-border);
+}
+
+.collapsible-form-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--dash-text-dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-grid-inline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    align-items: end;
+}
+
+/* Kelas Table Card Styling */
+.kelas-table-card {
+    background-color: #ffffff;
+    border: 1px solid var(--dash-border-subtle);
+    border-radius: 20px;
+    padding: 20px 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+table.kelas-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+}
+
+table.kelas-table th {
+    background-color: var(--dash-navy);
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 14px 20px;
+    text-align: left;
+    letter-spacing: 0.02em;
+}
+
+table.kelas-table th:first-child {
+    border-radius: 12px 0 0 12px;
+}
+
+table.kelas-table th:last-child {
+    border-radius: 0 12px 12px 0;
+    text-align: center;
+}
+
+table.kelas-table td {
+    padding: 16px 20px;
+    font-size: 0.9rem;
+    color: #1e2538;
+    background-color: #fcf8f2;
+    vertical-align: middle;
+    border-top: 1px solid #f1ebd9;
+    border-bottom: 1px solid #f1ebd9;
+}
+
+table.kelas-table tr td:first-child {
+    border-left: 1px solid #f1ebd9;
+    border-radius: 14px 0 0 14px;
+}
+
+table.kelas-table tr td:last-child {
+    border-right: 1px solid #f1ebd9;
+    border-radius: 0 14px 14px 0;
+    text-align: center;
+}
+
+table.kelas-table tr:hover td {
+    background-color: #f7eedf;
+}
+
+.jurusan-code-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background-color: #e0f2fe;
+    color: #0284c7;
+    font-family: monospace;
+    font-size: 0.85rem;
+    font-weight: 800;
+    border: 1px solid #bae6fd;
+}
+
+/* ==========================================================================
+   Auto-fading Flash Feedback Alert styling
+   ========================================================================== */
+.flash-alert {
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+/* ==========================================================================
+   Akademik - Jadwal Pelajaran Styling (Matching Exact Mockup)
+   ========================================================================== */
+
+.jadwal-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 4px;
+    margin-bottom: 16px;
+}
+
+.btn-export-pill {
+    background-color: #f7f3eb;
+    color: var(--dash-text-dark);
+    border: 1px solid var(--dash-cream-border);
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-export-pill:hover {
+    background-color: #eee7d8;
+    transform: translateY(-1px);
+}
+
+.btn-jadwal-tambah {
+    background-color: var(--dash-navy);
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 22px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-jadwal-tambah:hover {
+    background-color: #1e2538;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(35, 41, 59, 0.2);
+}
+
+/* Split Main Card Container */
+.jadwal-card-container {
+    background-color: #ffffff;
+    border: 1px solid var(--dash-border-subtle);
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+}
+
+.jadwal-card-header {
+    background-color: var(--dash-navy);
+    color: #ffffff;
+    padding: 16px 24px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.jadwal-card-body {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 24px;
+    padding: 24px;
+}
+
+@media (max-width: 1024px) {
+    .jadwal-card-body {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Left Timeline Section ("Jadwal Hari Ini") */
+.jadwal-timeline-column {
+    border-right: 1px dashed var(--dash-cream-border);
+    padding-right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-height: 680px;
+    overflow-y: auto;
+}
+
+.timeline-container {
+    position: relative;
+    padding-left: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.timeline-line {
+    position: absolute;
+    left: 7px;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
+    background-color: #cbd5e1;
+}
+
+.timeline-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: -22px;
+    top: 14px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--dash-navy);
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 2px var(--dash-navy);
+    z-index: 2;
+}
+
+.timeline-time-str {
+    font-size: 0.775rem;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.timeline-card-box {
+    background-color: #ffffff;
+    border-radius: 14px;
+    padding: 12px 14px;
+    border: 1px solid #e2e8f0;
+    border-left-width: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.timeline-card-box:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+/* Timeline card border colors */
+.border-red { border-left-color: #f87171 !important; }
+.border-amber { border-left-color: #f59e0b !important; }
+.border-green { border-left-color: #10b981 !important; }
+.border-cyan { border-left-color: #06b6d4 !important; }
+.border-purple { border-left-color: #8b5cf6 !important; }
+
+.room-red { color: #f87171 !important; }
+.room-amber { color: #f59e0b !important; }
+.room-green { color: #10b981 !important; }
+.room-cyan { color: #06b6d4 !important; }
+.room-purple { color: #8b5cf6 !important; }
+
+.timeline-card-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #1e2538;
+    margin-bottom: 2px;
+}
+
+.timeline-card-meta {
+    font-size: 0.825rem;
+    font-weight: 600;
+    color: #64748b;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.timeline-card-room {
+    position: absolute;
+    right: 14px;
+    top: 14px;
+    font-size: 0.825rem;
+    font-weight: 800;
+}
+
+.timeline-empty-box {
+    background-color: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    border-radius: 16px;
+    padding: 32px 20px;
+    text-align: center;
+    color: #64748b;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Right Table Section */
+.jadwal-table-column {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.table-filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-jadwal-filter-pill {
+    background-color: #ffffff;
+    color: var(--dash-text-dark);
+    border: 1px solid var(--dash-cream-border);
+    border-radius: 12px;
+    padding: 8px 14px;
+    font-family: inherit;
+    font-size: 0.825rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-jadwal-filter-pill:hover {
+    background-color: #f7f3eb;
+}
+
+table.jadwal-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+}
+
+table.jadwal-table th {
+    background-color: #fef8ee;
+    color: #475569;
+    font-size: 0.825rem;
+    font-weight: 800;
+    padding: 12px 16px;
+    text-align: left;
+}
+
+table.jadwal-table td {
+    padding: 14px 16px;
+    font-size: 0.875rem;
+    color: #1e2538;
+    background-color: #ffffff;
+    vertical-align: middle;
+    border-top: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+table.jadwal-table tr td:first-child {
+    border-left: 1px solid #f1f5f9;
+    border-radius: 12px 0 0 12px;
+    font-weight: 700;
+    color: #475569;
+}
+
+table.jadwal-table tr td:last-child {
+    border-right: 1px solid #f1f5f9;
+    border-radius: 0 12px 12px 0;
+    text-align: center;
+}
+
+table.jadwal-table tr:hover td {
+    background-color: #fafaf9;
+}
+
+/* ==========================================================================
+   Master Data - Mapel Styling (Matching Exact Mockup)
+   ========================================================================== */
+
+.mapel-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 4px;
+    margin-bottom: 16px;
+}
+
+.mapel-stat-box {
+    background-color: #ffffff;
+    border: 1px solid var(--dash-cream-border);
+    border-radius: 14px;
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.mapel-stat-icon {
+    width: 24px;
+    height: 24px;
+    color: var(--dash-navy);
+}
+
+.mapel-stat-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.mapel-stat-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #475569;
+}
+
+.mapel-stat-value {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #1e2538;
+}
+
+/* Mapel Grid Layout */
+.mapel-grid-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+}
+
+@media (max-width: 1024px) {
+    .mapel-grid-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Left Card Container */
+.mapel-card-container {
+    background-color: #ffffff;
+    border: 1px solid var(--dash-border-subtle);
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.mapel-card-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.mapel-card-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #1e2538;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-mapel-tambah-navy {
+    background-color: var(--dash-navy);
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-mapel-tambah-navy:hover {
+    background-color: #1e2538;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(35, 41, 59, 0.2);
+}
+
+/* Table mapel */
+table.mapel-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+}
+
+table.mapel-table th {
+    background-color: #f1f5f9;
+    color: #475569;
+    font-size: 0.825rem;
+    font-weight: 800;
+    padding: 12px 16px;
+    text-align: left;
+}
+
+table.mapel-table th:first-child {
+    border-radius: 10px 0 0 10px;
+}
+
+table.mapel-table th:last-child {
+    border-radius: 0 10px 10px 0;
+    text-align: center;
+}
+
+table.mapel-table td {
+    padding: 14px 16px;
+    font-size: 0.875rem;
+    color: #1e2538;
+    background-color: #ffffff;
+    vertical-align: middle;
+    border-top: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+table.mapel-table tr td:first-child {
+    border-left: 1px solid #f1f5f9;
+    border-radius: 12px 0 0 12px;
+    font-weight: 700;
+    color: #475569;
+}
+
+table.mapel-table tr td:last-child {
+    border-right: 1px solid #f1f5f9;
+    border-radius: 0 12px 12px 0;
+    text-align: center;
+}
+
+table.mapel-table tr:hover td {
+    background-color: #fafaf9;
+}
+
+.badge-pengampu-pill {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    background-color: #e0f2fe;
+    color: #0284c7;
+    font-size: 0.825rem;
+    font-weight: 700;
+    border: 1px solid #bae6fd;
+}
+
+/* Right Column Stack */
+.mapel-right-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.mapel-panel-card {
+    background-color: #ffffff;
+    border: 1px solid var(--dash-border-subtle);
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.mapel-panel-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #1e2538;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.badge-mapel-tan {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 10px;
+    background-color: #fef3c7;
+    color: #92400e;
+    font-size: 0.875rem;
+    font-weight: 800;
+}
+
+.badge-mapel-pink {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 10px;
+    background-color: #fecdd3;
+    color: #9f1239;
+    font-size: 0.875rem;
+    font-weight: 800;
+}
+
+.btn-lihat-semua-pill {
+    background-color: #f8fafc;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 4px 12px;
+    font-size: 0.775rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-lihat-semua-pill:hover {
+    background-color: #f1f5f9;
+}
+
+.teacher-avatar-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #cbd5e1;
+    flex-shrink: 0;
+}
+
+/* Warning Badge for Soft-Deleted Entities */
+.badge-warning-deleted {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 8px;
+    background-color: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* ==========================================================================
+   Jurnal Mengajar Module Styles (Matching Mockup)
+   ========================================================================== */
+.jurnal-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.jurnal-search-box {
+    position: relative;
+    width: 380px;
+    max-width: 100%;
+}
+
+.jurnal-search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+.jurnal-search-input {
+    width: 100%;
+    padding: 12px 16px 12px 44px;
+    background: #ffffff;
+    border: 1.5px solid var(--dash-cream-border, #e2e8f0);
+    border-radius: 14px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #334155;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.jurnal-search-input:focus {
+    outline: none;
+    border-color: var(--dash-navy, #23293b);
+    box-shadow: 0 0 0 3px rgba(35, 41, 59, 0.1);
+}
+
+.jurnal-action-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-jurnal-tambah {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 20px;
+    background-color: var(--dash-navy, #23293b);
+    color: #ffffff;
+    border: none;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(35, 41, 59, 0.15);
+}
+
+.btn-jurnal-tambah:hover {
+    background-color: #1a1f2c;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(35, 41, 59, 0.25);
+}
+
+.jurnal-card-container {
+    background: #ffffff;
+    border-radius: 20px;
+    border: 1px solid var(--dash-cream-border, #e2e8f0);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+    margin-bottom: 30px;
+}
+
+.jurnal-card-header {
+    background-color: var(--dash-navy, #23293b);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.jurnal-card-body {
+    padding: 24px;
+}
+
+/* Filter Bar inside Jurnal Card */
+.jurnal-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.jurnal-date-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background-color: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.jurnal-filter-select {
+    padding: 10px 16px;
+    background-color: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #334155;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.jurnal-filter-select:focus {
+    border-color: var(--dash-navy, #23293b);
+}
+
+.btn-jurnal-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    background-color: var(--dash-cream-bg, #fbf7ee);
+    color: var(--dash-navy, #23293b);
+    border: 1.5px solid var(--dash-cream-border, #e2e8f0);
+    border-radius: 14px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-jurnal-filter:hover {
+    background-color: #f1ebd8;
+}
+
+/* Stat Cards Grid (4 Columns) */
+.jurnal-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 992px) {
+    .jurnal-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .jurnal-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.jurnal-stat-box {
+    background: #ffffff;
+    border: 1.5px solid #f1f5f9;
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s ease;
+}
+
+.jurnal-stat-box:hover {
+    transform: translateY(-2px);
+}
+
+.jurnal-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-icon-purple {
+    background-color: #f3e8ff;
+    color: #9333ea;
+}
+
+.stat-icon-green {
+    background-color: #dcfce7;
+    color: #16a34a;
+}
+
+.stat-icon-amber {
+    background-color: #fef3c7;
+    color: #d97706;
+}
+
+.stat-icon-blue {
+    background-color: #dbeafe;
+    color: #2563eb;
+}
+
+.jurnal-stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.jurnal-stat-label {
+    font-size: 0.775rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 2px;
+}
+
+.jurnal-stat-val-group {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.jurnal-stat-val {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #1e2538;
+    line-height: 1;
+}
+
+.jurnal-stat-unit {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+/* Jurnal Table */
+.jurnal-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.jurnal-table th {
+    background-color: #ffffff;
+    color: #64748b;
+    font-size: 0.825rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 16px;
+    border-bottom: 1.5px solid #f1f5f9;
+}
+
+.jurnal-table td {
+    padding: 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f8fafc;
+    font-size: 0.9rem;
+    color: #334155;
+}
+
+.jurnal-table tr:last-child td {
+    border-bottom: none;
+}
+
+.date-block-flex {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.date-day-num {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1e2538;
+    line-height: 1;
+}
+
+.date-month-year {
+    font-size: 0.725rem;
+    font-weight: 700;
+    color: #64748b;
+    line-height: 1.15;
+    text-transform: uppercase;
+}
+
+/* Status Badges */
+.badge-status-terlaksana {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background-color: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.badge-status-belum {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+
+
 
 
