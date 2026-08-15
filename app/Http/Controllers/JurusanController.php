@@ -10,12 +10,12 @@ class JurusanController extends Controller
     public function index()
     {
         $jurusan = Jurusan::orderBy('nama_jurusan')->get();
-        return view('jurusan.index', compact('jurusan'));
+        return view('admin.jurusan.index', compact('jurusan'));
     }
 
     public function create()
     {
-        return view('jurusan.create');
+        return view('admin.jurusan.create');
     }
 
     public function store(Request $request)
@@ -31,12 +31,12 @@ class JurusanController extends Controller
 
     public function show(Jurusan $jurusan)
     {
-        return view('jurusan.show', compact('jurusan'));
+        return view('admin.jurusan.show', compact('jurusan'));
     }
 
     public function edit(Jurusan $jurusan)
     {
-        return view('jurusan.edit', compact('jurusan'));
+        return view('admin.jurusan.edit', compact('jurusan'));
     }
 
     public function update(Request $request, Jurusan $jurusan)

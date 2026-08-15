@@ -142,6 +142,6 @@ class DashboardController extends Controller
             return redirect()->route('dashboard');
         }
 
-        return view('dashboard.role-coming-soon');
+        return view('admin.dashboard.role-coming-soon');
     }
 }

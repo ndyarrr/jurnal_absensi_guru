@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Data - Guru | Admin</title>
+    <title>Master Data - Siswa | Admin</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -70,23 +70,21 @@
                                 <span>Pengguna</span>
                             </a>
                         </li>
+                        <!-- Siswa Active Sub Link -->
                         <li>
-                            <a href="{{ route('siswa.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <a href="{{ route('siswa.index') }}" class="dash-sub-link" style="background-color: var(--dash-navy); color: #ffffff; font-weight: 700;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #ffffff;">
                                     <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
                                     <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
                                 </svg>
                                 <span>Siswa</span>
                             </a>
                         </li>
-                        <!-- Guru Active Sub Link -->
                         <li>
-                            <a href="{{ route('guru.index') }}" class="dash-sub-link" style="background-color: var(--dash-navy); color: #ffffff; font-weight: 700;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #ffffff;">
+                            <a href="{{ route('guru.index') }}" class="dash-sub-link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                                     <circle cx="9" cy="7" r="4"></circle>
-                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                                 </svg>
                                 <span>Guru</span>
                             </a>
@@ -157,8 +155,8 @@
             <!-- Top Header Bar -->
             <header class="dash-top-bar">
                 <div>
-                    <h1 class="dash-header-title">Master Data - Guru</h1>
-                    <p class="dash-header-subtitle">Pengelolaan guru fleksibel</p>
+                    <h1 class="dash-header-title">Master Data - Siswa</h1>
+                    <p class="dash-header-subtitle">Pengelolaan siswa</p>
                 </div>
 
                 <div class="dash-top-right">
@@ -211,59 +209,92 @@
             <!-- ---------------------------------------------------------------
                  Controls Bar: Search & Action Buttons (Matching Mockup)
                  --------------------------------------------------------------- -->
-            <div class="guru-controls-row">
+            <div class="siswa-controls-row">
                 <!-- Search Form -->
-                <form action="{{ route('guru.index') }}" method="GET" class="guru-search-box">
-                    @if(request('id_mapel'))
-                        <input type="hidden" name="id_mapel" value="{{ request('id_mapel') }}">
-                    @endif
-                    <svg class="guru-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <form action="{{ route('siswa.index') }}" method="GET" class="siswa-search-box">
+                    @if(request('tingkat')) <input type="hidden" name="tingkat" value="{{ request('tingkat') }}"> @endif
+                    @if(request('id_jurusan')) <input type="hidden" name="id_jurusan" value="{{ request('id_jurusan') }}"> @endif
+                    @if(request('rombel')) <input type="hidden" name="rombel" value="{{ request('rombel') }}"> @endif
+
+                    <svg class="siswa-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
-                    <input type="text" name="search" id="guruSearchInput" class="guru-search-input" placeholder="Cari Guru NUPTK/NAMA..." value="{{ request('search') }}" autocomplete="off">
+                    <input type="text" name="search" id="siswaSearchInput" class="siswa-search-input" placeholder="Cari Siswa NISN/NAMA..." value="{{ request('search') }}" autocomplete="off">
                 </form>
 
                 <!-- Action Controls Group -->
-                <div class="guru-action-group">
+                <div class="siswa-action-group">
                     <!-- + Tambah Button -->
-                    <button type="button" class="btn-guru-tambah" onclick="openCreateModal()">
+                    <button type="button" class="btn-siswa-tambah" onclick="openCreateModal()">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                         </svg>
-                        <span>Tambah Guru</span>
+                        <span>Tambah</span>
                     </button>
 
-                    <!-- Filter Mapel Dropdown Pill -->
+                    <!-- Filter Tingkat -->
                     <div style="position: relative;">
-                        <button type="button" class="btn-filter-pill" onclick="toggleFilterMenu()">
+                        <button type="button" class="btn-filter-pill" onclick="toggleDropdown('tingkatMenu')">
+                            <span>{{ request('tingkat') ? 'Tingkat ' . request('tingkat') : 'Tingkat' }}</span>
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                        <div id="tingkatMenu" style="display: none; position: absolute; right: 0; top: 48px; background: #ffffff; border: 1px solid var(--dash-cream-border); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 8px; width: 140px; z-index: 50;">
+                            <a href="{{ route('siswa.index', array_merge(request()->except('tingkat'), [])) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Semua</a>
+                            @foreach($tingkatList as $t)
+                                <a href="{{ route('siswa.index', array_merge(request()->except('tingkat'), ['tingkat' => $t])) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Tingkat {{ $t }}</a>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Filter Jurusan -->
+                    <div style="position: relative;">
+                        <button type="button" class="btn-filter-pill" onclick="toggleDropdown('jurusanMenu')">
                             <span>
-                                @if(request('id_mapel'))
-                                    {{ optional($mapelList->firstWhere('id_mapel', request('id_mapel')))->nama_mapel ?? 'Semua' }}
+                                @if(request('id_jurusan'))
+                                    {{ optional($jurusanList->firstWhere('id_jurusan', request('id_jurusan')))->kode_jurusan ?? 'Jurusan' }}
                                 @else
-                                    Semua
+                                    Jurusan
                                 @endif
                             </span>
                             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <polyline points="6 9 12 15 18 9"></polyline>
                             </svg>
                         </button>
-                        <div id="filterMapelMenu" style="display: none; position: absolute; right: 0; top: 48px; background: #ffffff; border: 1px solid var(--dash-cream-border); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 8px; width: 200px; z-index: 50;">
-                            <a href="{{ route('guru.index', array_merge(request()->except('id_mapel'), [])) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Semua Mapel</a>
-                            @foreach($mapelList as $mp)
-                                <a href="{{ route('guru.index', array_merge(request()->except('id_mapel'), ['id_mapel' => $mp->id_mapel])) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">{{ $mp->nama_mapel }}</a>
+                        <div id="jurusanMenu" style="display: none; position: absolute; right: 0; top: 48px; background: #ffffff; border: 1px solid var(--dash-cream-border); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 8px; width: 180px; z-index: 50;">
+                            <a href="{{ route('siswa.index', array_merge(request()->except('id_jurusan'), [])) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Semua Jurusan</a>
+                            @foreach($jurusanList as $j)
+                                <a href="{{ route('siswa.index', array_merge(request()->except('id_jurusan'), ['id_jurusan' => $j->id_jurusan])) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">{{ $j->nama_jurusan }} ({{ $j->kode_jurusan }})</a>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Filter Rombel -->
+                    <div style="position: relative;">
+                        <button type="button" class="btn-filter-pill" onclick="toggleDropdown('rombelMenu')">
+                            <span>{{ request('rombel') ? 'Rombel ' . request('rombel') : 'Rombel' }}</span>
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                        <div id="rombelMenu" style="display: none; position: absolute; right: 0; top: 48px; background: #ffffff; border: 1px solid var(--dash-cream-border); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 8px; width: 140px; z-index: 50;">
+                            <a href="{{ route('siswa.index', array_merge(request()->except('rombel'), [])) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Semua Rombel</a>
+                            @foreach($rombelList as $r)
+                                <a href="{{ route('siswa.index', array_merge(request()->except('rombel'), ['rombel' => $r])) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Rombel {{ $r }}</a>
                             @endforeach
                         </div>
                     </div>
 
                     <!-- Total Count Badge -->
-                    <div class="badge-guru-count">
+                    <div class="badge-siswa-count">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
-                            <line x1="4" y1="22" x2="4" y2="15"></line>
+                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                            <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
                         </svg>
-                        <span>{{ $totalGuruCount }}</span>
+                        <span>{{ $totalSiswaCount }}</span>
                     </div>
                 </div>
             </div>
@@ -271,63 +302,61 @@
             <!-- ---------------------------------------------------------------
                  Data Table Card Component (Matching Mockup)
                  --------------------------------------------------------------- -->
-            <div class="guru-table-card">
+            <div class="siswa-table-card">
                 <div class="table-responsive-clean">
-                    <table class="guru-table">
+                    <table class="siswa-table">
                         <thead>
                             <tr>
                                 <th style="width: 5%;">No</th>
-                                <th style="width: 22%;">NUPTK</th>
-                                <th style="width: 28%;">Nama</th>
-                                <th style="width: 20%;">Mapel Diampu</th>
-                                <th style="width: 15%;">No Telp</th>
-                                <th style="width: 10%; text-align: center;">Aksi</th>
+                                <th style="width: 18%;">NISN</th>
+                                <th style="width: 32%;">Nama Siswa</th>
+                                <th style="width: 18%;">Kelas</th>
+                                <th style="width: 12%; text-align: center;">Status</th>
+                                <th style="width: 15%; text-align: center;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($guru as $index => $g)
-                                <tr>
-                                    <td class="td-guru-no">{{ $loop->iteration + ($guru->currentPage() - 1) * $guru->perPage() }}</td>
-                                    <td class="td-guru-nuptk">
-                                        <span class="nuptk-badge">{{ $g->nuptk ?? '-' }}</span>
+                            @forelse($siswa as $index => $s)
+                                <tr id="row-siswa-{{ $s->id_siswa }}">
+                                    <td class="td-siswa-no">{{ $loop->iteration + ($siswa->currentPage() - 1) * $siswa->perPage() }}</td>
+                                    <td class="td-siswa-nisn">
+                                        <span class="nisn-badge">{{ $s->nisn }}</span>
                                     </td>
-                                    <td class="td-guru-nama">
+                                    <td class="td-siswa-nama">
                                         <div style="display: flex; align-items: center; gap: 12px;">
-                                            <div class="avatar-initial" style="background: linear-gradient(135deg, #059669, #10b981);">
-                                                {{ strtoupper(substr($g->nama_guru, 0, 1)) }}
+                                            <div class="avatar-initial">
+                                                {{ strtoupper(substr($s->nama_siswa, 0, 1)) }}
                                             </div>
                                             <div>
-                                                <div style="font-weight: 700; color: #1e2538;">{{ $g->nama_guru }}</div>
-                                                <small style="color: #64748b; font-weight: 500;">
-                                                    {{ optional($g->user)->email ? optional($g->user)->email : 'ID: GUR-' . str_pad($g->id_guru, 3, '0', STR_PAD_LEFT) }}
-                                                </small>
+                                                <div style="font-weight: 700; color: #1e2538;" class="siswa-name-title">{{ $s->nama_siswa }}</div>
+                                                <small style="color: #64748b; font-weight: 500;">ID: SIS-{{ str_pad($s->id_siswa, 4, '0', STR_PAD_LEFT) }}</small>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="td-guru-mapel">
-                                        @forelse($g->mapel as $m)
-                                            <span class="badge-tag-guru" style="margin-right: 4px; margin-bottom: 4px; display: inline-block;">
-                                                {{ $m->nama_mapel }}
-                                            </span>
-                                        @empty
-                                            <span style="color: #94a3b8; font-size: 0.85rem;">Bahasa Inggris</span>
-                                        @endforelse
+                                    <td class="td-siswa-kelas">
+                                        @if($s->kelas && !$s->kelas->trashed())
+                                            <span class="badge-tag-guru">{{ $s->kelas->tingkat }} {{ optional($s->kelas->jurusan)->kode_jurusan }} {{ $s->kelas->rombel }}</span>
+                                        @else
+                                            <span class="badge-warning-deleted" title="Kelas ini telah dihapus">⚠️ -</span>
+                                        @endif
                                     </td>
-                                    <td class="td-guru-telp">
-                                        {{ $g->no_hp ?? '08123456789' }}
+                                    <td style="text-align: center;">
+                                        <span class="badge-status-aktif">
+                                            <span class="dot-green"></span> Aktif
+                                        </span>
                                     </td>
                                     <td>
                                         <div class="action-icons-cell">
                                             <!-- View Action -->
-                                            <button type="button" class="action-btn-icon view" title="Lihat Detail Guru" onclick="openViewModal({{ $g->id_guru }})">
+                                            <button type="button" class="action-btn-icon view" title="Lihat Detail Siswa" onclick="openViewModal({{ $s->id_siswa }})">
                                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                                     <circle cx="12" cy="12" r="3"></circle>
                                                 </svg>
                                             </button>
 
-                                            <!-- Edit Action -->
-                                            <button type="button" class="action-btn-icon edit" title="Edit Data Guru" onclick="openEditModal({{ $g->id_guru }}, '{{ addslashes($g->nuptk ?? '') }}', '{{ addslashes($g->nama_guru) }}', '{{ addslashes($g->no_hp ?? '') }}')">
+                                            <!-- Edit Action (Inline Row Edit) -->
+                                            <button type="button" class="action-btn-icon edit" title="Edit Data Siswa" onclick="startInlineEditSiswa({{ $s->id_siswa }}, '{{ addslashes($s->nisn) }}', '{{ addslashes($s->nama_siswa) }}', '{{ $s->id_kelas }}')">
                                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -335,10 +364,10 @@
                                             </button>
 
                                             <!-- Delete Action -->
-                                            <form action="{{ route('guru.destroy', $g) }}" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data guru {{ $g->nama_guru }}?')">
+                                            <form action="{{ route('siswa.destroy', $s) }}" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data siswa {{ $s->nama_siswa }}?')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="action-btn-icon delete" title="Hapus Guru">
+                                                <button type="submit" class="action-btn-icon delete" title="Hapus Siswa">
                                                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                         <polyline points="3 6 5 6 21 6"></polyline>
                                                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -351,7 +380,7 @@
                             @empty
                                 <tr>
                                     <td colspan="6" style="text-align: center; padding: 40px; color: #847e73;">
-                                        Belum ada data guru.
+                                        Belum ada data siswa.
                                     </td>
                                 </tr>
                             @endforelse
@@ -362,11 +391,11 @@
                 <!-- Footer Pagination Row -->
                 <div class="table-pagination-row">
                     <span class="pagination-summary-text">
-                        Menampilkan {{ $guru->firstItem() ?? 0 }} - {{ $guru->lastItem() ?? 0 }} dari {{ $guru->total() }} data
+                        Menampilkan {{ $siswa->firstItem() ?? 0 }} - {{ $siswa->lastItem() ?? 0 }} dari {{ $siswa->total() }} data
                     </span>
 
                     <div class="pagination-nav-group">
-                        {{ $guru->links('pagination::bootstrap-4') }}
+                        {{ $siswa->links('pagination::bootstrap-4') }}
                     </div>
                 </div>
             </div>
@@ -376,131 +405,71 @@
     </div>
 
     <!-- ===================================================================
-         Create Guru Modal Popup
+         Create Siswa Modal Popup
          =================================================================== -->
     <div class="modal-overlay" id="createModal" style="display: none;">
         <div class="modal-content-card">
             <div class="modal-header-bar">
-                <h3 class="modal-title-text">Tambah Data Guru Baru</h3>
+                <h3 class="modal-title-text">Tambah Data Siswa Baru</h3>
                 <button type="button" class="btn-close-modal" onclick="closeCreateModal()">&times;</button>
             </div>
 
-            <form action="{{ route('guru.store') }}" method="POST" class="modal-form-grid">
+            <form action="{{ route('siswa.store') }}" method="POST" class="modal-form-grid">
                 @csrf
                 <div class="form-field-group">
-                    <label for="create_nuptk">NUPTK / NIP</label>
-                    <input type="text" name="nuptk" id="create_nuptk" class="form-field-input" placeholder="Masukkan NUPTK atau NIP" required>
+                    <label for="create_nisn">NISN (10 Digit)</label>
+                    <input type="text" name="nisn" id="create_nisn" class="form-field-input" placeholder="Masukkan 10 digit NISN" maxlength="10" required>
                 </div>
 
                 <div class="form-field-group">
-                    <label for="create_nama_guru">Nama Lengkap Guru (Gelar)</label>
-                    <input type="text" name="nama_guru" id="create_nama_guru" class="form-field-input" placeholder="Contoh: Agus Prasetyo, S.T" required>
+                    <label for="create_nama_siswa">Nama Lengkap Siswa</label>
+                    <input type="text" name="nama_siswa" id="create_nama_siswa" class="form-field-input" placeholder="Masukkan nama lengkap siswa" required>
                 </div>
 
                 <div class="form-field-group">
-                    <label for="create_no_hp">No Telepon / WhatsApp</label>
-                    <input type="text" name="no_hp" id="create_no_hp" class="form-field-input" placeholder="Contoh: 08123456789">
-                </div>
-
-                <div class="form-field-group">
-                    <label>Mata Pelajaran Diampu</label>
-                    <div style="max-height: 140px; overflow-y: auto; border: 1px solid var(--dash-cream-border); border-radius: 12px; padding: 10px; background: #ffffff;">
-                        @foreach($mapelList as $m)
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.85rem; color: #1e2538; padding: 4px 0; cursor: pointer;">
-                                <input type="checkbox" name="mapel[]" value="{{ $m->id_mapel }}">
-                                <span>{{ $m->nama_mapel }}</span>
-                            </label>
+                    <label for="create_id_kelas">Kelas</label>
+                    <select name="id_kelas" id="create_id_kelas" class="form-field-input" required>
+                        <option value="">-- Pilih Kelas --</option>
+                        @foreach($kelasList as $k)
+                            <option value="{{ $k->id_kelas }}">
+                                {{ $k->tingkat }} {{ optional($k->jurusan)->kode_jurusan }} {{ $k->rombel }}
+                            </option>
                         @endforeach
-                    </div>
+                    </select>
                 </div>
 
                 <div class="modal-actions-footer">
                     <button type="button" class="btn-modal-cancel" onclick="closeCreateModal()">Batal</button>
-                    <button type="submit" class="btn-modal-submit">Simpan Guru</button>
+                    <button type="submit" class="btn-modal-submit">Simpan Siswa</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ===================================================================
-         Edit Guru Modal Popup
-         =================================================================== -->
-    <div class="modal-overlay" id="editModal" style="display: none;">
-        <div class="modal-content-card">
-            <div class="modal-header-bar">
-                <h3 class="modal-title-text">Edit Data Guru</h3>
-                <button type="button" class="btn-close-modal" onclick="closeEditModal()">&times;</button>
-            </div>
-
-            <form id="editForm" method="POST" class="modal-form-grid">
-                @csrf
-                @method('PUT')
-
-                <div class="form-field-group">
-                    <label for="edit_nuptk">NUPTK / NIP</label>
-                    <input type="text" name="nuptk" id="edit_nuptk" class="form-field-input" required>
-                </div>
-
-                <div class="form-field-group">
-                    <label for="edit_nama_guru">Nama Lengkap Guru</label>
-                    <input type="text" name="nama_guru" id="edit_nama_guru" class="form-field-input" required>
-                </div>
-
-                <div class="form-field-group">
-                    <label for="edit_no_hp">No Telepon / WhatsApp</label>
-                    <input type="text" name="no_hp" id="edit_no_hp" class="form-field-input">
-                </div>
-
-                <div class="form-field-group">
-                    <label>Mata Pelajaran Diampu</label>
-                    <div style="max-height: 140px; overflow-y: auto; border: 1px solid var(--dash-cream-border); border-radius: 12px; padding: 10px; background: #ffffff;">
-                        @foreach($mapelList as $m)
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.85rem; color: #1e2538; padding: 4px 0; cursor: pointer;">
-                                <input type="checkbox" name="mapel[]" class="edit-mapel-cb" value="{{ $m->id_mapel }}">
-                                <span>{{ $m->nama_mapel }}</span>
-                            </label>
-                        @endforeach
-                    </div>
-                </div>
-
-                <div class="modal-actions-footer">
-                    <button type="button" class="btn-modal-cancel" onclick="closeEditModal()">Batal</button>
-                    <button type="submit" class="btn-modal-submit">Update Guru</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <!-- (Pop-up modal removed in favor of direct inline table row edit) -->
 
     <!-- ===================================================================
-         View Guru Modal Popup
+         View Siswa Modal Popup
          =================================================================== -->
     <div class="modal-overlay" id="viewModal" style="display: none;">
         <div class="modal-content-card">
             <div class="modal-header-bar">
-                <h3 class="modal-title-text">Detail Data Guru</h3>
+                <h3 class="modal-title-text">Detail Data Siswa</h3>
                 <button type="button" class="btn-close-modal" onclick="closeViewModal()">&times;</button>
             </div>
 
             <div class="modal-form-grid">
                 <div class="form-field-group">
-                    <label>NUPTK / NIP:</label>
-                    <div id="view_nuptk" style="font-family: monospace; font-weight: 700; font-size: 1rem; color: #1e2538;">-</div>
+                    <label>NISN:</label>
+                    <div id="view_nisn" style="font-family: monospace; font-weight: 700; font-size: 1rem; color: #1e2538;">-</div>
                 </div>
                 <div class="form-field-group">
-                    <label>Nama Lengkap Guru:</label>
-                    <div id="view_nama_guru" style="font-weight: 700; color: #1e2538;">-</div>
+                    <label>Nama Lengkap Siswa:</label>
+                    <div id="view_nama_siswa" style="font-weight: 700; color: #1e2538;">-</div>
                 </div>
                 <div class="form-field-group">
-                    <label>No. Telepon / WA:</label>
-                    <div id="view_no_hp" style="font-weight: 600; color: #334155;">-</div>
-                </div>
-                <div class="form-field-group">
-                    <label>Mapel Diampu:</label>
-                    <div id="view_mapel_names" style="font-weight: 700; color: var(--dash-navy);">-</div>
-                </div>
-                <div class="form-field-group">
-                    <label>Akun Pengguna Terelasi:</label>
-                    <div id="view_user_info" style="font-weight: 600; color: #475569;">-</div>
+                    <label>Kelas:</label>
+                    <div id="view_kelas_str" style="font-weight: 700; color: var(--dash-navy);">-</div>
                 </div>
             </div>
 
@@ -512,6 +481,15 @@
 
     <!-- Toggle & Modal Scripts -->
     <script>
+        const csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '{{ csrf_token() }}';
+        let editingSiswaId = null;
+
+        const KELAS_OPTIONS = [
+            @foreach($kelasList as $k)
+                { id: '{{ $k->id_kelas }}', label: '{{ $k->tingkat }} {{ optional($k->jurusan)->kode_jurusan }} {{ $k->rombel }}' },
+            @endforeach
+        ];
+
         function toggleSubmenu(id) {
             const el = document.getElementById(id);
             if (el.style.display === 'none' || el.style.display === '') {
@@ -521,8 +499,15 @@
             }
         }
 
-        function toggleFilterMenu() {
-            const el = document.getElementById('filterMapelMenu');
+        function toggleDropdown(id) {
+            const dropdowns = ['tingkatMenu', 'jurusanMenu', 'rombelMenu'];
+            dropdowns.forEach(dId => {
+                if (dId !== id) {
+                    const el = document.getElementById(dId);
+                    if (el) el.style.display = 'none';
+                }
+            });
+            const el = document.getElementById(id);
             if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
         }
 
@@ -534,37 +519,103 @@
             document.getElementById('createModal').style.display = 'none';
         }
 
-        function openEditModal(id, nuptk, nama, noHp) {
-            document.getElementById('editForm').action = '/guru/' + id;
-            document.getElementById('edit_nuptk').value = nuptk;
-            document.getElementById('edit_nama_guru').value = nama;
-            document.getElementById('edit_no_hp').value = noHp;
+        /* ---- Inline Table Row Edit for Siswa ---- */
+        function startInlineEditSiswa(id, nisn, nama, idKelas) {
+            if (editingSiswaId && editingSiswaId !== id) {
+                cancelInlineEditSiswa(editingSiswaId);
+            }
+            editingSiswaId = id;
 
-            // Fetch checked mapels for edit modal
-            fetch('/guru/' + id)
-                .then(response => response.json())
-                .then(data => {
-                    const cbs = document.querySelectorAll('.edit-mapel-cb');
-                    cbs.forEach(cb => {
-                        cb.checked = data.mapel_ids.includes(parseInt(cb.value));
-                    });
-                    document.getElementById('editModal').style.display = 'flex';
+            const row = document.getElementById('row-siswa-' + id);
+            if (!row) return;
+
+            const tdNisn = row.querySelector('.td-siswa-nisn');
+            const tdNama = row.querySelector('.td-siswa-nama');
+            const tdKelas = row.querySelector('.td-siswa-kelas');
+            const tdAksi = row.querySelector('.action-icons-cell');
+
+            if (tdNisn && tdNama && tdKelas && tdAksi) {
+                tdNisn.innerHTML = `<input type="text" id="inline-nisn-${id}" class="form-field-input" value="${nisn}" maxlength="10" style="padding: 4px 8px; font-size: 0.825rem; font-family: monospace; width: 100%; border-radius: 6px; border: 1.5px solid var(--dash-navy);" autocomplete="off">`;
+                
+                tdNama.innerHTML = `<input type="text" id="inline-nama-${id}" class="form-field-input" value="${nama.replace(/"/g, '&quot;')}" style="padding: 4px 8px; font-size: 0.85rem; font-weight: 700; width: 100%; border-radius: 6px; border: 1.5px solid var(--dash-navy);" autocomplete="off">`;
+
+                let selectOptionsHtml = '<option value="">-- Pilih Kelas --</option>';
+                KELAS_OPTIONS.forEach(k => {
+                    const selected = (k.id == idKelas) ? 'selected' : '';
+                    selectOptionsHtml += `<option value="${k.id}" ${selected}>${k.label}</option>`;
                 });
+                tdKelas.innerHTML = `<select id="inline-kelas-${id}" class="form-field-input" style="padding: 4px 8px; font-size: 0.825rem; width: 100%; border-radius: 6px; border: 1.5px solid var(--dash-navy);">${selectOptionsHtml}</select>`;
+
+                tdAksi.innerHTML = `
+                    <button type="button" class="action-btn-icon" style="background-color: #dcfce7; color: #15803d; border: 1px solid #86efac;" title="Simpan" onclick="saveInlineEditSiswa(${id})">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </button>
+                    <button type="button" class="action-btn-icon" style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5;" title="Batal" onclick="cancelInlineEditSiswa(${id})">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                `;
+
+                const input = document.getElementById(`inline-nama-${id}`);
+                if (input) input.focus();
+            }
         }
 
-        function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
+        function cancelInlineEditSiswa(id) {
+            editingSiswaId = null;
+            window.location.reload();
+        }
+
+        function saveInlineEditSiswa(id) {
+            const nisn = document.getElementById(`inline-nisn-${id}`).value.trim();
+            const nama = document.getElementById(`inline-nama-${id}`).value.trim();
+            const idKelas = document.getElementById(`inline-kelas-${id}`).value;
+
+            if (!nisn || !nama || !idKelas) {
+                alert('Mohon lengkapi NISN, Nama Siswa, dan Kelas.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('nisn', nisn);
+            formData.append('nama_siswa', nama);
+            formData.append('id_kelas', idKelas);
+            formData.append('_method', 'PUT');
+
+            fetch('/siswa/' + id, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            })
+            .then(async res => {
+                const data = await res.json();
+                if (!res.ok) {
+                    alert(data.error || (data.errors ? Object.values(data.errors).flat().join('\n') : 'Gagal memperbarui data siswa.'));
+                } else {
+                    editingSiswaId = null;
+                    window.location.reload();
+                }
+            })
+            .catch(() => {
+                alert('Terjadi kesalahan koneksi server.');
+            });
         }
 
         function openViewModal(id) {
-            fetch('/guru/' + id)
+            fetch('/siswa/' + id)
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById('view_nuptk').innerText = data.nuptk;
-                    document.getElementById('view_nama_guru').innerText = data.nama_guru;
-                    document.getElementById('view_no_hp').innerText = data.no_hp;
-                    document.getElementById('view_mapel_names').innerText = data.mapel_names;
-                    document.getElementById('view_user_info').innerText = data.user_email + ' (' + data.user_role + ')';
+                    document.getElementById('view_nisn').innerText = data.nisn;
+                    document.getElementById('view_nama_siswa').innerText = data.nama_siswa;
+                    document.getElementById('view_kelas_str').innerText = data.kelas_str;
                     document.getElementById('viewModal').style.display = 'flex';
                 });
         }
@@ -572,37 +623,12 @@
         function closeViewModal() {
             document.getElementById('viewModal').style.display = 'none';
         }
-
-        function updateLiveClock() {
-            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-
-            const now = new Date();
-            const dayName = days[now.getDay()];
-            const dateNum = now.getDate();
-            const monthName = months[now.getMonth()];
-            const year = now.getFullYear();
-
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-
-            const dateEl = document.getElementById('live_date_str');
-            const timeEl = document.getElementById('live_time_str');
-
-            if (dateEl) dateEl.innerText = `${dayName}, ${dateNum} ${monthName} ${year}`;
-            if (timeEl) timeEl.innerText = `${hours}:${minutes}:${seconds} WIB`;
-        }
-
-        setInterval(updateLiveClock, 1000);
-        updateLiveClock();
-
         /* ---- Real-time Client-side Search (No Refresh) ---- */
         (function() {
-            const input = document.getElementById('guruSearchInput');
+            const input = document.getElementById('siswaSearchInput');
             if (!input) return;
 
-            const tbody = document.querySelector('.guru-table tbody');
+            const tbody = document.querySelector('.siswa-table tbody');
             if (!tbody) return;
 
             const rows = Array.from(tbody.querySelectorAll('tr'));
@@ -611,11 +637,10 @@
                 const q = this.value.toLowerCase().trim();
 
                 rows.forEach(function(row) {
-                    const nuptk = (row.querySelector('.td-guru-nuptk') || {}).textContent || '';
-                    const nama = (row.querySelector('.td-guru-nama') || {}).textContent || '';
-                    const mapel = (row.querySelector('.td-guru-mapel') || {}).textContent || '';
-                    const telp = (row.querySelector('.td-guru-telp') || {}).textContent || '';
-                    const text = (nuptk + ' ' + nama + ' ' + mapel + ' ' + telp).toLowerCase();
+                    const nisn = (row.querySelector('.td-siswa-nisn') || {}).textContent || '';
+                    const nama = (row.querySelector('.td-siswa-nama') || {}).textContent || '';
+                    const kelas = (row.querySelector('.td-siswa-kelas') || {}).textContent || '';
+                    const text = (nisn + ' ' + nama + ' ' + kelas).toLowerCase();
 
                     if (q === '' || text.includes(q)) {
                         row.style.display = '';
@@ -640,5 +665,6 @@
             });
         }, 3000);
     </script>
+    <script src="/js/live-clock.js"></script>
 </body>
 </html>

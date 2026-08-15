@@ -97,10 +97,11 @@ class JadwalPelajaranController extends Controller
         $mapels        = Mapel::orderBy('nama_mapel')->get();
         $jamPelajarans = JamPelajaran::orderBy('jam_ke')->get();
         $hariList      = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        $allJadwal     = JadwalPelajaran::with(['kelas.jurusan', 'guru', 'mapel', 'jamPelajaran'])->get();
 
-        return view('jadwal.index', compact(
+        return view('admin.jadwal.index', compact(
             'jadwal', 'todayJadwal', 'todayDayName',
-            'kelases', 'gurus', 'mapels', 'jamPelajarans', 'hariList'
+            'kelases', 'gurus', 'mapels', 'jamPelajarans', 'hariList', 'allJadwal'
         ));
     }
 
@@ -125,10 +126,11 @@ class JadwalPelajaranController extends Controller
             'id_mapel.required' => 'Mata pelajaran wajib dipilih.',
         ]);
 
-        if (empty($validated['ruangan'])) { $validated['ruangan'] = 'R. 57'; }
-
-        $jamObj = JamPelajaran::where('jam_ke', $validated['jam_ke'])->first();
-        if ($jamObj) { $validated['id_jam'] = $jamObj->id_jam; }
+        $hariKategori = ($validated['hari'] === 'Jumat') ? 'Jumat' : 'Senin-Kamis';
+        $jamObj = JamPelajaran::where('hari_kategori', $hariKategori)->where('jam_ke', $validated['jam_ke'])->first();
+        if ($jamObj) {
+            $validated['id_jam'] = $jamObj->id_jam;
+        }
 
         // Conflict checks
         if (JadwalPelajaran::where('id_kelas', $validated['id_kelas'])->where('hari', $validated['hari'])->where('jam_ke', $validated['jam_ke'])->exists()) {
@@ -139,9 +141,11 @@ class JadwalPelajaranController extends Controller
             $msg = 'Bentrok Guru: Guru tersebut sudah mengajar di kelas lain pada Hari ' . $validated['hari'] . ' Jam Ke-' . $validated['jam_ke'] . '.';
             return $request->ajax() ? response()->json(['error' => $msg], 422) : back()->withInput()->with('error', $msg);
         }
-        if (JadwalPelajaran::where('ruangan', $validated['ruangan'])->where('hari', $validated['hari'])->where('jam_ke', $validated['jam_ke'])->exists()) {
-            $msg = 'Bentrok Ruangan: Ruangan "' . $validated['ruangan'] . '" sudah digunakan oleh kelas lain pada Hari ' . $validated['hari'] . ' Jam Ke-' . $validated['jam_ke'] . '.';
-            return $request->ajax() ? response()->json(['error' => $msg], 422) : back()->withInput()->with('error', $msg);
+        if (!empty($validated['ruangan']) && $validated['ruangan'] !== '-') {
+            if (JadwalPelajaran::where('ruangan', $validated['ruangan'])->where('hari', $validated['hari'])->where('jam_ke', $validated['jam_ke'])->exists()) {
+                $msg = 'Bentrok Ruangan: Ruangan "' . $validated['ruangan'] . '" sudah digunakan oleh kelas lain pada Hari ' . $validated['hari'] . ' Jam Ke-' . $validated['jam_ke'] . '.';
+                return $request->ajax() ? response()->json(['error' => $msg], 422) : back()->withInput()->with('error', $msg);
+            }
         }
 
         JadwalPelajaran::create($validated);
@@ -179,7 +183,7 @@ class JadwalPelajaranController extends Controller
             'id_mapel'         => $jadwal->id_mapel,
             'nama_guru'        => $isGuruDeleted ? '-' : $jadwal->guru->nama_guru,
             'id_guru'          => $jadwal->id_guru,
-            'ruangan'          => $jadwal->ruangan ?? 'R. 57',
+            'ruangan'          => $jadwal->ruangan ?? '-',
             'is_kelas_deleted' => $isKelasDeleted,
             'is_guru_deleted'  => $isGuruDeleted,
             'is_mapel_deleted' => $isMapelDeleted,
@@ -200,9 +204,11 @@ class JadwalPelajaranController extends Controller
             'ruangan'  => 'nullable|string|max:50',
         ], ['hari.in' => 'Hari pelajaran hanya berlaku untuk Senin sampai Jumat.']);
 
-        if (empty($validated['ruangan'])) { $validated['ruangan'] = 'R. 57'; }
-        $jamObj = JamPelajaran::where('jam_ke', $validated['jam_ke'])->first();
-        if ($jamObj) { $validated['id_jam'] = $jamObj->id_jam; }
+        $hariKategori = ($validated['hari'] === 'Jumat') ? 'Jumat' : 'Senin-Kamis';
+        $jamObj = JamPelajaran::where('hari_kategori', $hariKategori)->where('jam_ke', $validated['jam_ke'])->first();
+        if ($jamObj) {
+            $validated['id_jam'] = $jamObj->id_jam;
+        }
 
         if (JadwalPelajaran::where('id_kelas', $validated['id_kelas'])->where('hari', $validated['hari'])->where('jam_ke', $validated['jam_ke'])->where('id_jadwal', '!=', $jadwal->id_jadwal)->exists()) {
             $msg = 'Bentrok Kelas: Kelas ini sudah memiliki jadwal pelajaran lain di Hari ' . $validated['hari'] . ' Jam Ke-' . $validated['jam_ke'] . '.';
@@ -212,9 +218,11 @@ class JadwalPelajaranController extends Controller
             $msg = 'Bentrok Guru: Guru tersebut sudah mengajar di kelas lain pada Hari ' . $validated['hari'] . ' Jam Ke-' . $validated['jam_ke'] . '.';
             return $request->ajax() ? response()->json(['error' => $msg], 422) : back()->withInput()->with('error', $msg);
         }
-        if (JadwalPelajaran::where('ruangan', $validated['ruangan'])->where('hari', $validated['hari'])->where('jam_ke', $validated['jam_ke'])->where('id_jadwal', '!=', $jadwal->id_jadwal)->exists()) {
-            $msg = 'Bentrok Ruangan: Ruangan "' . $validated['ruangan'] . '" sudah digunakan oleh kelas lain pada Hari ' . $validated['hari'] . ' Jam Ke-' . $validated['jam_ke'] . '.';
-            return $request->ajax() ? response()->json(['error' => $msg], 422) : back()->withInput()->with('error', $msg);
+        if (!empty($validated['ruangan']) && $validated['ruangan'] !== '-') {
+            if (JadwalPelajaran::where('ruangan', $validated['ruangan'])->where('hari', $validated['hari'])->where('jam_ke', $validated['jam_ke'])->where('id_jadwal', '!=', $jadwal->id_jadwal)->exists()) {
+                $msg = 'Bentrok Ruangan: Ruangan "' . $validated['ruangan'] . '" sudah digunakan oleh kelas lain pada Hari ' . $validated['hari'] . ' Jam Ke-' . $validated['jam_ke'] . '.';
+                return $request->ajax() ? response()->json(['error' => $msg], 422) : back()->withInput()->with('error', $msg);
+            }
         }
 
         $jadwal->update($validated);
@@ -235,5 +243,52 @@ class JadwalPelajaranController extends Controller
             return response()->json(['success' => 'Jadwal pelajaran berhasil dihapus.']);
         }
         return redirect()->route('jadwal.index')->with('success', 'Jadwal pelajaran berhasil dihapus.');
+    }
+
+    /**
+     * Move schedule to a new day & time slot via Drag & Drop.
+     */
+    public function move(Request $request, JadwalPelajaran $jadwal)
+    {
+        $validated = $request->validate([
+            'hari'   => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat',
+            'jam_ke' => 'required|integer|min:1|max:12',
+        ]);
+
+        $hariKategori = ($validated['hari'] === 'Jumat') ? 'Jumat' : 'Senin-Kamis';
+        $jamObj = JamPelajaran::where('hari_kategori', $hariKategori)->where('jam_ke', $validated['jam_ke'])->first();
+
+        $targetKelasId = $request->input('id_kelas', $jadwal->id_kelas);
+
+        // Conflict checks
+        if (JadwalPelajaran::where('id_kelas', $targetKelasId)
+            ->where('hari', $validated['hari'])
+            ->where('jam_ke', $validated['jam_ke'])
+            ->where('id_jadwal', '!=', $jadwal->id_jadwal)->exists()) {
+            return response()->json(['error' => 'Bentrok Kelas: Slot ini sudah terisi untuk kelas tersebut pada ' . $validated['hari'] . ' Jam Ke-' . $validated['jam_ke']], 422);
+        }
+
+        if (JadwalPelajaran::where('id_guru', $jadwal->id_guru)
+            ->where('hari', $validated['hari'])
+            ->where('jam_ke', $validated['jam_ke'])
+            ->where('id_jadwal', '!=', $jadwal->id_jadwal)->exists()) {
+            return response()->json(['error' => 'Bentrok Guru: Guru tersebut sudah mengajar di kelas lain pada ' . $validated['hari'] . ' Jam Ke-' . $validated['jam_ke']], 422);
+        }
+
+        if (!empty($jadwal->ruangan) && JadwalPelajaran::where('ruangan', $jadwal->ruangan)
+            ->where('hari', $validated['hari'])
+            ->where('jam_ke', $validated['jam_ke'])
+            ->where('id_jadwal', '!=', $jadwal->id_jadwal)->exists()) {
+            return response()->json(['error' => 'Bentrok Ruangan: Ruangan "' . $jadwal->ruangan . '" sudah terpakai pada ' . $validated['hari'] . ' Jam Ke-' . $validated['jam_ke']], 422);
+        }
+
+        $jadwal->update([
+            'id_kelas' => $targetKelasId,
+            'hari'     => $validated['hari'],
+            'jam_ke'   => $validated['jam_ke'],
+            'id_jam'   => $jamObj->id_jam ?? $jadwal->id_jam,
+        ]);
+
+        return response()->json(['success' => 'Jadwal berhasil dipindahkan ke ' . $validated['hari'] . ' Jam Ke-' . $validated['jam_ke']]);
     }
 }

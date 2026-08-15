@@ -61,7 +61,7 @@ class SiswaController extends Controller
         $dbRombels  = Kelas::select('rombel')->distinct()->whereNotNull('rombel')->pluck('rombel')->map(fn($r) => (int)$r)->unique()->sort()->values()->toArray();
         $rombelList = !empty($dbRombels) ? $dbRombels : [1, 2, 3, 4, 5];
 
-        return view('siswa.index', compact(
+        return view('admin.siswa.index', compact(
             'siswa',
             'totalSiswaCount',
             'kelasList',
@@ -123,6 +123,10 @@ class SiswaController extends Controller
         ]);
 
         $siswa->update($validated);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => 'Data siswa berhasil diperbarui']);
+        }
 
         return redirect()->route('siswa.index')->with('success', 'Data siswa berhasil diperbarui');
     }

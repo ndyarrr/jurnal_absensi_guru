@@ -2492,6 +2492,21 @@ table.mapel-table tr:hover td {
     background-color: #fafaf9;
 }
 
+table.mapel-table tr.selected-active-row td {
+    background-color: #fff8eb !important;
+    border-top-color: #fde68a !important;
+    border-bottom-color: #fde68a !important;
+    color: #1e2538;
+}
+
+table.mapel-table tr.selected-active-row td:first-child {
+    border-left: 4px solid #f59e0b !important;
+}
+
+table.mapel-table tr.selected-active-row td:last-child {
+    border-right-color: #fde68a !important;
+}
+
 .badge-pengampu-pill {
     display: inline-block;
     padding: 4px 14px;

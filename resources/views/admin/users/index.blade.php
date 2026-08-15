@@ -338,7 +338,7 @@
                         </thead>
                         <tbody>
                             @forelse($users as $index => $user)
-                                <tr>
+                                <tr id="row-user-{{ $user->id }}">
                                     <td class="td-no">{{ $loop->iteration + ($users->currentPage() - 1) * $users->perPage() }}</td>
                                     <td class="td-nama">{{ $user->name }}</td>
                                     <td>
@@ -819,31 +819,6 @@
         function closeViewModal() {
             document.getElementById('viewModal').style.display = 'none';
         }
-
-        function updateLiveClock() {
-            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-
-            const now = new Date();
-            const dayName = days[now.getDay()];
-            const dateNum = now.getDate();
-            const monthName = months[now.getMonth()];
-            const year = now.getFullYear();
-
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-
-            const dateEl = document.getElementById('live_date_str');
-            const timeEl = document.getElementById('live_time_str');
-
-            if (dateEl) dateEl.innerText = `${dayName}, ${dateNum} ${monthName} ${year}`;
-            if (timeEl) timeEl.innerText = `${hours}:${minutes}:${seconds} WIB`;
-        }
-
-        setInterval(updateLiveClock, 1000);
-        updateLiveClock();
-
         /* ---- Real-time Client-side Search (No Refresh) ---- */
         (function() {
             const input = document.getElementById('userSearchInput');
@@ -885,5 +860,6 @@
             });
         }, 3000);
     </script>
+    <script src="/js/live-clock.js"></script>
 </body>
 </html>

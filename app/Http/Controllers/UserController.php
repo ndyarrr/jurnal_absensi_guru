@@ -41,7 +41,7 @@ class UserController extends Controller
         // 3. Guru list for create/edit select dropdowns
         $guruList = Guru::orderBy('nama_guru')->get();
 
-        return view('users.index', compact(
+        return view('admin.users.index', compact(
             'users',
             'adminCount',
             'guruPiketCount',
@@ -111,7 +111,7 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $guru = Guru::orderBy('nama_guru')->get();
-        return view('users.edit', compact('user', 'guru'));
+        return view('admin.users.edit', compact('user', 'guru'));
     }
 
     /**
@@ -145,6 +145,10 @@ class UserController extends Controller
         }
 
         $user->update($validated);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => 'Data pengguna berhasil diperbarui']);
+        }
 
         return redirect()->route('users.index')->with('success', 'Data pengguna berhasil diperbarui');
     }

@@ -69,7 +69,7 @@ class KelasController extends Controller
             ];
         }
 
-        return view('kelas.index', compact(
+        return view('admin.kelas.index', compact(
             'kelas',
             'totalKelasCount',
             'totalJurusanCount',
@@ -158,6 +158,10 @@ class KelasController extends Controller
         $validated['wali_kelas'] = $guru ? $guru->nama_guru : null;
 
         $kelas->update($validated);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => 'Data kelas berhasil diperbarui']);
+        }
 
         return redirect()->route('kelas.index')->with('success', 'Data kelas berhasil diperbarui');
     }

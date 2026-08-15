@@ -148,7 +148,7 @@ class JurnalMengajarController extends Controller
             });
         $mapels  = Mapel::withTrashed()->orderBy('nama_mapel')->get()->unique('nama_mapel');
 
-        return view('jurnal.index', compact(
+        return view('admin.jurnal.index', compact(
             'jurnal', 'gurus', 'kelases', 'mapels',
             'totalPertemuan', 'terlaksana', 'belumTerlaksana', 'totalGuruAktif'
         ));
@@ -161,7 +161,7 @@ class JurnalMengajarController extends Controller
         $siswa = Siswa::orderBy('nama_siswa')->get();
         $jadwalKelasMap = $jadwal->pluck('id_kelas', 'id_jadwal');
 
-        return view('jurnal.create', compact('jadwal', 'guru', 'siswa', 'jadwalKelasMap'));
+        return view('admin.jurnal.create', compact('jadwal', 'guru', 'siswa', 'jadwalKelasMap'));
     }
 
     public function store(Request $request)
@@ -236,7 +236,7 @@ class JurnalMengajarController extends Controller
             ]);
         }
 
-        return view('jurnal.show', compact('jurnal'));
+        return view('admin.jurnal.show', compact('jurnal'));
     }
 
     public function edit(JurnalMengajar $jurnal)
@@ -247,7 +247,7 @@ class JurnalMengajarController extends Controller
         $jadwalKelasMap = $jadwal->pluck('id_kelas', 'id_jadwal');
         $jurnal->load('detailKetidakhadiran');
 
-        return view('jurnal.edit', compact('jurnal', 'jadwal', 'guru', 'siswa', 'jadwalKelasMap'));
+        return view('admin.jurnal.edit', compact('jurnal', 'jadwal', 'guru', 'siswa', 'jadwalKelasMap'));
     }
 
     public function update(Request $request, JurnalMengajar $jurnal)

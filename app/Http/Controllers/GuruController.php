@@ -36,7 +36,7 @@ class GuruController extends Controller
         $totalGuruCount = Guru::count();
         $mapelList = Mapel::orderBy('nama_mapel')->get();
 
-        return view('guru.index', compact('guru', 'totalGuruCount', 'mapelList'));
+        return view('admin.guru.index', compact('guru', 'totalGuruCount', 'mapelList'));
     }
 
     /**
@@ -115,6 +115,10 @@ class GuruController extends Controller
         ]);
 
         $guru->mapel()->sync($request->input('mapel', []));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => 'Data guru berhasil diperbarui']);
+        }
 
         return redirect()->route('guru.index')->with('success', 'Data guru berhasil diperbarui');
     }

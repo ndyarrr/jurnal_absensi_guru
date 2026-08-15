@@ -66,7 +66,7 @@ class MapelController extends Controller
             ]);
         }
 
-        return view('mapel.index', compact(
+        return view('admin.mapel.index', compact(
             'mapel',
             'totalMapel',
             'totalPengampu',

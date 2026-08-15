@@ -10,9 +10,12 @@ class JamPelajaran extends Model
     protected $primaryKey = 'id_jam';
     
     protected $fillable = [
+        'hari_kategori',
         'jam_ke',
         'jam_mulai',
         'jam_selesai',
+        'is_istirahat',
+        'durasi_menit',
         'keterangan',
     ];
 

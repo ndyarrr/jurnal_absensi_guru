@@ -219,11 +219,20 @@
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
-                    <input type="text" id="jadwalSearchInput" class="form-field-input" style="padding-left: 42px; border-radius: 14px;" placeholder="Cari Nama/Wali kelas.." value="{{ request('search') }}" autocomplete="off">
+                    <input type="text" id="jadwalSearchInput" class="form-field-input" style="padding-left: 42px; border-radius: 14px;" placeholder="Cari Nama Jadwal" value="{{ request('search') }}" autocomplete="off">
                 </div>
 
                 <!-- Action Buttons -->
                 <div style="display: flex; align-items: center; gap: 12px;">
+                    <!-- Kelola Jam & Pulang Button -->
+                    <a href="{{ route('jam.index') }}" class="btn-export-pill" style="background: #ffffff; color: var(--dash-navy); border: 1.5px solid var(--dash-navy); font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span>Kelola Jam & Waktu Pulang</span>
+                    </a>
+
                     <!-- Export Button -->
                     <button type="button" class="btn-export-pill" onclick="showToast('Export data jadwal sedang diunduh...', 'success')">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -245,10 +254,234 @@
                 </div>
             </div>
 
+            <style>
+                .jam-tab-btn {
+                    padding: 8px 16px;
+                    font-size: 0.85rem;
+                    font-weight: 700;
+                    border-radius: 12px;
+                    border: 1px solid var(--dash-cream-border);
+                    background: #ffffff;
+                    color: #475569;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+                .jam-tab-btn.active {
+                    background: var(--dash-navy);
+                    color: #ffffff;
+                    border-color: var(--dash-navy);
+                    box-shadow: 0 4px 12px rgba(35, 41, 59, 0.2);
+                }
+                .matrix-cell-slot {
+                    background-color: #f8fafc;
+                    border: 2px dashed #cbd5e1;
+                    border-radius: 14px;
+                    padding: 8px;
+                    vertical-align: top;
+                    height: 115px;
+                    min-width: 155px;
+                    transition: all 0.2s ease;
+                }
+                .matrix-cell-slot.drop-target-active {
+                    background-color: #dcfce7 !important;
+                    border-color: #16a34a !important;
+                    transform: scale(1.02);
+                }
+                .matrix-drag-box {
+                    background: #ffffff;
+                    border: 1.5px solid #cbd5e1;
+                    border-left: 4px solid var(--dash-navy);
+                    border-radius: 12px;
+                    padding: 8px 10px;
+                    cursor: grab;
+                    user-select: none;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+                    transition: all 0.2s ease;
+                }
+                .matrix-drag-box:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+                }
+                .matrix-drag-box:active {
+                    cursor: grabbing;
+                    opacity: 0.8;
+                }
+                .matrix-empty-target {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 6px;
+                    color: #94a3b8;
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    border-radius: 10px;
+                    border: 1px dashed #cbd5e1;
+                    margin-top: 4px;
+                    transition: all 0.2s ease;
+                }
+                .matrix-empty-target:hover {
+                    background: #f1f5f9;
+                    color: var(--dash-navy);
+                    border-color: var(--dash-navy);
+                }
+            </style>
+
+            <!-- View Mode Switcher -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" id="btnViewMatrix" class="jam-tab-btn active" onclick="switchJadwalView('matrix')">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                            <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                            <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                            <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                        </svg>
+                        <span>Matriks Drag & Drop</span>
+                    </button>
+
+                    <button type="button" id="btnViewList" class="jam-tab-btn" onclick="switchJadwalView('list')">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        </svg>
+                        <span>Tabel List</span>
+                    </button>
+                </div>
+
+                <!-- Matrix Class Filter -->
+                <div id="matrixClassFilterWrapper" style="display: flex; align-items: center; gap: 10px;">
+                    <label style="font-weight: 700; font-size: 0.85rem; color: #475569;">Filter Kelas Matriks:</label>
+                    <select id="matrixClassSelect" class="form-field-input" style="width: 200px; padding: 6px 12px; border-radius: 10px;" onchange="filterMatrixByClass()">
+                        <option value="">-- Semua Kelas --</option>
+                        @foreach($kelases as $k)
+                            <option value="{{ $k->id_kelas }}">{{ $k->tingkat }} {{ optional($k->jurusan)->kode_jurusan }} {{ $k->rombel }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <!-- ===================================================================
+                 MATRIX SCHEDULE VIEW (DRAG & DROP TIMETABLE GRID)
+                 =================================================================== -->
+            <!-- ===================================================================
+                 MATRIX SCHEDULE VIEW (GROUPED BY KELAS)
+                 =================================================================== -->
+            <div id="matrixViewCard" style="margin-bottom: 24px;">
+                @foreach($kelases as $kelas)
+                    <div class="kelas-matrix-block" id="matrix-kelas-block-{{ $kelas->id_kelas }}" style="margin-bottom: 24px; background: #ffffff; border: 1px solid var(--dash-border-subtle); border-radius: 18px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.02);">
+                        <!-- Class Header Banner -->
+                        <div style="background: linear-gradient(135deg, var(--dash-navy), #3b82f6); color: #ffffff; border-radius: 12px; padding: 12px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                                    <path d="M3 9h18M9 21V9"></path>
+                                </svg>
+                                <div>
+                                    <div style="font-weight: 800; font-size: 1.05rem;">Kelas {{ $kelas->tingkat }} {{ optional($kelas->jurusan)->kode_jurusan }} {{ $kelas->rombel }}</div>
+                                    <small style="opacity: 0.85; font-weight: 600;">Wali Kelas: {{ optional($kelas->waliKelas)->nama_guru ?? 'Belum Diatur' }}</small>
+                                </div>
+                            </div>
+                            <span style="font-size: 0.8rem; font-weight: 700; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px;">{{ $allJadwal->where('id_kelas', $kelas->id_kelas)->count() }} Mapel Terjadwal</span>
+                        </div>
+
+                        <div style="overflow-x: auto;">
+                            <table class="matrix-grid-table" style="width: 100%; border-collapse: separate; border-spacing: 8px;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 130px; background: #334155; color: #fff; border-radius: 10px; padding: 10px; font-weight: 800; font-size: 0.85rem;">Jam \ Hari</th>
+                                        @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'] as $hName)
+                                            <th style="background: #334155; color: #fff; border-radius: 10px; padding: 10px; font-weight: 800; font-size: 0.85rem;">{{ $hName }}</th>
+                                        @endforeach
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for($jamNum = 1; $jamNum <= 10; $jamNum++)
+                                        @php
+                                            $timeSk = optional($jamPelajarans->where('hari_kategori', 'Senin-Kamis')->where('jam_ke', $jamNum)->first());
+                                            $timeJm = optional($jamPelajarans->where('hari_kategori', 'Jumat')->where('jam_ke', $jamNum)->first());
+                                            $skRange = $timeSk->jam_mulai ? (\Carbon\Carbon::parse($timeSk->jam_mulai)->format('H.i') . '-' . \Carbon\Carbon::parse($timeSk->jam_selesai)->format('H.i')) : '-';
+                                            $jmRange = $timeJm->jam_mulai ? (\Carbon\Carbon::parse($timeJm->jam_mulai)->format('H.i') . '-' . \Carbon\Carbon::parse($timeJm->jam_selesai)->format('H.i')) : '-';
+                                        @endphp
+                                        <tr>
+                                            <td style="background: #f8fafc; border-radius: 10px; padding: 8px; vertical-align: middle; text-align: center; border: 1px solid #e2e8f0;">
+                                                <div style="font-weight: 800; font-size: 0.85rem; color: var(--dash-navy);">Jam {{ $jamNum }}</div>
+                                                <div style="font-size: 0.68rem; color: #64748b; font-weight: 600;">S-K: {{ $skRange }}</div>
+                                                <div style="font-size: 0.68rem; color: #0284c7; font-weight: 700;">Jmt: {{ $jmRange }}</div>
+                                            </td>
+
+                                            @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'] as $hName)
+                                                @php
+                                                    $jItem = $allJadwal->where('id_kelas', $kelas->id_kelas)->where('hari', $hName)->where('jam_ke', $jamNum)->first();
+                                                @endphp
+                                                <td class="matrix-cell-slot" 
+                                                    id="cell-{{ $kelas->id_kelas }}-{{ $hName }}-{{ $jamNum }}"
+                                                    data-kelas="{{ $kelas->id_kelas }}"
+                                                    data-hari="{{ $hName }}" 
+                                                    data-jam="{{ $jamNum }}"
+                                                    ondragover="allowDropJadwal(event)" 
+                                                    ondragleave="leaveDropJadwal(event)" 
+                                                    ondrop="onDropJadwal(event, {{ $kelas->id_kelas }}, '{{ $hName }}', {{ $jamNum }})">
+                                                    
+                                                    @if($jItem)
+                                                        <!-- Slot Terisi: Tampilkan Card Jadwal, HAPUS tombol Tambah Slot -->
+                                                        <div class="matrix-drag-box" 
+                                                             id="drag-jadwal-{{ $jItem->id_jadwal }}"
+                                                             draggable="true" 
+                                                             ondragstart="onDragStartJadwal(event, {{ $jItem->id_jadwal }})"
+                                                             style="background-color: #e0f2fe; border-left-color: #0284c7;">
+                                                            
+                                                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                                                <span style="font-size: 0.85rem; font-weight: 800; color: #1e2538;">{{ optional($jItem->mapel)->nama_mapel ?? '-' }}</span>
+                                                                <div style="display: flex; gap: 4px;">
+                                                                    <button type="button" class="action-btn-icon edit" title="Edit Jadwal" onclick="openEditModal({{ $jItem->id_jadwal }}, '{{ $jItem->id_kelas }}', '{{ $jItem->hari }}', '{{ $jItem->jam_ke }}', '{{ $jItem->id_guru }}', '{{ $jItem->id_mapel }}', '{{ addslashes($jItem->ruangan ?? '') }}')" style="width: 24px; height: 24px; border-radius: 6px; padding: 0;">
+                                                                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                                                        </svg>
+                                                                    </button>
+                                                                    <button type="button" class="action-btn-icon delete" title="Hapus Jadwal" onclick="deleteJadwalAjax({{ $jItem->id_jadwal }})" style="width: 24px; height: 24px; border-radius: 6px; padding: 0;">
+                                                                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                                        </svg>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+
+                                                            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px;">
+                                                                <span style="font-size: 0.72rem; color: #475569; font-weight: 700;">{{ optional($jItem->guru)->nama_guru ?? '-' }}</span>
+                                                                <span style="font-size: 0.68rem; font-weight: 800; color: #059669; background: #ffffff; border: 1px solid #a7f3d0; padding: 1px 6px; border-radius: 8px;">{{ $jItem->ruangan ?? '-' }}</span>
+                                                            </div>
+                                                        </div>
+                                                    @else
+                                                        <!-- Slot Kosong: Tampilkan Tombol + Isi Slot -->
+                                                        <div class="matrix-empty-target" onclick="openCreateModalPrefilled({{ $kelas->id_kelas }}, '{{ $hName }}', {{ $jamNum }})" title="Klik untuk menambah jadwal di slot kosong ini">
+                                                            <span>+ Isi Slot</span>
+                                                        </div>
+                                                    @endif
+                                                </td>
+                                            @endforeach
+                                        </tr>
+                                    @endfor
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
             <!-- ---------------------------------------------------------------
-                 Split Layout Card: Left Timeline ("Jadwal Hari Ini") vs Right Table
+                 Split Layout Card: Left Timeline ("Jadwal Hari Ini") vs Right Table (List View)
                  --------------------------------------------------------------- -->
-            <div class="jadwal-card-container">
+            <div class="jadwal-card-container" id="listViewCard" style="display: none;">
                 <!-- Navy Header Title -->
                 <div class="jadwal-card-header">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -724,7 +957,6 @@
             if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
         }
 
-        /* ---- Toast Alert Function (Auto-hides in 3 seconds) ---- */
         function showToast(message, type = 'success') {
             const container = document.getElementById('ajaxAlertContainer');
             if (!container) return;
@@ -748,107 +980,108 @@
             }, 3000);
         }
 
-        /* ---- Fetch Table Data via AJAX (No Refresh) ---- */
-        function reloadJadwalTable() {
-            const params = new URLSearchParams();
-            if (currentFilters.search) params.append('search', currentFilters.search);
-            if (currentFilters.hari) params.append('hari', currentFilters.hari);
-            if (currentFilters.id_kelas) params.append('id_kelas', currentFilters.id_kelas);
-            if (currentFilters.id_mapel) params.append('id_mapel', currentFilters.id_mapel);
+        /* ---- View Switcher (Matrix vs List) ---- */
+        function switchJadwalView(mode) {
+            const btnMatrix = document.getElementById('btnViewMatrix');
+            const btnList   = document.getElementById('btnViewList');
+            const cardMatrix= document.getElementById('matrixViewCard');
+            const cardList  = document.getElementById('listViewCard');
+            const filterWrap= document.getElementById('matrixClassFilterWrapper');
 
-            fetch('/jadwal?' + params.toString(), {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(res => res.json())
-            .then(resData => {
-                const tbody = document.querySelector('#jadwalMainTable tbody');
-                if (!tbody) return;
+            if (mode === 'matrix') {
+                btnMatrix.classList.add('active');
+                btnList.classList.remove('active');
+                cardMatrix.style.display = 'block';
+                cardList.style.display = 'none';
+                if (filterWrap) filterWrap.style.display = 'flex';
+            } else {
+                btnList.classList.add('active');
+                btnMatrix.classList.remove('active');
+                cardList.style.display = 'block';
+                cardMatrix.style.display = 'none';
+                if (filterWrap) filterWrap.style.display = 'none';
+            }
+        }
 
-                if (!resData.data || resData.data.length === 0) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="6" style="text-align: center; padding: 30px; color: #847e73;">
-                                Belum ada data jadwal pelajaran.
-                            </td>
-                        </tr>
-                    `;
+        /* ---- Matrix Class Filter ---- */
+        function filterMatrixByClass() {
+            const classId = document.getElementById('matrixClassSelect').value;
+            const blocks  = document.querySelectorAll('.kelas-matrix-block');
+            blocks.forEach(b => {
+                if (!classId || b.id === 'matrix-kelas-block-' + classId) {
+                    b.style.display = 'block';
                 } else {
-                    tbody.innerHTML = resData.data.map(j => {
-                        const mapelCell = j.is_mapel_deleted ? '<span class="badge-warning-deleted" title="Mata pelajaran ini telah dihapus">⚠️ -</span>' : j.mapel;
-                        const kelasCell = j.is_kelas_deleted ? '<span class="badge-warning-deleted" title="Kelas ini telah dihapus">⚠️ -</span>' : j.kelas;
-                        const guruCell  = j.is_guru_deleted  ? '<span class="badge-warning-deleted" title="Guru ini telah dihapus">⚠️ -</span>' : j.guru;
-
-                        return `
-                            <tr id="row-jadwal-${j.id_jadwal}">
-                                <td>${j.waktu}</td>
-                                <td style="font-weight: 700;">${mapelCell}</td>
-                                <td style="font-weight: 700;">${kelasCell}</td>
-                                <td>${guruCell}</td>
-                                <td style="font-weight: 700; color: #475569;">${j.ruangan}</td>
-                                <td>
-                                    <div class="action-icons-cell">
-                                        <button type="button" class="action-btn-icon view" title="Lihat Detail" onclick="openViewModal(${j.id_jadwal})">
-                                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                                <circle cx="12" cy="12" r="3"></circle>
-                                            </svg>
-                                        </button>
-                                        <button type="button" class="action-btn-icon edit" title="Edit Jadwal" onclick="openEditModal(${j.id_jadwal}, '${j.id_kelas}', '${j.hari}', '${j.jam_ke}', '${j.id_guru}', '${j.id_mapel}', '${(j.ruangan || 'R. 57').replace(/'/g, "\\'")}')">
-                                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                            </svg>
-                                        </button>
-                                        <button type="button" class="action-btn-icon delete" title="Hapus" onclick="deleteJadwalAjax(${j.id_jadwal})">
-                                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                <polyline points="3 6 5 6 21 6"></polyline>
-                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        `;
-                    }).join('');
-                }
-
-                // Update pagination text
-                const pag = resData.pagination;
-                const pagEl = document.getElementById('paginationSummary');
-                if (pagEl && pag) {
-                    pagEl.innerText = `Menampilkan ${pag.first} - ${pag.last} dari ${pag.total} data`;
+                    b.style.display = 'none';
                 }
             });
         }
 
-        /* ---- Select Filter Without Refresh ---- */
-        function selectFilter(key, value, label) {
-            currentFilters[key] = value;
-            if (key === 'hari') {
-                document.getElementById('filterHariLabel').innerText = label;
-                document.getElementById('filterHariMenu').style.display = 'none';
-            } else if (key === 'id_kelas') {
-                document.getElementById('filterKelasLabel').innerText = label;
-                document.getElementById('filterKelasMenu').style.display = 'none';
-            } else if (key === 'id_mapel') {
-                document.getElementById('filterMapelLabel').innerText = label;
-                document.getElementById('filterMapelMenu').style.display = 'none';
-            }
-            reloadJadwalTable();
+        /* ---- Open Create Modal Prefilled with Kelas, Hari & Jam ---- */
+        function openCreateModalPrefilled(idKelas, hari, jamKe) {
+            openCreateModal();
+            const inputKelas = document.getElementById('create_id_kelas');
+            const inputHari  = document.getElementById('create_hari');
+            const inputJam   = document.getElementById('create_jam_ke');
+            if (inputKelas) inputKelas.value = idKelas;
+            if (inputHari)  inputHari.value  = hari;
+            if (inputJam)   inputJam.value   = jamKe;
         }
 
-        /* ---- Search Input Real-Time AJAX ---- */
-        document.getElementById('jadwalSearchInput').addEventListener('input', function() {
-            currentFilters.search = this.value.trim();
-            reloadJadwalTable();
-        });
+        /* ---- Drag & Drop Event Handlers ---- */
+        function onDragStartJadwal(event, idJadwal) {
+            event.dataTransfer.setData('text/plain', idJadwal.toString());
+            event.dataTransfer.effectAllowed = 'move';
+        }
+
+        function allowDropJadwal(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+            event.currentTarget.classList.add('drop-target-active');
+        }
+
+        function leaveDropJadwal(event) {
+            event.currentTarget.classList.remove('drop-target-active');
+        }
+
+        function onDropJadwal(event, targetKelasId, targetHari, targetJamKe) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('drop-target-active');
+
+            const idJadwal = event.dataTransfer.getData('text/plain');
+            if (!idJadwal) return;
+
+            const formData = new FormData();
+            formData.append('hari', targetHari);
+            formData.append('jam_ke', targetJamKe);
+            if (targetKelasId) formData.append('id_kelas', targetKelasId);
+
+            fetch('/jadwal/' + idJadwal + '/move', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            })
+            .then(async res => {
+                const data = await res.json();
+                if (!res.ok) {
+                    showToast(data.error || 'Gagal memindahkan jadwal.', 'error');
+                } else {
+                    showToast(data.success || 'Jadwal berhasil dipindahkan.');
+                    window.location.reload();
+                }
+            })
+            .catch(() => {
+                showToast('Terjadi kesalahan koneksi server.', 'error');
+            });
+        }
 
         /* ---- Modal Control Functions ---- */
         function openCreateModal() {
             document.getElementById('createModalAlert').innerHTML = '';
+            document.getElementById('createJadwalForm').reset();
             document.getElementById('createModal').style.display = 'flex';
         }
 
@@ -864,7 +1097,7 @@
             document.getElementById('edit_jam_ke').value = jamKe;
             document.getElementById('edit_id_guru').value = idGuru;
             document.getElementById('edit_id_mapel').value = idMapel;
-            document.getElementById('edit_ruangan').value = ruangan;
+            document.getElementById('edit_ruangan').value = ruangan || 'R. 57';
             document.getElementById('editModal').style.display = 'flex';
         }
 
@@ -873,98 +1106,100 @@
         }
 
         function openViewModal(id) {
-            fetch('/jadwal/' + id)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById('view_hari_jam').innerText = data.hari + ', Jam Ke-' + data.jam_ke + ' (' + data.waktu + ')';
-                    
-                    document.getElementById('view_nama_kelas').innerHTML = data.is_kelas_deleted 
-                        ? '<span class="badge-warning-deleted" title="Kelas ini telah dihapus">⚠️ - (Telah Dihapus)</span>' 
-                        : data.nama_kelas;
-                        
-                    document.getElementById('view_nama_mapel').innerHTML = data.is_mapel_deleted 
-                        ? '<span class="badge-warning-deleted" title="Mata pelajaran ini telah dihapus">⚠️ - (Telah Dihapus)</span>' 
-                        : data.nama_mapel;
-                        
-                    document.getElementById('view_nama_guru').innerHTML = data.is_guru_deleted 
-                        ? '<span class="badge-warning-deleted" title="Guru ini telah dihapus">⚠️ - (Telah Dihapus)</span>' 
-                        : data.nama_guru;
-
-                    document.getElementById('view_ruangan').innerText = data.ruangan;
-                    document.getElementById('viewModal').style.display = 'flex';
-                });
+            fetch('/jadwal/' + id, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('view_hari_jam').innerText = data.hari + ' • Jam Ke-' + data.jam_ke + ' (' + data.waktu + ')';
+                document.getElementById('view_nama_kelas').innerText = data.nama_kelas;
+                document.getElementById('view_nama_mapel').innerText = data.nama_mapel;
+                document.getElementById('view_nama_guru').innerText = data.nama_guru;
+                document.getElementById('view_ruangan').innerText = data.ruangan;
+                document.getElementById('viewModal').style.display = 'flex';
+            });
         }
 
         function closeViewModal() {
             document.getElementById('viewModal').style.display = 'none';
         }
 
-        /* ---- AJAX Submit Create Form ---- */
-        document.getElementById('createJadwalForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const alertBox = document.getElementById('createModalAlert');
+        /* ---- Submit Create Form (AJAX) ---- */
+        const createJadwalFormEl = document.getElementById('createJadwalForm');
+        if (createJadwalFormEl) {
+            createJadwalFormEl.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const alertBox = document.getElementById('createModalAlert');
 
-            fetch('/jadwal', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
-                }
-            })
-            .then(async res => {
-                const data = await res.json();
-                if (!res.ok) {
-                    const errMsg = data.error || (data.errors ? Object.values(data.errors).flat().join('<br>') : 'Gagal menyimpan data.');
-                    alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 14px; font-weight: 600;">⚠️ ${errMsg}</div>`;
-                } else {
-                    closeCreateModal();
-                    this.reset();
-                    showToast(data.success || 'Jadwal pelajaran berhasil ditambahkan.');
-                    reloadJadwalTable();
-                }
-            })
-            .catch(() => {
-                alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 14px; font-weight: 600;">⚠️ Terjadi kesalahan koneksi server.</div>`;
+                fetch('/jadwal', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                })
+                .then(async res => {
+                    const data = await res.json();
+                    if (!res.ok) {
+                        const errMsg = data.error || (data.errors ? Object.values(data.errors).flat().join('<br>') : 'Gagal menyimpan jadwal.');
+                        if (alertBox) alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 12px; font-weight: 600;">⚠️ ${errMsg}</div>`;
+                    } else {
+                        if (alertBox) alertBox.innerHTML = '';
+                        closeCreateModal();
+                        showToast(data.success || 'Jadwal pelajaran berhasil ditambahkan.');
+                        setTimeout(() => window.location.reload(), 400);
+                    }
+                })
+                .catch(() => {
+                    if (alertBox) alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 12px; font-weight: 600;">⚠️ Terjadi kesalahan koneksi server.</div>`;
+                });
             });
-        });
+        }
 
-        /* ---- AJAX Submit Edit Form ---- */
-        document.getElementById('editJadwalForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const id = document.getElementById('edit_id_jadwal').value;
-            const formData = new FormData(this);
-            formData.append('_method', 'PUT');
-            const alertBox = document.getElementById('editModalAlert');
+        /* ---- Submit Edit Form (AJAX) ---- */
+        const editJadwalFormEl = document.getElementById('editJadwalForm');
+        if (editJadwalFormEl) {
+            editJadwalFormEl.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const id = document.getElementById('edit_id_jadwal').value;
+                const formData = new FormData(this);
+                formData.append('_method', 'PUT');
+                const alertBox = document.getElementById('editModalAlert');
 
-            fetch('/jadwal/' + id, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
-                }
-            })
-            .then(async res => {
-                const data = await res.json();
-                if (!res.ok) {
-                    const errMsg = data.error || (data.errors ? Object.values(data.errors).flat().join('<br>') : 'Gagal memperbarui data.');
-                    alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 14px; font-weight: 600;">⚠️ ${errMsg}</div>`;
-                } else {
-                    closeEditModal();
-                    showToast(data.success || 'Jadwal pelajaran berhasil diperbarui.');
-                    reloadJadwalTable();
-                }
-            })
-            .catch(() => {
-                alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 14px; font-weight: 600;">⚠️ Terjadi kesalahan koneksi server.</div>`;
+                fetch('/jadwal/' + id, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                })
+                .then(async res => {
+                    const data = await res.json();
+                    if (!res.ok) {
+                        const errMsg = data.error || (data.errors ? Object.values(data.errors).flat().join('<br>') : 'Gagal memperbarui data.');
+                        if (alertBox) alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 14px; font-weight: 600;">⚠️ ${errMsg}</div>`;
+                    } else {
+                        if (alertBox) alertBox.innerHTML = '';
+                        closeEditModal();
+                        showToast(data.success || 'Jadwal pelajaran berhasil diperbarui.');
+                        setTimeout(() => window.location.reload(), 400);
+                    }
+                })
+                .catch(() => {
+                    if (alertBox) alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 14px; font-weight: 600;">⚠️ Terjadi kesalahan koneksi server.</div>`;
+                });
             });
-        });
+        }
 
-        /* ---- AJAX Delete Function ---- */
+        /* ---- Delete Jadwal via AJAX ---- */
         function deleteJadwalAjax(id) {
             if (!confirm('Apakah Anda yakin ingin menghapus jadwal pelajaran ini?')) return;
 
@@ -979,34 +1214,120 @@
             .then(res => res.json())
             .then(data => {
                 showToast(data.success || 'Jadwal pelajaran berhasil dihapus.');
-                reloadJadwalTable();
+                setTimeout(() => window.location.reload(), 400);
             });
         }
 
-        /* ---- Live Clock Widget ---- */
-        function updateLiveClock() {
-            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        /* ---- Reload Main Jadwal Table via AJAX ---- */
+        function reloadJadwalTable() {
+            const params = new URLSearchParams();
+            if (currentFilters.search) params.append('search', currentFilters.search);
+            if (currentFilters.hari) params.append('hari', currentFilters.hari);
+            if (currentFilters.id_kelas) params.append('id_kelas', currentFilters.id_kelas);
+            if (currentFilters.id_mapel) params.append('id_mapel', currentFilters.id_mapel);
 
-            const now = new Date();
-            const dayName = days[now.getDay()];
-            const dateNum = now.getDate();
-            const monthName = months[now.getMonth()];
-            const year = now.getFullYear();
+            fetch('/jadwal?' + params.toString(), {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(resData => {
+                const tbody = document.querySelector('.jadwal-table tbody');
+                if (!tbody) return;
 
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
+                if (!resData.data || resData.data.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 30px; color: #847e73;">
+                                Tidak ada data jadwal pelajaran yang sesuai dengan filter.
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    tbody.innerHTML = resData.data.map(j => `
+                        <tr id="row-jadwal-${j.id_jadwal}">
+                            <td>${j.waktu}</td>
+                            <td style="font-weight: 700;">
+                                ${j.is_mapel_deleted ? '<span class="badge-warning-deleted" title="Mata pelajaran ini telah dihapus">⚠️ -</span>' : j.nama_mapel}
+                            </td>
+                            <td style="font-weight: 700;">
+                                ${j.is_kelas_deleted ? '<span class="badge-warning-deleted" title="Kelas ini telah dihapus">⚠️ -</span>' : j.nama_kelas}
+                            </td>
+                            <td>
+                                ${j.is_guru_deleted ? '<span class="badge-warning-deleted" title="Guru ini telah dihapus">⚠️ -</span>' : j.nama_guru}
+                            </td>
+                            <td style="font-weight: 700; color: #475569;">${j.ruangan}</td>
+                            <td>
+                                <div class="action-icons-cell">
+                                    <button type="button" class="action-btn-icon view" title="Lihat Detail Jadwal" onclick="openViewModal(${j.id_jadwal})">
+                                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="action-btn-icon edit" title="Edit Jadwal" onclick="openEditModal(${j.id_jadwal}, '${j.id_kelas}', '${j.hari}', '${j.jam_ke}', '${j.id_guru}', '${j.id_mapel}', '${j.ruangan.replace(/'/g, "\\'")}')">
+                                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>
+                                    </button>
+                                    <button type="button" class="action-btn-icon delete" title="Hapus Jadwal" onclick="deleteJadwalAjax(${j.id_jadwal})">
+                                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
 
-            const dateEl = document.getElementById('live_date_str');
-            const timeEl = document.getElementById('live_time_str');
-
-            if (dateEl) dateEl.innerText = `${dayName}, ${dateNum} ${monthName} ${year}`;
-            if (timeEl) timeEl.innerText = `${hours}:${minutes}:${seconds} WIB`;
+                const pag = resData.pagination;
+                const summaryEl = document.querySelector('.pagination-summary-text');
+                const linksEl = document.getElementById('paginationLinks');
+                if (summaryEl && pag) summaryEl.innerText = `Menampilkan ${pag.first} - ${pag.last} dari ${pag.total} data`;
+                if (linksEl && resData.pagination_html) linksEl.innerHTML = resData.pagination_html;
+            });
         }
 
-        setInterval(updateLiveClock, 1000);
-        updateLiveClock();
+        /* ---- Filters Real-Time Setup ---- */
+        (function() {
+            const searchInput = document.getElementById('jadwalSearchInput');
+            const filterHari = document.getElementById('filter_hari');
+            const filterKelas = document.getElementById('filter_kelas');
+            const filterMapel = document.getElementById('filter_mapel');
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    currentFilters.search = this.value.trim();
+                    reloadJadwalTable();
+                });
+            }
+
+            if (filterHari) {
+                filterHari.addEventListener('change', function() {
+                    currentFilters.hari = this.value;
+                    reloadJadwalTable();
+                });
+            }
+
+            if (filterKelas) {
+                filterKelas.addEventListener('change', function() {
+                    currentFilters.id_kelas = this.value;
+                    reloadJadwalTable();
+                });
+            }
+
+            if (filterMapel) {
+                filterMapel.addEventListener('change', function() {
+                    currentFilters.id_mapel = this.value;
+                    reloadJadwalTable();
+                });
+            }
+        })();
 
         /* ---- Auto-fade Session Flash Alerts ---- */
         setTimeout(function() {
@@ -1017,5 +1338,6 @@
             });
         }, 3000);
     </script>
+    <script src="/js/live-clock.js"></script>
 </body>
 </html>

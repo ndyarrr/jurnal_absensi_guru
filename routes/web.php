@@ -34,9 +34,17 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('mapel', MapelController::class);
         Route::resource('siswa', SiswaController::class);
         Route::resource('jadwal', JadwalPelajaranController::class);
+        Route::post('/jadwal/{jadwal}/move', [JadwalPelajaranController::class, 'move'])->name('jadwal.move');
         Route::resource('jurnal', JurnalMengajarController::class);
         Route::resource('users', UserController::class);
         Route::get('/pengguna', [UserController::class, 'index'])->name('pengguna.index');
+
+        // Jam Pelajaran & Pengaturan Jam Sekolah Routes
+        Route::get('/jam', [\App\Http\Controllers\JamPelajaranController::class, 'index'])->name('jam.index');
+        Route::post('/jam/settings', [\App\Http\Controllers\JamPelajaranController::class, 'updateSettings'])->name('jam.settings');
+        Route::post('/jam/generate', [\App\Http\Controllers\JamPelajaranController::class, 'generateSlots'])->name('jam.generate');
+        Route::post('/jam/reorder', [\App\Http\Controllers\JamPelajaranController::class, 'reorderSlots'])->name('jam.reorder');
+        Route::resource('jam-pelajaran', \App\Http\Controllers\JamPelajaranController::class)->except(['index']);
     });
 
 });
