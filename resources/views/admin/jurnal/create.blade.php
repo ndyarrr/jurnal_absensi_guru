@@ -14,7 +14,7 @@
     <div class="form-card-body">
         @if($errors->any())
             <div class="alert alert-danger">
-                <span>⚠️</span>
+                <span><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></span>
                 <div>
                     <strong>Terjadi kesalahan input:</strong>
                     <ul>
@@ -95,7 +95,7 @@
                 <!-- Dynamic Student Absence Table -->
                 <div class="col-12" style="margin-top: 15px;">
                     <div class="form-section-title">
-                        <span>👥 Daftar Siswa Tidak Hadir (Opsional)</span>
+                        <span>Daftar Siswa Tidak Hadir (Opsional)</span>
                     </div>
                     <p class="help-text" style="margin-top: 6px;">Pilih Jadwal di atas terlebih dahulu, kemudian klik <strong>+ Tambah Siswa Tidak Hadir</strong>.</p>
 

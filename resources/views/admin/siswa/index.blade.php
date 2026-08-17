@@ -195,14 +195,16 @@
 
             <!-- Flash Alerts -->
             @if(session('success'))
-                <div class="flash-alert" style="background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">
-                    ✅ {{ session('success') }}
+                <div class="flash-alert" style="background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <span>{{ session('success') }}</span>
                 </div>
             @endif
 
             @if(session('error'))
-                <div class="flash-alert" style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">
-                    ⚠️ {{ session('error') }}
+                <div class="flash-alert" style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <span>{{ session('error') }}</span>
                 </div>
             @endif
 
@@ -337,7 +339,7 @@
                                         @if($s->kelas && !$s->kelas->trashed())
                                             <span class="badge-tag-guru">{{ $s->kelas->tingkat }} {{ optional($s->kelas->jurusan)->kode_jurusan }} {{ $s->kelas->rombel }}</span>
                                         @else
-                                            <span class="badge-warning-deleted" title="Kelas ini telah dihapus">⚠️ -</span>
+                                            <span class="badge-warning-deleted" title="Kelas ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>
                                         @endif
                                     </td>
                                     <td style="text-align: center;">
@@ -418,7 +420,7 @@
                 @csrf
                 <div class="form-field-group">
                     <label for="create_nisn">NISN (10 Digit)</label>
-                    <input type="text" name="nisn" id="create_nisn" class="form-field-input" placeholder="Masukkan 10 digit NISN" maxlength="10" required>
+                    <input type="text" name="nisn" id="create_nisn" class="form-field-input" placeholder="Masukkan 10 digit NISN" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')" required>
                 </div>
 
                 <div class="form-field-group">
@@ -535,7 +537,7 @@
             const tdAksi = row.querySelector('.action-icons-cell');
 
             if (tdNisn && tdNama && tdKelas && tdAksi) {
-                tdNisn.innerHTML = `<input type="text" id="inline-nisn-${id}" class="form-field-input" value="${nisn}" maxlength="10" style="padding: 4px 8px; font-size: 0.825rem; font-family: monospace; width: 100%; border-radius: 6px; border: 1.5px solid var(--dash-navy);" autocomplete="off">`;
+                tdNisn.innerHTML = `<input type="text" id="inline-nisn-${id}" class="form-field-input" value="${nisn}" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'')" style="padding: 4px 8px; font-size: 0.825rem; font-family: monospace; width: 100%; border-radius: 6px; border: 1.5px solid var(--dash-navy);" autocomplete="off">`;
                 
                 tdNama.innerHTML = `<input type="text" id="inline-nama-${id}" class="form-field-input" value="${nama.replace(/"/g, '&quot;')}" style="padding: 4px 8px; font-size: 0.85rem; font-weight: 700; width: 100%; border-radius: 6px; border: 1.5px solid var(--dash-navy);" autocomplete="off">`;
 
@@ -577,6 +579,11 @@
 
             if (!nisn || !nama || !idKelas) {
                 alert('Mohon lengkapi NISN, Nama Siswa, dan Kelas.');
+                return;
+            }
+
+            if (nisn.length !== 10) {
+                alert('NISN harus berisi tepat 10 digit angka (saat ini ' + nisn.length + ' digit).');
                 return;
             }
 
@@ -655,6 +662,38 @@
                 e.preventDefault();
             });
         })();
+
+        /* ---- Real-time NISN Digit Counter & Validator ---- */
+        const createNisnEl = document.getElementById('create_nisn');
+        if (createNisnEl) {
+            const badge = document.createElement('span');
+            badge.className = 'digit-badge-nisn';
+            badge.style.cssText = 'font-size: 0.72rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; margin-left: 8px; font-family: monospace; transition: all 0.2s ease;';
+            const label = createNisnEl.parentNode.querySelector('label');
+            if (label) label.appendChild(badge);
+
+            function updateNisnBadge() {
+                const len = createNisnEl.value.length;
+                badge.textContent = len + ' / 10 digit';
+                if (len === 10) {
+                    badge.style.background = '#dcfce7';
+                    badge.style.color = '#15803d';
+                } else {
+                    badge.style.background = '#fee2e2';
+                    badge.style.color = '#b91c1c';
+                }
+            }
+            createNisnEl.addEventListener('input', updateNisnBadge);
+            updateNisnBadge();
+
+            createNisnEl.closest('form').addEventListener('submit', function(e) {
+                if (createNisnEl.value.trim().length !== 10) {
+                    e.preventDefault();
+                    alert('NISN harus berisi tepat 10 digit angka.');
+                    createNisnEl.focus();
+                }
+            });
+        }
 
         /* ---- Auto-fade Flash Feedback Alerts after 3 seconds ---- */
         setTimeout(function() {

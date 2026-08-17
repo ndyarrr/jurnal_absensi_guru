@@ -202,14 +202,16 @@
 
             <!-- Auto-fading Session Flash Alerts -->
             @if(session('success'))
-                <div class="flash-alert" style="background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">
-                    ✅ {{ session('success') }}
+                <div class="flash-alert" style="background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <span>{{ session('success') }}</span>
                 </div>
             @endif
 
             @if(session('error'))
-                <div class="flash-alert" style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">
-                    ⚠️ {{ session('error') }}
+                <div class="flash-alert" style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <span>{{ session('error') }}</span>
                 </div>
             @endif
 
@@ -403,21 +405,21 @@
                                         </td>
                                         <td style="font-weight: 700;">
                                             @if($isMapelDel)
-                                                <span class="badge-warning-deleted" title="Mata pelajaran ini telah dihapus">⚠️ -</span>
+                                                <span class="badge-warning-deleted" title="Mata pelajaran ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>
                                             @else
                                                 {{ $j->jadwal->mapel->nama_mapel }}
                                             @endif
                                         </td>
                                         <td style="font-weight: 700;">
                                             @if($isKelasDel)
-                                                <span class="badge-warning-deleted" title="Kelas ini telah dihapus">⚠️ -</span>
+                                                <span class="badge-warning-deleted" title="Kelas ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>
                                             @else
                                                 {{ optional($j->jadwal)->kelas->tingkat }} {{ optional(optional($j->jadwal)->kelas->jurusan)->kode_jurusan }} {{ optional($j->jadwal)->kelas->rombel }}
                                             @endif
                                         </td>
                                         <td>
                                             @if($isGuruDel)
-                                                <span class="badge-warning-deleted" title="Guru ini telah dihapus">⚠️ -</span>
+                                                <span class="badge-warning-deleted" title="Guru ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>
                                             @else
                                                 {{ $j->jadwal->guru->nama_guru }}
                                             @endif
@@ -516,6 +518,44 @@
          =================================================================== -->
     <script>
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        /* ---- Helper: Escape HTML ---- */
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        /* ---- Toast Alert Function ---- */
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('ajaxAlertContainer');
+            if (!container) return;
+
+            const bgColor = type === 'success' ? '#ecfdf5' : '#fef2f2';
+            const borderColor = type === 'success' ? '#a7f3d0' : '#fecaca';
+            const textColor = type === 'success' ? '#065f46' : '#991b1b';
+            const iconSvg = type === 'success' 
+                ? '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>'
+                : '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+
+            const alertEl = document.createElement('div');
+            alertEl.className = 'flash-alert';
+            alertEl.style.cssText = `background-color: ${bgColor}; border: 1px solid ${borderColor}; color: ${textColor}; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease;`;
+            alertEl.innerHTML = `${iconSvg} <span>${escapeHtml(message)}</span>`;
+
+            container.appendChild(alertEl);
+
+            setTimeout(() => {
+                alertEl.style.opacity = '0';
+                alertEl.style.transform = 'translateY(-10px)';
+                setTimeout(() => alertEl.remove(), 500);
+            }, 3000);
+        }
+
         /* ---- Auto-fade Session Flash Alerts ---- */
         setTimeout(function() {
             document.querySelectorAll('.flash-alert').forEach(function(el) {
@@ -524,6 +564,211 @@
                 setTimeout(() => el.remove(), 500);
             });
         }, 3000);
+
+        /* ---- Reload Main Jurnal Table via AJAX ---- */
+        function reloadJurnalTable() {
+            const searchVal = document.getElementById('jurnalSearchInput')?.value || '';
+            const dateFrom = document.getElementById('filterDateFrom')?.value || '';
+            const dateTo = document.getElementById('filterDateTo')?.value || '';
+            const guruId = document.getElementById('filterGuru')?.value || '';
+            const kelasId = document.getElementById('filterKelas')?.value || '';
+            const mapelId = document.getElementById('filterMapel')?.value || '';
+
+            const params = new URLSearchParams();
+            if (searchVal) params.append('search', searchVal);
+            if (dateFrom) params.append('date_from', dateFrom);
+            if (dateTo) params.append('date_to', dateTo);
+            if (guruId) params.append('id_guru', guruId);
+            if (kelasId) params.append('id_kelas', kelasId);
+            if (mapelId) params.append('id_mapel', mapelId);
+
+            fetch('/jurnal?' + params.toString(), {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(resData => {
+                const tbody = document.querySelector('#jurnalMainTable tbody');
+                if (!tbody) return;
+
+                if (!resData.data || resData.data.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 40px; color: #847e73;">
+                                Belum ada data jurnal mengajar.
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    tbody.innerHTML = resData.data.map(j => {
+                        const mapelHtml = j.is_mapel_deleted 
+                            ? `<span class="badge-warning-deleted" title="Mata pelajaran ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>`
+                            : escapeHtml(j.mapel);
+
+                        const kelasHtml = j.is_kelas_deleted
+                            ? `<span class="badge-warning-deleted" title="Kelas ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>`
+                            : escapeHtml(j.kelas);
+
+                        const guruHtml = j.is_guru_deleted
+                            ? `<span class="badge-warning-deleted" title="Guru ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>`
+                            : escapeHtml(j.guru);
+
+                        const statusBadge = j.status_kehadiran === 'Hadir'
+                            ? `<span class="badge-status-terlaksana">Terlaksana</span>`
+                            : `<span class="badge-status-belum">Belum Terlaksana</span>`;
+
+                        return `
+                            <tr id="row-jurnal-${j.id_jurnal}">
+                                <td>
+                                    <div class="date-block-flex">
+                                        <span class="date-day-num">${j.tanggal_day}</span>
+                                        <div>
+                                            <div class="date-month-year">${j.tanggal_month}</div>
+                                            <div class="date-month-year">${j.tanggal_year}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="font-weight: 700;">${mapelHtml}</td>
+                                <td style="font-weight: 700;">${kelasHtml}</td>
+                                <td>${guruHtml}</td>
+                                <td>
+                                    <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(j.materi)}">
+                                        ${escapeHtml(j.materi)}
+                                    </div>
+                                </td>
+                                <td style="font-weight: 700;">${j.pertemuan}</td>
+                                <td>${statusBadge}</td>
+                                <td>
+                                    <div class="action-icons-cell">
+                                        <button type="button" class="action-btn-icon view" title="Lihat Detail" onclick="openViewModal(${j.id_jurnal})">
+                                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
+                                        </button>
+                                        <button type="button" class="action-btn-icon delete" title="Hapus Jurnal" onclick="deleteJurnalAjax(${j.id_jurnal})">
+                                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <polyline points="3 6 5 6 21 6"></polyline>
+                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+                // Update Stat Cards
+                if (resData.stats) {
+                    const statTotal = document.getElementById('statTotal');
+                    const statTerlaksana = document.getElementById('statTerlaksana');
+                    const statBelum = document.getElementById('statBelum');
+                    const statGuru = document.getElementById('statGuru');
+
+                    if (statTotal) statTotal.innerText = resData.stats.total_pertemuan;
+                    if (statTerlaksana) statTerlaksana.innerText = resData.stats.terlaksana;
+                    if (statBelum) statBelum.innerText = resData.stats.belum_terlaksana;
+                    if (statGuru) statGuru.innerText = resData.stats.total_guru_aktif;
+                }
+
+                // Update Pagination Summary Text
+                if (resData.pagination) {
+                    const pagSummary = document.getElementById('paginationSummary');
+                    if (pagSummary) {
+                        pagSummary.innerText = `Menampilkan ${resData.pagination.first} - ${resData.pagination.last} dari ${resData.pagination.total} data`;
+                    }
+                }
+            })
+            .catch(err => console.error('Error reloading jurnal table:', err));
+        }
+
+        /* ---- Real-Time Search Debouncing ---- */
+        let searchTimeout = null;
+        const searchInput = document.getElementById('jurnalSearchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    reloadJurnalTable();
+                }, 300);
+            });
+        }
+
+        /* ---- Open View Modal via AJAX ---- */
+        function openViewModal(id) {
+            fetch('/jurnal/' + id, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('view_tanggal').innerText = data.tanggal || '-';
+                document.getElementById('view_hari_jam').innerText = (data.hari || '-') + ' / Jam ke-' + (data.jam_ke || '-');
+                document.getElementById('view_status').innerText = data.status_kehadiran || '-';
+                document.getElementById('view_kelas').innerText = data.kelas || '-';
+                document.getElementById('view_mapel').innerText = data.mapel || '-';
+                document.getElementById('view_guru').innerText = data.guru || '-';
+                document.getElementById('view_materi').innerText = data.materi || '-';
+                document.getElementById('view_hadir').innerText = data.jumlah_hadir ?? 0;
+                document.getElementById('view_tidak_hadir').innerText = data.jumlah_tidak_hadir ?? 0;
+                document.getElementById('view_catatan').innerText = data.catatan || '-';
+
+                const modal = document.getElementById('viewModal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching detail jurnal:', err);
+                showToast('Gagal memuat detail jurnal.', 'error');
+            });
+        }
+
+        /* ---- Close View Modal ---- */
+        function closeViewModal() {
+            const modal = document.getElementById('viewModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        /* ---- Close View Modal when Clicking Outside ---- */
+        window.addEventListener('click', function(e) {
+            const modal = document.getElementById('viewModal');
+            if (e.target === modal) {
+                closeViewModal();
+            }
+        });
+
+        /* ---- Delete Jurnal via AJAX ---- */
+        function deleteJurnalAjax(id) {
+            if (!confirm('Apakah Anda yakin ingin menghapus data jurnal mengajar ini?')) {
+                return;
+            }
+
+            fetch('/jurnal/' + id, {
+                method: 'DELETE',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                showToast(data.success || 'Jurnal mengajar berhasil dihapus.', 'success');
+                reloadJurnalTable();
+            })
+            .catch(err => {
+                console.error('Error deleting jurnal:', err);
+                showToast('Gagal menghapus jurnal mengajar.', 'error');
+            });
+        }
     </script>
     <script src="/js/live-clock.js"></script>
 </body>

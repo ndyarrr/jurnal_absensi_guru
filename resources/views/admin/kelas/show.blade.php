@@ -50,7 +50,7 @@
                     </tr>
                     <tr>
                         <th>Jumlah Siswa</th>
-                        <td><span class="badge-chip badge-neutral">👥 {{ $kelas->jumlah_siswa ?? 0 }} Siswa</span></td>
+                        <td><span class="badge-chip badge-neutral">{{ $kelas->jumlah_siswa ?? 0 }} Siswa</span></td>
                     </tr>
                 </tbody>
             </table>

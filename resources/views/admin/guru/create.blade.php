@@ -14,7 +14,7 @@
     <div class="form-card-body">
         @if($errors->any())
             <div class="alert alert-danger">
-                <span>⚠️</span>
+                <span><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></span>
                 <div>
                     <strong>Terjadi kesalahan input:</strong>
                     <ul>
@@ -32,7 +32,7 @@
             <div class="form-grid">
                 <div class="form-group col-6">
                     <label for="nuptk">NUPTK / NIP <span class="required">*</span></label>
-                    <input type="text" name="nuptk" id="nuptk" class="form-control" value="{{ old('nuptk') }}" placeholder="Contoh: 1234567890" required>
+                    <input type="text" name="nuptk" id="nuptk" class="form-control" value="{{ old('nuptk') }}" placeholder="16 digit NUPTK atau 18 digit NIP" maxlength="18" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')" required>
                 </div>
 
                 <div class="form-group col-6">
@@ -58,7 +58,6 @@
                             <span style="color: var(--text-light); grid-column: 1 / -1;">Belum ada data mata pelajaran.</span>
                         @endforelse
                     </div>
-                    <span class="help-text" style="margin-top: 6px; display: block;">Pilih satu atau lebih mata pelajaran yang diajarkan oleh guru ini.</span>
                 </div>
             </div>
 
@@ -69,4 +68,45 @@
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nuptkInput = document.getElementById('nuptk');
+    if (!nuptkInput) return;
+
+    const badge = document.createElement('span');
+    badge.style.cssText = 'font-size: 0.75rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; margin-left: 8px; font-family: monospace; transition: all 0.2s ease;';
+    const label = nuptkInput.parentNode.querySelector('label');
+    if (label) label.appendChild(badge);
+
+    function updateBadge() {
+        const len = nuptkInput.value.length;
+        if (len === 16) {
+            badge.textContent = '16 / 16 (NUPTK Pas)';
+            badge.style.background = '#dcfce7';
+            badge.style.color = '#15803d';
+        } else if (len === 18) {
+            badge.textContent = '18 / 18 (NIP Pas)';
+            badge.style.background = '#dcfce7';
+            badge.style.color = '#15803d';
+        } else {
+            badge.textContent = len + ' / 16 atau 18 digit';
+            badge.style.background = '#fee2e2';
+            badge.style.color = '#b91c1c';
+        }
+    }
+
+    nuptkInput.addEventListener('input', updateBadge);
+    updateBadge();
+
+    nuptkInput.closest('form').addEventListener('submit', function(e) {
+        const len = nuptkInput.value.trim().length;
+        if (len !== 16 && len !== 18) {
+            e.preventDefault();
+            alert('NUPTK harus tepat 16 digit atau NIP 18 digit angka.');
+            nuptkInput.focus();
+        }
+    });
+});
+</script>
 @endsection

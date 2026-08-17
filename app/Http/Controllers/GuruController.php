@@ -45,14 +45,15 @@ class GuruController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nuptk'     => 'required|string|max:50|unique:guru,nuptk',
+            'nuptk'     => 'required|regex:/^[0-9]{16}$|^[0-9]{18}$/|unique:guru,nuptk',
             'nama_guru' => 'required|string|max:255',
             'no_hp'     => 'nullable|string|max:20',
             'mapel'     => 'nullable|array',
             'mapel.*'   => 'exists:mapel,id_mapel',
         ], [
-            'nuptk.required'     => 'NUPTK wajib diisi.',
-            'nuptk.unique'       => 'NUPTK sudah terdaftar.',
+            'nuptk.required'     => 'NUPTK / NIP wajib diisi.',
+            'nuptk.regex'        => 'NUPTK harus berisi tepat 16 digit angka (atau NIP 18 digit angka).',
+            'nuptk.unique'       => 'NUPTK / NIP sudah terdaftar.',
             'nama_guru.required' => 'Nama guru wajib diisi.',
         ]);
 
@@ -99,13 +100,15 @@ class GuruController extends Controller
     public function update(Request $request, Guru $guru)
     {
         $validated = $request->validate([
-            'nuptk'     => 'required|string|max:50|unique:guru,nuptk,' . $guru->id_guru . ',id_guru',
+            'nuptk'     => 'required|regex:/^[0-9]{16}$|^[0-9]{18}$/|unique:guru,nuptk,' . $guru->id_guru . ',id_guru',
             'nama_guru' => 'required|string|max:255',
             'no_hp'     => 'nullable|string|max:20',
             'mapel'     => 'nullable|array',
             'mapel.*'   => 'exists:mapel,id_mapel',
         ], [
-            'nuptk.unique' => 'NUPTK ini sudah digunakan oleh guru lain.',
+            'nuptk.required' => 'NUPTK / NIP wajib diisi.',
+            'nuptk.regex'    => 'NUPTK harus berisi tepat 16 digit angka (atau NIP 18 digit angka).',
+            'nuptk.unique'   => 'NUPTK / NIP ini sudah digunakan oleh guru lain.',
         ]);
 
         $guru->update([

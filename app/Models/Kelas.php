@@ -18,6 +18,11 @@ class Kelas extends Model
         return 'id_kelas';
     }
 
+    public function waliKelas()
+    {
+        return $this->belongsTo(Guru::class, 'id_guru_wali', 'id_guru')->withTrashed();
+    }
+
     public function waliKelasGuru()
     {
         return $this->belongsTo(Guru::class, 'id_guru_wali', 'id_guru')->withTrashed();

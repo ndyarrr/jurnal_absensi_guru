@@ -80,7 +80,7 @@
 
         <!-- Student Absence Detail Table -->
         <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; color: var(--text-main);">
-            👥 Daftar Siswa Tidak Hadir
+            Daftar Siswa Tidak Hadir
         </h3>
 
         <div class="table-responsive">

@@ -141,7 +141,7 @@ git push -u origin main
 
 <img width="100%" src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.gif" />
 
-## 👥 Role Pengguna
+## Role Pengguna
 
 | Role | Tugas Utama |
 |------|--------------|
@@ -191,7 +191,7 @@ $ tree
 
 <div align="center">
 
-## 👥 Tim
+## Tim
 
 **[Nama Tim Kalian]** — *Tugas Akhir.*
 

@@ -198,14 +198,16 @@
 
             <!-- Auto-fading Session Flash Alerts -->
             @if(session('success'))
-                <div class="flash-alert" style="background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">
-                    ✅ {{ session('success') }}
+                <div class="flash-alert" style="background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <span>{{ session('success') }}</span>
                 </div>
             @endif
 
             @if(session('error'))
-                <div class="flash-alert" style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">
-                    ⚠️ {{ session('error') }}
+                <div class="flash-alert" style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <span>{{ session('error') }}</span>
                 </div>
             @endif
 
@@ -374,6 +376,116 @@
             <!-- ===================================================================
                  MATRIX SCHEDULE VIEW (GROUPED BY KELAS)
                  =================================================================== -->
+            @php
+                $totalStuckCount = 0;
+                $stuckDetails = [];
+                foreach($allJadwal as $chkJadwal) {
+                    $chkKat = ($chkJadwal->hari === 'Jumat') ? 'Jumat' : 'Senin-Kamis';
+                    $chkSlot = $jamPelajarans->where('hari_kategori', $chkKat)->where('jam_ke', $chkJadwal->jam_ke)->first();
+                    $chkApplies = !$chkSlot || !$chkSlot->berlaku_hari || ($chkSlot->berlaku_hari === 'Semua Hari') || ($chkSlot->berlaku_hari === $chkJadwal->hari);
+                    if ($chkSlot && (!$chkSlot->bisa_diisi_mapel || $chkSlot->is_istirahat || $chkJadwal->jam_ke == 0) && $chkApplies) {
+                        $totalStuckCount++;
+                        $stuckDetails[] = [
+                            'id' => $chkJadwal->id_jadwal,
+                            'kelas' => optional($kelases->firstWhere('id_kelas', $chkJadwal->id_kelas)),
+                            'mapel' => optional($chkJadwal->mapel)->nama_mapel ?? '-',
+                            'guru' => optional($chkJadwal->guru)->nama_guru ?? '-',
+                            'hari' => $chkJadwal->hari,
+                            'jam_ke' => $chkJadwal->jam_ke,
+                            'slot_label' => $chkSlot->keterangan ?? ($chkSlot->is_istirahat ? 'Istirahat' : 'Non-KBM'),
+                        ];
+                    }
+                }
+            @endphp
+
+            @if($totalStuckCount > 0)
+                <div id="stuckBanner" style="margin-bottom: 16px; background: #fff7ed; border: 1px solid #fed7aa; border-left: 5px solid #ea580c; border-radius: 14px; box-shadow: 0 2px 8px rgba(234, 88, 12, 0.08); overflow: hidden;">
+                    {{-- Banner Header (always visible) --}}
+                    <div style="padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="font-size: 1.4rem; color: #ea580c; display: flex; align-items: center;">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                            </div>
+                            <div>
+                                <div style="font-weight: 800; font-size: 0.92rem; color: #9a3412;">
+                                    Perhatian: Terdapat {{ $totalStuckCount }} Jadwal Mata Pelajaran Tertimpa Slot Non-KBM
+                                </div>
+                                <div style="font-size: 0.78rem; color: #c2410c; margin-top: 2px;">
+                                    Beberapa slot jam pelajaran diubah menjadi Non-KBM namun masih menyimpan data jadwal.
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="toggleStuckDetail()" id="stuckToggleBtn" style="background: #ea580c; color: #fff; border: none; padding: 7px 16px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; transition: background 0.2s ease;">
+                            <svg id="stuckToggleIcon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="transition: transform 0.3s ease;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            <span id="stuckToggleText">Lihat Detail</span>
+                        </button>
+                    </div>
+
+                    {{-- Collapsible Detail Panel --}}
+                    <div id="stuckDetailPanel" style="max-height: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s ease; opacity: 0;">
+                        <div style="padding: 0 18px 16px 18px; border-top: 1px solid #fed7aa;">
+                            <div style="margin-top: 12px; overflow-x: auto;">
+                                <table style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.82rem;">
+                                    <thead>
+                                        <tr style="background: #fdba741a;">
+                                            <th style="padding: 8px 12px; text-align: left; font-weight: 800; color: #9a3412; border-bottom: 2px solid #fed7aa; white-space: nowrap;">No</th>
+                                            <th style="padding: 8px 12px; text-align: left; font-weight: 800; color: #9a3412; border-bottom: 2px solid #fed7aa; white-space: nowrap;">Kelas</th>
+                                            <th style="padding: 8px 12px; text-align: left; font-weight: 800; color: #9a3412; border-bottom: 2px solid #fed7aa; white-space: nowrap;">Hari</th>
+                                            <th style="padding: 8px 12px; text-align: left; font-weight: 800; color: #9a3412; border-bottom: 2px solid #fed7aa; white-space: nowrap;">Jam Ke</th>
+                                            <th style="padding: 8px 12px; text-align: left; font-weight: 800; color: #9a3412; border-bottom: 2px solid #fed7aa; white-space: nowrap;">Mata Pelajaran</th>
+                                            <th style="padding: 8px 12px; text-align: left; font-weight: 800; color: #9a3412; border-bottom: 2px solid #fed7aa; white-space: nowrap;">Guru</th>
+                                            <th style="padding: 8px 12px; text-align: left; font-weight: 800; color: #9a3412; border-bottom: 2px solid #fed7aa; white-space: nowrap;">Slot Saat Ini</th>
+                                            <th style="padding: 8px 12px; text-align: center; font-weight: 800; color: #9a3412; border-bottom: 2px solid #fed7aa; white-space: nowrap;">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($stuckDetails as $idx => $stuck)
+                                            <tr style="border-bottom: 1px solid #fde68a; {{ $idx % 2 === 0 ? 'background: #fffbeb;' : 'background: #fff;' }}">
+                                                <td style="padding: 8px 12px; font-weight: 700; color: #92400e;">{{ $idx + 1 }}</td>
+                                                <td style="padding: 8px 12px; font-weight: 700; color: #1e293b;">
+                                                    @if($stuck['kelas'])
+                                                        {{ $stuck['kelas']->tingkat ?? '' }} {{ optional($stuck['kelas']->jurusan)->kode_jurusan ?? '' }} {{ $stuck['kelas']->rombel ?? '' }}
+                                                    @else
+                                                        <span style="color: #94a3b8;">-</span>
+                                                    @endif
+                                                </td>
+                                                <td style="padding: 8px 12px; color: #475569; font-weight: 600;">{{ $stuck['hari'] }}</td>
+                                                <td style="padding: 8px 12px; color: #475569; font-weight: 600;">{{ $stuck['jam_ke'] }}</td>
+                                                <td style="padding: 8px 12px; font-weight: 700; color: #dc2626;">{{ $stuck['mapel'] }}</td>
+                                                <td style="padding: 8px 12px; color: #475569; font-weight: 600;">{{ $stuck['guru'] }}</td>
+                                                <td style="padding: 8px 12px;">
+                                                    <span style="background: #fee2e2; color: #dc2626; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">{{ $stuck['slot_label'] }}</span>
+                                                </td>
+                                                <td style="padding: 8px 12px; text-align: center;">
+                                                    <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                                        <button type="button" class="action-btn-icon edit" title="Edit / Pindahkan" onclick="scrollToStuckCard({{ $stuck['id'] }})" style="width: 28px; height: 28px; border-radius: 6px; padding: 0;">
+                                                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                                <circle cx="11" cy="11" r="8"></circle>
+                                                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                                            </svg>
+                                                        </button>
+                                                        <button type="button" class="action-btn-icon delete" title="Hapus Jadwal" onclick="deleteJadwalAjax({{ $stuck['id'] }})" style="width: 28px; height: 28px; border-radius: 6px; padding: 0;">
+                                                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                                <polyline points="3 6 5 6 21 6"></polyline>
+                                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style="margin-top: 10px; font-size: 0.75rem; color: #c2410c; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                Klik ikon <strong>cari</strong> untuk scroll ke kartu jadwal di matrix, atau <strong>hapus</strong> untuk menghapus jadwal yang tertimpa.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <div id="matrixViewCard" style="margin-bottom: 24px;">
                 @foreach($kelases as $kelas)
                     <div class="kelas-matrix-block" id="matrix-kelas-block-{{ $kelas->id_kelas }}" style="margin-bottom: 24px; background: #ffffff; border: 1px solid var(--dash-border-subtle); border-radius: 18px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.02);">
@@ -386,7 +498,7 @@
                                 </svg>
                                 <div>
                                     <div style="font-weight: 800; font-size: 1.05rem;">Kelas {{ $kelas->tingkat }} {{ optional($kelas->jurusan)->kode_jurusan }} {{ $kelas->rombel }}</div>
-                                    <small style="opacity: 0.85; font-weight: 600;">Wali Kelas: {{ optional($kelas->waliKelas)->nama_guru ?? 'Belum Diatur' }}</small>
+                                    <small style="opacity: 0.85; font-weight: 600;">Wali Kelas: {{ $kelas->wali_kelas ?: (optional($kelas->waliKelas)->nama_guru ?? 'Belum Diatur') }}</small>
                                 </div>
                             </div>
                             <span style="font-size: 0.8rem; font-weight: 700; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px;">{{ $allJadwal->where('id_kelas', $kelas->id_kelas)->count() }} Mapel Terjadwal</span>
@@ -403,74 +515,204 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @for($jamNum = 1; $jamNum <= 10; $jamNum++)
+                                    @php
+                                        // === BUILD UNIFIED ROW LIST ===
+                                        $slotsSK = $jamPelajarans->where('hari_kategori', 'Senin-Kamis')->sortBy('jam_mulai');
+                                        $slotsJM = $jamPelajarans->where('hari_kategori', 'Jumat')->sortBy('jam_mulai');
+
+                                        $matrixRows = collect();
+
+                                        // 1) KBM rows: group by jam_ke (>0), match SK & JM by jam_ke
+                                        $allJamKe = $jamPelajarans->where('jam_ke', '>', 0)->pluck('jam_ke')->unique()->sort();
+                                        foreach ($allJamKe as $jk) {
+                                            $sk = $slotsSK->where('jam_ke', $jk)->first();
+                                            $jm = $slotsJM->where('jam_ke', $jk)->first();
+                                            $sortTime = $sk ? $sk->jam_mulai : ($jm ? $jm->jam_mulai : '99:99');
+                                            $matrixRows->push([
+                                                'jam_ke' => $jk, 'sk' => $sk, 'jm' => $jm, 
+                                                'time' => $sortTime, 'is_break' => false
+                                            ]);
+                                        }
+
+                                        // 2) Break/Istirahat rows: jam_ke=0, pair SK & JM by position
+                                        $breaksSK = $slotsSK->where('jam_ke', 0)->values();
+                                        $breaksJM = $slotsJM->where('jam_ke', 0)->values();
+                                        $maxBreaks = max($breaksSK->count(), $breaksJM->count());
+                                        for ($bi = 0; $bi < $maxBreaks; $bi++) {
+                                            $bsk = $breaksSK->get($bi);
+                                            $bjm = $breaksJM->get($bi);
+                                            $sortTime = $bsk ? $bsk->jam_mulai : ($bjm ? $bjm->jam_mulai : '99:99');
+                                            $matrixRows->push([
+                                                'jam_ke' => 0, 'sk' => $bsk, 'jm' => $bjm,
+                                                'time' => $sortTime, 'is_break' => true,
+                                                'label' => ($bsk ? $bsk->keterangan : ($bjm ? $bjm->keterangan : null)) ?? 'Istirahat'
+                                            ]);
+                                        }
+
+                                        // Sort all rows by time
+                                        $matrixRows = $matrixRows->sortBy('time')->values();
+                                    @endphp
+
+                                    @foreach($matrixRows as $row)
                                         @php
-                                            $timeSk = optional($jamPelajarans->where('hari_kategori', 'Senin-Kamis')->where('jam_ke', $jamNum)->first());
-                                            $timeJm = optional($jamPelajarans->where('hari_kategori', 'Jumat')->where('jam_ke', $jamNum)->first());
-                                            $skRange = $timeSk->jam_mulai ? (\Carbon\Carbon::parse($timeSk->jam_mulai)->format('H.i') . '-' . \Carbon\Carbon::parse($timeSk->jam_selesai)->format('H.i')) : '-';
-                                            $jmRange = $timeJm->jam_mulai ? (\Carbon\Carbon::parse($timeJm->jam_mulai)->format('H.i') . '-' . \Carbon\Carbon::parse($timeJm->jam_selesai)->format('H.i')) : '-';
+                                            $slotSK = $row['sk'];
+                                            $slotJM = $row['jm'];
+                                            $isBreakRow = $row['is_break'];
+                                            $rowJamKe = $row['jam_ke'];
+
+                                            $skRange = $slotSK ? (\Carbon\Carbon::parse($slotSK->jam_mulai)->format('H.i') . '-' . \Carbon\Carbon::parse($slotSK->jam_selesai)->format('H.i')) : '-';
+                                            $jmRange = $slotJM ? (\Carbon\Carbon::parse($slotJM->jam_mulai)->format('H.i') . '-' . \Carbon\Carbon::parse($slotJM->jam_selesai)->format('H.i')) : '-';
+
+                                            // Row header label
+                                            $rowLabel = $isBreakRow 
+                                                ? ($row['label'] ?? 'Istirahat')
+                                                : 'Jam ' . $rowJamKe;
                                         @endphp
                                         <tr>
-                                            <td style="background: #f8fafc; border-radius: 10px; padding: 8px; vertical-align: middle; text-align: center; border: 1px solid #e2e8f0;">
-                                                <div style="font-weight: 800; font-size: 0.85rem; color: var(--dash-navy);">Jam {{ $jamNum }}</div>
+                                            {{-- Row header (Jam label + time ranges) --}}
+                                            <td style="background: {{ $isBreakRow ? '#fef3c7' : '#f8fafc' }}; border-radius: 10px; padding: 8px; vertical-align: middle; text-align: center; border: 1px solid {{ $isBreakRow ? '#fde68a' : '#e2e8f0' }};">
+                                                <div style="font-weight: 800; font-size: 0.85rem; color: {{ $isBreakRow ? '#92400e' : 'var(--dash-navy)' }};">{{ $rowLabel }}</div>
                                                 <div style="font-size: 0.68rem; color: #64748b; font-weight: 600;">S-K: {{ $skRange }}</div>
                                                 <div style="font-size: 0.68rem; color: #0284c7; font-weight: 700;">Jmt: {{ $jmRange }}</div>
                                             </td>
 
+                                            {{-- Day columns --}}
                                             @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'] as $hName)
                                                 @php
-                                                    $jItem = $allJadwal->where('id_kelas', $kelas->id_kelas)->where('hari', $hName)->where('jam_ke', $jamNum)->first();
+                                                    // Pick correct slot per day
+                                                    $slot = ($hName === 'Jumat') ? $slotJM : $slotSK;
+
+                                                    // Check if Non-KBM setting applies to this specific day
+                                                    $appliesToThisDay = !$slot || !$slot->berlaku_hari || ($slot->berlaku_hari === 'Semua Hari') || ($slot->berlaku_hari === $hName);
+
+                                                    // Break row = always Non-KBM
+                                                    // Normal row = check slot's bisa_diisi_mapel + berlaku_hari
+                                                    $isNonKbm = $isBreakRow 
+                                                        || ($slot && (!$slot->bisa_diisi_mapel || $slot->is_istirahat) && $appliesToThisDay);
+                                                    $noSlot = !$slot;
+
+                                                    // Jadwal lookup (only for KBM cells)
+                                                    $jItem = (!$noSlot && !$isNonKbm && $rowJamKe > 0) 
+                                                        ? $allJadwal->where('id_kelas', $kelas->id_kelas)->where('hari', $hName)->where('jam_ke', $rowJamKe)->first() 
+                                                        : null;
+
+                                                    // Stuck schedule lookup (for Non-KBM cells where DB still has a schedule entry)
+                                                    $stuckJadwal = ($isNonKbm && $rowJamKe > 0)
+                                                        ? $allJadwal->where('id_kelas', $kelas->id_kelas)->where('hari', $hName)->where('jam_ke', $rowJamKe)->first()
+                                                        : null;
                                                 @endphp
-                                                <td class="matrix-cell-slot" 
-                                                    id="cell-{{ $kelas->id_kelas }}-{{ $hName }}-{{ $jamNum }}"
-                                                    data-kelas="{{ $kelas->id_kelas }}"
-                                                    data-hari="{{ $hName }}" 
-                                                    data-jam="{{ $jamNum }}"
-                                                    ondragover="allowDropJadwal(event)" 
-                                                    ondragleave="leaveDropJadwal(event)" 
-                                                    ondrop="onDropJadwal(event, {{ $kelas->id_kelas }}, '{{ $hName }}', {{ $jamNum }})">
-                                                    
-                                                    @if($jItem)
-                                                        <!-- Slot Terisi: Tampilkan Card Jadwal, HAPUS tombol Tambah Slot -->
-                                                        <div class="matrix-drag-box" 
-                                                             id="drag-jadwal-{{ $jItem->id_jadwal }}"
-                                                             draggable="true" 
-                                                             ondragstart="onDragStartJadwal(event, {{ $jItem->id_jadwal }})"
-                                                             style="background-color: #e0f2fe; border-left-color: #0284c7;">
-                                                            
-                                                            <div style="display: flex; align-items: center; justify-content: space-between;">
-                                                                <span style="font-size: 0.85rem; font-weight: 800; color: #1e2538;">{{ optional($jItem->mapel)->nama_mapel ?? '-' }}</span>
-                                                                <div style="display: flex; gap: 4px;">
-                                                                    <button type="button" class="action-btn-icon edit" title="Edit Jadwal" onclick="openEditModal({{ $jItem->id_jadwal }}, '{{ $jItem->id_kelas }}', '{{ $jItem->hari }}', '{{ $jItem->jam_ke }}', '{{ $jItem->id_guru }}', '{{ $jItem->id_mapel }}', '{{ addslashes($jItem->ruangan ?? '') }}')" style="width: 24px; height: 24px; border-radius: 6px; padding: 0;">
-                                                                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                                                        </svg>
-                                                                    </button>
-                                                                    <button type="button" class="action-btn-icon delete" title="Hapus Jadwal" onclick="deleteJadwalAjax({{ $jItem->id_jadwal }})" style="width: 24px; height: 24px; border-radius: 6px; padding: 0;">
-                                                                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                                            <polyline points="3 6 5 6 21 6"></polyline>
-                                                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                                                        </svg>
-                                                                    </button>
+
+                                                @if($noSlot)
+                                                    {{-- No slot for this day --}}
+                                                    <td style="background: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 6px; text-align: center; vertical-align: middle;">
+                                                        <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 600;">—</div>
+                                                    </td>
+                                                @elseif($isNonKbm)
+                                                    @if($stuckJadwal)
+                                                        {{-- Non-KBM cell WITH stuck schedule warning --}}
+                                                        <td style="background: #fff7ed; border: 1.5px dashed #f97316; border-radius: 10px; padding: 6px; text-align: center; vertical-align: middle; position: relative;">
+                                                            <div style="font-size: 0.76rem; font-weight: 800; color: #9a3412; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                                                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                                                                <span>{{ $slot->keterangan ?? ($isBreakRow ? 'Istirahat' : 'Non-KBM') }}</span>
+                                                            </div>
+                                                            <div style="font-size: 0.65rem; color: #ea580c; font-weight: 700; margin-bottom: 4px;">(Slot Non-KBM)</div>
+
+                                                            {{-- Warning Draggable Card --}}
+                                                            <div class="matrix-drag-box" 
+                                                                 id="drag-jadwal-{{ $stuckJadwal->id_jadwal }}"
+                                                                 draggable="true" 
+                                                                 ondragstart="onDragStartJadwal(event, {{ $stuckJadwal->id_jadwal }})"
+                                                                 style="background-color: #fef2f2; border: 1px solid #fca5a5; border-left: 4px solid #dc2626; text-align: left; cursor: grab;"
+                                                                 title="Geser (drag & drop) untuk memindahkan ke slot KBM kosong">
+                                                                
+                                                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
+                                                                    <span style="font-size: 0.68rem; font-weight: 800; color: #dc2626; background: #fee2e2; padding: 1px 5px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px;">
+                                                                        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                                                        <span>Tertimpa</span>
+                                                                    </span>
+                                                                    <div style="display: flex; gap: 3px;">
+                                                                        <button type="button" class="action-btn-icon edit" title="Pindahkan / Edit Jadwal" onclick="openEditModal({{ $stuckJadwal->id_jadwal }}, '{{ $stuckJadwal->id_kelas }}', '{{ $stuckJadwal->hari }}', '{{ $stuckJadwal->jam_ke }}', '{{ $stuckJadwal->id_guru }}', '{{ $stuckJadwal->id_mapel }}', '{{ addslashes($stuckJadwal->ruangan ?? '') }}')" style="width: 22px; height: 22px; border-radius: 4px; padding: 0;">
+                                                                            <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                                                            </svg>
+                                                                        </button>
+                                                                        <button type="button" class="action-btn-icon delete" title="Hapus Jadwal" onclick="deleteJadwalAjax({{ $stuckJadwal->id_jadwal }})" style="width: 22px; height: 22px; border-radius: 4px; padding: 0;">
+                                                                            <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                                                <polyline points="3 6 5 6 21 6"></polyline>
+                                                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                                            </svg>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div style="font-size: 0.8rem; font-weight: 800; color: #991b1b; margin-top: 4px;">{{ optional($stuckJadwal->mapel)->nama_mapel ?? '-' }}</div>
+                                                                <div style="font-size: 0.68rem; color: #7f1d1d; font-weight: 700; margin-top: 2px;">{{ optional($stuckJadwal->guru)->nama_guru ?? '-' }}</div>
+                                                            </div>
+                                                        </td>
+                                                    @else
+                                                        {{-- Standard Non-KBM cell --}}
+                                                        <td style="background: #fef3c7; border: 1px dashed #fcd34d; border-radius: 10px; padding: 6px; text-align: center; vertical-align: middle;">
+                                                            <div style="font-size: 0.78rem; font-weight: 800; color: #92400e; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                                                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                                                                <span>{{ $slot->keterangan ?? ($isBreakRow ? 'Istirahat' : 'Non-KBM') }}</span>
+                                                            </div>
+                                                            <div style="font-size: 0.65rem; color: #b45309; font-weight: 700;">(Tidak Ada Mapel)</div>
+                                                        </td>
+                                                    @endif
+                                                @else
+                                                    {{-- Normal KBM slot --}}
+                                                    <td class="matrix-cell-slot" 
+                                                        id="cell-{{ $kelas->id_kelas }}-{{ $hName }}-{{ $rowJamKe }}"
+                                                        data-kelas="{{ $kelas->id_kelas }}"
+                                                        data-hari="{{ $hName }}" 
+                                                        data-jam="{{ $rowJamKe }}"
+                                                        ondragover="allowDropJadwal(event)" 
+                                                        ondragleave="leaveDropJadwal(event)" 
+                                                        ondrop="onDropJadwal(event, {{ $kelas->id_kelas }}, '{{ $hName }}', {{ $rowJamKe }})">
+                                                        
+                                                        @if($jItem)
+                                                            <div class="matrix-drag-box" 
+                                                                 id="drag-jadwal-{{ $jItem->id_jadwal }}"
+                                                                 draggable="true" 
+                                                                 ondragstart="onDragStartJadwal(event, {{ $jItem->id_jadwal }})"
+                                                                 style="background-color: #e0f2fe; border-left-color: #0284c7;">
+                                                                
+                                                                <div style="display: flex; align-items: center; justify-content: space-between;">
+                                                                    <span style="font-size: 0.85rem; font-weight: 800; color: #1e2538;">{{ optional($jItem->mapel)->nama_mapel ?? '-' }}</span>
+                                                                    <div style="display: flex; gap: 4px;">
+                                                                        <button type="button" class="action-btn-icon edit" title="Edit Jadwal" onclick="openEditModal({{ $jItem->id_jadwal }}, '{{ $jItem->id_kelas }}', '{{ $jItem->hari }}', '{{ $jItem->jam_ke }}', '{{ $jItem->id_guru }}', '{{ $jItem->id_mapel }}', '{{ addslashes($jItem->ruangan ?? '') }}')" style="width: 24px; height: 24px; border-radius: 6px; padding: 0;">
+                                                                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                                                            </svg>
+                                                                        </button>
+                                                                        <button type="button" class="action-btn-icon delete" title="Hapus Jadwal" onclick="deleteJadwalAjax({{ $jItem->id_jadwal }})" style="width: 24px; height: 24px; border-radius: 6px; padding: 0;">
+                                                                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                                                <polyline points="3 6 5 6 21 6"></polyline>
+                                                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                                            </svg>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px;">
+                                                                    <span style="font-size: 0.72rem; color: #475569; font-weight: 700;">{{ optional($jItem->guru)->nama_guru ?? '-' }}</span>
+                                                                    @if($jItem->ruangan)
+                                                                        <span style="font-size: 0.68rem; font-weight: 800; color: #059669; background: #ffffff; border: 1px solid #a7f3d0; padding: 1px 6px; border-radius: 8px;">{{ $jItem->ruangan }}</span>
+                                                                    @endif
                                                                 </div>
                                                             </div>
-
-                                                            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px;">
-                                                                <span style="font-size: 0.72rem; color: #475569; font-weight: 700;">{{ optional($jItem->guru)->nama_guru ?? '-' }}</span>
-                                                                <span style="font-size: 0.68rem; font-weight: 800; color: #059669; background: #ffffff; border: 1px solid #a7f3d0; padding: 1px 6px; border-radius: 8px;">{{ $jItem->ruangan ?? '-' }}</span>
+                                                        @else
+                                                            <div class="matrix-empty-target" onclick="openCreateModalPrefilled({{ $kelas->id_kelas }}, '{{ $hName }}', {{ $rowJamKe }})" title="Klik untuk menambah jadwal di slot kosong ini">
+                                                                <span>+ Isi Slot</span>
                                                             </div>
-                                                        </div>
-                                                    @else
-                                                        <!-- Slot Kosong: Tampilkan Tombol + Isi Slot -->
-                                                        <div class="matrix-empty-target" onclick="openCreateModalPrefilled({{ $kelas->id_kelas }}, '{{ $hName }}', {{ $jamNum }})" title="Klik untuk menambah jadwal di slot kosong ini">
-                                                            <span>+ Isi Slot</span>
-                                                        </div>
-                                                    @endif
-                                                </td>
+                                                        @endif
+                                                    </td>
+                                                @endif
                                             @endforeach
                                         </tr>
-                                    @endfor
+                                    @endforeach
                                 </tbody>
                             </table>
                         </div>
@@ -524,7 +766,7 @@
                                         <div class="timeline-card-box {{ $borderColors[$cIndex] }}">
                                             <div class="timeline-card-title">
                                                 @if($isTMapelDel)
-                                                    <span class="badge-warning-deleted" title="Mata pelajaran ini telah dihapus">⚠️ -</span>
+                                                    <span class="badge-warning-deleted" title="Mata pelajaran ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>
                                                 @else
                                                     {{ $tItem->mapel->nama_mapel }}
                                                 @endif
@@ -533,7 +775,7 @@
                                                 <span>
                                                     Kelas: 
                                                     @if($isTKelasDel)
-                                                        <span class="badge-warning-deleted" title="Kelas ini telah dihapus">⚠️ -</span>
+                                                        <span class="badge-warning-deleted" title="Kelas ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>
                                                     @else
                                                         {{ $tItem->kelas->tingkat }} {{ optional($tItem->kelas->jurusan)->kode_jurusan }} {{ $tItem->kelas->rombel }}
                                                     @endif
@@ -541,14 +783,14 @@
                                                 <span>
                                                     Guru: 
                                                     @if($isTGuruDel)
-                                                        <span class="badge-warning-deleted" title="Guru ini telah dihapus">⚠️ -</span>
+                                                        <span class="badge-warning-deleted" title="Guru ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>
                                                     @else
                                                         {{ $tItem->guru->nama_guru }}
                                                     @endif
                                                 </span>
                                             </div>
                                             <div class="timeline-card-room {{ $roomColors[$cIndex] }}">
-                                                {{ $tItem->ruangan ?? 'R. 57' }}
+                                                {{ $tItem->ruangan ?: '-' }}
                                             </div>
                                         </div>
                                     </div>
@@ -656,9 +898,14 @@
                                 <tbody>
                                     @forelse($jadwal as $j)
                                         @php
-                                            $waktuRange = '07.30-08.15';
-                                            if ($j->jamPelajaran) {
-                                                $waktuRange = \Carbon\Carbon::parse($j->jamPelajaran->jam_mulai)->format('H.i') . '-' . \Carbon\Carbon::parse($j->jamPelajaran->jam_selesai)->format('H.i');
+                                            $jamObj = $j->jamPelajaran;
+                                            if (!$jamObj && $j->jam_ke) {
+                                                $kat = ($j->hari === 'Jumat') ? 'Jumat' : 'Senin-Kamis';
+                                                $jamObj = $jamPelajarans->where('hari_kategori', $kat)->where('jam_ke', $j->jam_ke)->first();
+                                            }
+                                            $waktuRange = '-';
+                                            if ($jamObj) {
+                                                $waktuRange = \Carbon\Carbon::parse($jamObj->jam_mulai)->format('H.i') . '-' . \Carbon\Carbon::parse($jamObj->jam_selesai)->format('H.i');
                                             }
                                             $isMapelDel = !$j->mapel || $j->mapel->trashed();
                                             $isKelasDel = !$j->kelas || $j->kelas->trashed();
@@ -668,26 +915,26 @@
                                             <td>{{ $waktuRange }}</td>
                                             <td style="font-weight: 700;">
                                                 @if($isMapelDel)
-                                                    <span class="badge-warning-deleted" title="Mata pelajaran ini telah dihapus">⚠️ -</span>
+                                                    <span class="badge-warning-deleted" title="Mata pelajaran ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>
                                                 @else
                                                     {{ $j->mapel->nama_mapel }}
                                                 @endif
                                             </td>
                                             <td style="font-weight: 700;">
                                                 @if($isKelasDel)
-                                                    <span class="badge-warning-deleted" title="Kelas ini telah dihapus">⚠️ -</span>
+                                                    <span class="badge-warning-deleted" title="Kelas ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>
                                                 @else
                                                     {{ $j->kelas->tingkat }} {{ optional($j->kelas->jurusan)->kode_jurusan }} {{ $j->kelas->rombel }}
                                                 @endif
                                             </td>
                                             <td>
                                                 @if($isGuruDel)
-                                                    <span class="badge-warning-deleted" title="Guru ini telah dihapus">⚠️ -</span>
+                                                    <span class="badge-warning-deleted" title="Guru ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>
                                                 @else
                                                     {{ $j->guru->nama_guru }}
                                                 @endif
                                             </td>
-                                            <td style="font-weight: 700; color: #475569;">{{ $j->ruangan ?? 'R. 57' }}</td>
+                                            <td style="font-weight: 700; color: #475569;">{{ $j->ruangan ?: '-' }}</td>
                                             <td>
                                                 <div class="action-icons-cell">
                                                     <!-- View Detail Action -->
@@ -699,7 +946,7 @@
                                                     </button>
 
                                                     <!-- Edit Action -->
-                                                    <button type="button" class="action-btn-icon edit" title="Edit Jadwal" onclick="openEditModal({{ $j->id_jadwal }}, '{{ $j->id_kelas }}', '{{ $j->hari }}', '{{ $j->jam_ke }}', '{{ $j->id_guru }}', '{{ $j->id_mapel }}', '{{ addslashes($j->ruangan ?? 'R. 57') }}')">
+                                                    <button type="button" class="action-btn-icon edit" title="Edit Jadwal" onclick="openEditModal({{ $j->id_jadwal }}, '{{ $j->id_kelas }}', '{{ $j->hari }}', '{{ $j->jam_ke }}', '{{ $j->id_guru }}', '{{ $j->id_mapel }}', '{{ addslashes($j->ruangan ?? '') }}')">
                                                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -783,13 +1030,7 @@
                 <div class="form-field-group">
                     <label for="create_jam_ke">Jam Pelajaran</label>
                     <select name="jam_ke" id="create_jam_ke" class="form-field-input" required>
-                        <option value="">-- Pilih Jam Pelajaran --</option>
-                        @foreach($jamPelajarans as $jp)
-                            @php
-                                $rangeStr = \Carbon\Carbon::parse($jp->jam_mulai)->format('H.i') . ' - ' . \Carbon\Carbon::parse($jp->jam_selesai)->format('H.i');
-                            @endphp
-                            <option value="{{ $jp->jam_ke }}">Jam Ke-{{ $jp->jam_ke }} ({{ $rangeStr }})</option>
-                        @endforeach
+                        <option value="">-- Pilih Hari Terlebih Dahulu --</option>
                     </select>
                 </div>
 
@@ -814,8 +1055,8 @@
                 </div>
 
                 <div class="form-field-group">
-                    <label for="create_ruangan">Ruangan</label>
-                    <input type="text" name="ruangan" id="create_ruangan" class="form-field-input" placeholder="Contoh: R. 57, Lab. 1" value="R. 57">
+                    <label for="create_ruangan">Ruangan (Opsional)</label>
+                    <input type="text" name="ruangan" id="create_ruangan" class="form-field-input" placeholder="Contoh: Lab 1, R. 12 (kosongkan jika tidak ada)">
                 </div>
 
                 <div class="modal-actions-footer">
@@ -863,12 +1104,7 @@
                 <div class="form-field-group">
                     <label for="edit_jam_ke">Jam Pelajaran</label>
                     <select name="jam_ke" id="edit_jam_ke" class="form-field-input" required>
-                        @foreach($jamPelajarans as $jp)
-                            @php
-                                $rangeStr = \Carbon\Carbon::parse($jp->jam_mulai)->format('H.i') . ' - ' . \Carbon\Carbon::parse($jp->jam_selesai)->format('H.i');
-                            @endphp
-                            <option value="{{ $jp->jam_ke }}">Jam Ke-{{ $jp->jam_ke }} ({{ $rangeStr }})</option>
-                        @endforeach
+                        <option value="">-- Pilih Jam Pelajaran --</option>
                     </select>
                 </div>
 
@@ -957,6 +1193,41 @@
             if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
         }
 
+        function selectFilter(type, val, label) {
+            currentFilters[type] = val;
+
+            if (type === 'hari') {
+                const labelEl = document.getElementById('filterHariLabel');
+                if (labelEl) labelEl.innerText = label || 'Pilih Hari';
+                const menuEl = document.getElementById('filterHariMenu');
+                if (menuEl) menuEl.style.display = 'none';
+            } else if (type === 'id_kelas') {
+                const labelEl = document.getElementById('filterKelasLabel');
+                if (labelEl) labelEl.innerText = label || 'Pilih Kelas';
+                const menuEl = document.getElementById('filterKelasMenu');
+                if (menuEl) menuEl.style.display = 'none';
+            } else if (type === 'id_mapel') {
+                const labelEl = document.getElementById('filterMapelLabel');
+                if (labelEl) labelEl.innerText = label || 'Pilih Mapel';
+                const menuEl = document.getElementById('filterMapelMenu');
+                if (menuEl) menuEl.style.display = 'none';
+            }
+
+            reloadJadwalTable();
+        }
+
+        window.addEventListener('click', function(e) {
+            const dropdownIds = ['filterHariMenu', 'filterKelasMenu', 'filterMapelMenu'];
+            dropdownIds.forEach(id => {
+                const menu = document.getElementById(id);
+                if (!menu) return;
+                const btn = menu.previousElementSibling;
+                if (menu.style.display === 'block' && !menu.contains(e.target) && (!btn || !btn.contains(e.target))) {
+                    menu.style.display = 'none';
+                }
+            });
+        });
+
         function showToast(message, type = 'success') {
             const container = document.getElementById('ajaxAlertContainer');
             if (!container) return;
@@ -964,12 +1235,14 @@
             const bg = type === 'success' ? '#ecfdf5' : '#fef2f2';
             const border = type === 'success' ? '#a7f3d0' : '#fecaca';
             const color = type === 'success' ? '#065f46' : '#991b1b';
-            const icon = type === 'success' ? '✅' : '⚠️';
+            const iconSvg = type === 'success' 
+                ? '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>'
+                : '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
 
             const toast = document.createElement('div');
             toast.className = 'flash-alert';
-            toast.style.cssText = `background-color: ${bg}; border: 1px solid ${border}; color: ${color}; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px; transition: opacity 0.5s ease, transform 0.5s ease;`;
-            toast.innerHTML = `${icon} ${message}`;
+            toast.style.cssText = `background-color: ${bg}; border: 1px solid ${border}; color: ${color}; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; transition: opacity 0.5s ease, transform 0.5s ease;`;
+            toast.innerHTML = `${iconSvg} <span>${message}</span>`;
 
             container.prepend(toast);
 
@@ -1016,15 +1289,150 @@
             });
         }
 
+        /* ---- Dynamic Jam Pelajaran Options Filter ---- */
+        const allJamSlots = @json($jamPelajarans);
+
+        function populateJamOptions(hariSelectId, jamSelectId, targetJamKe = null) {
+            const hariSelect = document.getElementById(hariSelectId);
+            const jamSelect  = document.getElementById(jamSelectId);
+            if (!jamSelect) return;
+
+            const hariVal = hariSelect ? hariSelect.value : null;
+
+            jamSelect.innerHTML = '';
+
+            if (!hariVal) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = '-- Pilih Hari Terlebih Dahulu --';
+                jamSelect.appendChild(opt);
+                return;
+            }
+
+            const kat = (hariVal === 'Jumat') ? 'Jumat' : 'Senin-Kamis';
+
+            // Filter slots based on day category and whether it is a valid KBM slot for this day
+            const filtered = allJamSlots.filter(s => {
+                if (s.hari_kategori !== kat) return false;
+
+                // Check if Non-KBM setting applies to this specific day
+                const appliesToThisDay = !s.berlaku_hari || s.berlaku_hari === 'Semua Hari' || s.berlaku_hari === hariVal;
+                const isNonKbmForThisDay = (s.bisa_diisi_mapel == 0 || s.is_istirahat == 1) && appliesToThisDay;
+
+                // Keep slot if it is a valid KBM slot on this day (or if targetJamKe matches)
+                return (s.jam_ke > 0 && !isNonKbmForThisDay) || (targetJamKe !== null && Number(s.jam_ke) === Number(targetJamKe));
+            });
+
+            // Remove duplicate jam_ke entries
+            const seen = new Set();
+            const uniqueSlots = [];
+            filtered.forEach(s => {
+                const num = Number(s.jam_ke);
+                if (!seen.has(num)) {
+                    seen.add(num);
+                    uniqueSlots.push(s);
+                }
+            });
+
+            // Sort by jam_ke
+            uniqueSlots.sort((a, b) => Number(a.jam_ke) - Number(b.jam_ke));
+
+            if (uniqueSlots.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'Tidak Ada Jam Pelajaran KBM pada hari ini';
+                jamSelect.appendChild(opt);
+                return;
+            }
+
+            const defaultOpt = document.createElement('option');
+            defaultOpt.value = '';
+            defaultOpt.textContent = '-- Pilih Jam Pelajaran --';
+            jamSelect.appendChild(defaultOpt);
+
+            uniqueSlots.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.jam_ke;
+
+                let start = s.jam_mulai ? s.jam_mulai.substring(0, 5).replace(':', '.') : '';
+                let end   = s.jam_selesai ? s.jam_selesai.substring(0, 5).replace(':', '.') : '';
+                let rangeStr = (start && end) ? ` (${start} - ${end})` : '';
+
+                const appliesToThisDay = !s.berlaku_hari || s.berlaku_hari === 'Semua Hari' || s.berlaku_hari === hariVal;
+                const isNonKbmForThisDay = (s.bisa_diisi_mapel == 0 || s.is_istirahat == 1) && appliesToThisDay;
+                let nonKbmTag = isNonKbmForThisDay ? ' [Non-KBM]' : '';
+
+                opt.textContent = `Jam Ke-${s.jam_ke}${rangeStr}${nonKbmTag}`;
+
+                if (targetJamKe !== null && Number(s.jam_ke) === Number(targetJamKe)) {
+                    opt.selected = true;
+                }
+                jamSelect.appendChild(opt);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const createHariEl = document.getElementById('create_hari');
+            if (createHariEl) {
+                createHariEl.addEventListener('change', function() {
+                    populateJamOptions('create_hari', 'create_jam_ke');
+                });
+            }
+            const editHariEl = document.getElementById('edit_hari');
+            if (editHariEl) {
+                editHariEl.addEventListener('change', function() {
+                    populateJamOptions('edit_hari', 'edit_jam_ke');
+                });
+            }
+        });
+
         /* ---- Open Create Modal Prefilled with Kelas, Hari & Jam ---- */
         function openCreateModalPrefilled(idKelas, hari, jamKe) {
             openCreateModal();
             const inputKelas = document.getElementById('create_id_kelas');
             const inputHari  = document.getElementById('create_hari');
-            const inputJam   = document.getElementById('create_jam_ke');
             if (inputKelas) inputKelas.value = idKelas;
             if (inputHari)  inputHari.value  = hari;
-            if (inputJam)   inputJam.value   = jamKe;
+            populateJamOptions('create_hari', 'create_jam_ke', jamKe);
+        }
+
+        /* ---- Stuck Schedule Banner Toggle & Scroll ---- */
+        function toggleStuckDetail() {
+            const panel = document.getElementById('stuckDetailPanel');
+            const icon = document.getElementById('stuckToggleIcon');
+            const text = document.getElementById('stuckToggleText');
+            const btn = document.getElementById('stuckToggleBtn');
+            if (!panel) return;
+
+            const isOpen = panel.style.maxHeight && panel.style.maxHeight !== '0px';
+            if (isOpen) {
+                panel.style.maxHeight = '0';
+                panel.style.opacity = '0';
+                icon.style.transform = 'rotate(0deg)';
+                text.textContent = 'Lihat Detail';
+                btn.style.background = '#ea580c';
+            } else {
+                panel.style.maxHeight = panel.scrollHeight + 'px';
+                panel.style.opacity = '1';
+                icon.style.transform = 'rotate(180deg)';
+                text.textContent = 'Tutup Detail';
+                btn.style.background = '#9a3412';
+            }
+        }
+
+        function scrollToStuckCard(idJadwal) {
+            const card = document.getElementById('drag-jadwal-' + idJadwal);
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Flash highlight animation
+                card.style.transition = 'box-shadow 0.3s ease, transform 0.3s ease';
+                card.style.boxShadow = '0 0 0 3px #ea580c, 0 4px 16px rgba(234, 88, 12, 0.3)';
+                card.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    card.style.boxShadow = '';
+                    card.style.transform = '';
+                }, 2000);
+            }
         }
 
         /* ---- Drag & Drop Event Handlers ---- */
@@ -1082,6 +1490,7 @@
         function openCreateModal() {
             document.getElementById('createModalAlert').innerHTML = '';
             document.getElementById('createJadwalForm').reset();
+            populateJamOptions('create_hari', 'create_jam_ke');
             document.getElementById('createModal').style.display = 'flex';
         }
 
@@ -1094,10 +1503,10 @@
             document.getElementById('edit_id_jadwal').value = id;
             document.getElementById('edit_id_kelas').value = idKelas;
             document.getElementById('edit_hari').value = hari;
-            document.getElementById('edit_jam_ke').value = jamKe;
+            populateJamOptions('edit_hari', 'edit_jam_ke', jamKe);
             document.getElementById('edit_id_guru').value = idGuru;
             document.getElementById('edit_id_mapel').value = idMapel;
-            document.getElementById('edit_ruangan').value = ruangan || 'R. 57';
+            document.getElementById('edit_ruangan').value = ruangan || '';
             document.getElementById('editModal').style.display = 'flex';
         }
 
@@ -1148,7 +1557,7 @@
                     const data = await res.json();
                     if (!res.ok) {
                         const errMsg = data.error || (data.errors ? Object.values(data.errors).flat().join('<br>') : 'Gagal menyimpan jadwal.');
-                        if (alertBox) alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 12px; font-weight: 600;">⚠️ ${errMsg}</div>`;
+                        if (alertBox) alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> <span>${errMsg}</span></div>`;
                     } else {
                         if (alertBox) alertBox.innerHTML = '';
                         closeCreateModal();
@@ -1157,7 +1566,7 @@
                     }
                 })
                 .catch(() => {
-                    if (alertBox) alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 12px; font-weight: 600;">⚠️ Terjadi kesalahan koneksi server.</div>`;
+                    if (alertBox) alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> <span>Terjadi kesalahan koneksi server.</span></div>`;
                 });
             });
         }
@@ -1185,7 +1594,7 @@
                     const data = await res.json();
                     if (!res.ok) {
                         const errMsg = data.error || (data.errors ? Object.values(data.errors).flat().join('<br>') : 'Gagal memperbarui data.');
-                        if (alertBox) alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 14px; font-weight: 600;">⚠️ ${errMsg}</div>`;
+                        if (alertBox) alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> <span>${errMsg}</span></div>`;
                     } else {
                         if (alertBox) alertBox.innerHTML = '';
                         closeEditModal();
@@ -1194,7 +1603,7 @@
                     }
                 })
                 .catch(() => {
-                    if (alertBox) alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 14px; font-weight: 600;">⚠️ Terjadi kesalahan koneksi server.</div>`;
+                    if (alertBox) alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> <span>Terjadi kesalahan koneksi server.</span></div>`;
                 });
             });
         }
@@ -1250,13 +1659,13 @@
                         <tr id="row-jadwal-${j.id_jadwal}">
                             <td>${j.waktu}</td>
                             <td style="font-weight: 700;">
-                                ${j.is_mapel_deleted ? '<span class="badge-warning-deleted" title="Mata pelajaran ini telah dihapus">⚠️ -</span>' : j.nama_mapel}
+                                ${j.is_mapel_deleted ? '<span class="badge-warning-deleted" title="Mata pelajaran ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>' : (j.mapel || j.nama_mapel || '-')}
                             </td>
                             <td style="font-weight: 700;">
-                                ${j.is_kelas_deleted ? '<span class="badge-warning-deleted" title="Kelas ini telah dihapus">⚠️ -</span>' : j.nama_kelas}
+                                ${j.is_kelas_deleted ? '<span class="badge-warning-deleted" title="Kelas ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>' : (j.kelas || j.nama_kelas || '-')}
                             </td>
                             <td>
-                                ${j.is_guru_deleted ? '<span class="badge-warning-deleted" title="Guru ini telah dihapus">⚠️ -</span>' : j.nama_guru}
+                                ${j.is_guru_deleted ? '<span class="badge-warning-deleted" title="Guru ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>' : (j.guru || j.nama_guru || '-')}
                             </td>
                             <td style="font-weight: 700; color: #475569;">${j.ruangan}</td>
                             <td>
@@ -1293,38 +1702,17 @@
             });
         }
 
-        /* ---- Filters Real-Time Setup ---- */
+        /* ---- Search Filter Setup ---- */
         (function() {
             const searchInput = document.getElementById('jadwalSearchInput');
-            const filterHari = document.getElementById('filter_hari');
-            const filterKelas = document.getElementById('filter_kelas');
-            const filterMapel = document.getElementById('filter_mapel');
-
             if (searchInput) {
+                let searchTimer;
                 searchInput.addEventListener('input', function() {
-                    currentFilters.search = this.value.trim();
-                    reloadJadwalTable();
-                });
-            }
-
-            if (filterHari) {
-                filterHari.addEventListener('change', function() {
-                    currentFilters.hari = this.value;
-                    reloadJadwalTable();
-                });
-            }
-
-            if (filterKelas) {
-                filterKelas.addEventListener('change', function() {
-                    currentFilters.id_kelas = this.value;
-                    reloadJadwalTable();
-                });
-            }
-
-            if (filterMapel) {
-                filterMapel.addEventListener('change', function() {
-                    currentFilters.id_mapel = this.value;
-                    reloadJadwalTable();
+                    clearTimeout(searchTimer);
+                    searchTimer = setTimeout(() => {
+                        currentFilters.search = this.value.trim();
+                        reloadJadwalTable();
+                    }, 300);
                 });
             }
         })();

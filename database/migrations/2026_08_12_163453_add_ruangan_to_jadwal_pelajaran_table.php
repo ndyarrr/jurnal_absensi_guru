@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('jadwal_pelajaran', function (Blueprint $table) {
             if (!Schema::hasColumn('jadwal_pelajaran', 'ruangan')) {
-                $table->string('ruangan', 50)->nullable()->default('R. 57')->after('id_mapel');
+                $table->string('ruangan', 50)->nullable()->after('id_mapel');
             }
         });
     }

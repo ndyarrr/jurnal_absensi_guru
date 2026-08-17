@@ -197,14 +197,16 @@
 
             <!-- Flash Alerts -->
             @if(session('success'))
-                <div class="flash-alert" style="background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">
-                    ✅ {{ session('success') }}
+                <div class="flash-alert" style="background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <span>{{ session('success') }}</span>
                 </div>
             @endif
 
             @if(session('error'))
-                <div class="flash-alert" style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;">
-                    ⚠️ {{ session('error') }}
+                <div class="flash-alert" style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <span>{{ session('error') }}</span>
                 </div>
             @endif
 
@@ -389,7 +391,7 @@
                 @csrf
                 <div class="form-field-group">
                     <label for="create_nuptk">NUPTK / NIP</label>
-                    <input type="text" name="nuptk" id="create_nuptk" class="form-field-input" placeholder="Masukkan NUPTK atau NIP" required>
+                    <input type="text" name="nuptk" id="create_nuptk" class="form-field-input" placeholder="Masukkan 16 digit NUPTK atau 18 digit NIP" maxlength="18" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')" required>
                 </div>
 
                 <div class="form-field-group">
@@ -438,7 +440,7 @@
 
                 <div class="form-field-group">
                     <label for="edit_nuptk">NUPTK / NIP</label>
-                    <input type="text" name="nuptk" id="edit_nuptk" class="form-field-input" required>
+                    <input type="text" name="nuptk" id="edit_nuptk" class="form-field-input" placeholder="Masukkan 16 digit NUPTK atau 18 digit NIP" maxlength="18" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')" required>
                 </div>
 
                 <div class="form-field-group">
@@ -605,6 +607,51 @@
                 e.preventDefault();
             });
         })();
+
+        /* ---- Real-time NUPTK/NIP Digit Counter & Validator ---- */
+        function setupNuptkDigitListener(inputId) {
+            const el = document.getElementById(inputId);
+            if (!el) return;
+
+            const badge = document.createElement('span');
+            badge.style.cssText = 'font-size: 0.72rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; margin-left: 8px; font-family: monospace; transition: all 0.2s ease;';
+            const label = el.parentNode.querySelector('label');
+            if (label) label.appendChild(badge);
+
+            function updateBadge() {
+                const len = el.value.length;
+                if (len === 16) {
+                    badge.textContent = '16 / 16 (NUPTK Pas)';
+                    badge.style.background = '#dcfce7';
+                    badge.style.color = '#15803d';
+                } else if (len === 18) {
+                    badge.textContent = '18 / 18 (NIP Pas)';
+                    badge.style.background = '#dcfce7';
+                    badge.style.color = '#15803d';
+                } else {
+                    badge.textContent = len + ' / 16 atau 18 digit';
+                    badge.style.background = '#fee2e2';
+                    badge.style.color = '#b91c1c';
+                }
+            }
+            el.addEventListener('input', updateBadge);
+            updateBadge();
+
+            const form = el.closest('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const len = el.value.trim().length;
+                    if (len !== 16 && len !== 18) {
+                        e.preventDefault();
+                        alert('NUPTK harus berisi tepat 16 digit atau NIP 18 digit angka.');
+                        el.focus();
+                    }
+                });
+            }
+        }
+
+        setupNuptkDigitListener('create_nuptk');
+        setupNuptkDigitListener('edit_nuptk');
 
         /* ---- Auto-fade Flash Feedback Alerts after 3 seconds ---- */
         setTimeout(function() {

@@ -77,11 +77,12 @@ class SiswaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nisn'       => 'required|string|max:10|unique:siswa,nisn',
+            'nisn'       => 'required|digits:10|unique:siswa,nisn',
             'nama_siswa' => 'required|string|max:100',
             'id_kelas'   => 'required|exists:kelas,id_kelas',
         ], [
             'nisn.required'       => 'NISN wajib diisi.',
+            'nisn.digits'         => 'NISN harus berisi tepat 10 digit angka.',
             'nisn.unique'         => 'NISN sudah terdaftar.',
             'nama_siswa.required' => 'Nama siswa wajib diisi.',
             'id_kelas.required'   => 'Kelas wajib dipilih.',
@@ -115,11 +116,13 @@ class SiswaController extends Controller
     public function update(Request $request, Siswa $siswa)
     {
         $validated = $request->validate([
-            'nisn'       => 'required|string|max:10|unique:siswa,nisn,' . $siswa->id_siswa . ',id_siswa',
+            'nisn'       => 'required|digits:10|unique:siswa,nisn,' . $siswa->id_siswa . ',id_siswa',
             'nama_siswa' => 'required|string|max:100',
             'id_kelas'   => 'required|exists:kelas,id_kelas',
         ], [
-            'nisn.unique' => 'NISN ini sudah digunakan oleh siswa lain.',
+            'nisn.required' => 'NISN wajib diisi.',
+            'nisn.digits'   => 'NISN harus berisi tepat 10 digit angka.',
+            'nisn.unique'   => 'NISN ini sudah digunakan oleh siswa lain.',
         ]);
 
         $siswa->update($validated);

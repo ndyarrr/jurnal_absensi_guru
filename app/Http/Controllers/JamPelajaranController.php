@@ -56,29 +56,11 @@ class JamPelajaranController extends Controller
     }
 
     /**
-     * Update School Time Settings (Jam Pulang & Durasi Per Jam).
+     * Update School Time Settings & Auto-Generate Slots.
      */
     public function updateSettings(Request $request)
     {
-        $validated = $request->validate([
-            'hari_kategori'  => 'required|string',
-            'durasi_per_jam' => 'required|integer|min:15|max:120',
-            'jam_masuk'      => 'required|date_format:H:i',
-            'jam_pulang'     => 'required|date_format:H:i',
-            'keterangan'     => 'nullable|string|max:255',
-        ]);
-
-        $setting = PengaturanJamSekolah::updateOrCreate(
-            ['hari_kategori' => $validated['hari_kategori']],
-            $validated
-        );
-
-        if ($request->ajax()) {
-            return response()->json(['success' => 'Pengaturan jam sekolah berhasil diperbarui.', 'setting' => $setting]);
-        }
-
-        return redirect()->route('jam.index', ['tab' => $validated['hari_kategori']])
-            ->with('success', 'Pengaturan jam sekolah berhasil diperbarui.');
+        return $this->generateSlots($request);
     }
 
     /**
@@ -95,15 +77,16 @@ class JamPelajaranController extends Controller
             'setelah_jam_ke_1'   => 'nullable|integer|min:1|max:10',
             'durasi_istirahat_2' => 'nullable|integer|min:0|max:60',
             'setelah_jam_ke_2'   => 'nullable|integer|min:1|max:10',
+            'keterangan'         => 'nullable|string|max:255',
         ]);
 
         $hariKategori = $validated['hari_kategori'];
         $durasi = (int) $validated['durasi_per_jam'];
 
-        $durasi1 = (int) ($validated['durasi_istirahat_1'] ?? 20);
-        $setelah1 = (int) ($validated['setelah_jam_ke_1'] ?? 4);
+        $durasi1 = (int) ($validated['durasi_istirahat_1'] ?? ($hariKategori === 'Jumat' ? 15 : 20));
+        $setelah1 = (int) ($validated['setelah_jam_ke_1'] ?? ($hariKategori === 'Jumat' ? 3 : 4));
 
-        $durasi2 = (int) ($validated['durasi_istirahat_2'] ?? 30);
+        $durasi2 = (int) ($validated['durasi_istirahat_2'] ?? ($hariKategori === 'Jumat' ? 0 : 30));
         $setelah2 = (int) ($validated['setelah_jam_ke_2'] ?? 7);
 
         $start = Carbon::createFromFormat('H:i', $validated['jam_masuk']);
@@ -124,13 +107,14 @@ class JamPelajaranController extends Controller
                 $bEnd   = $curr->copy()->addMinutes($durasi1);
                 if ($bEnd->lte($end)) {
                     JamPelajaran::create([
-                        'hari_kategori' => $hariKategori,
-                        'jam_ke'        => 0,
-                        'jam_mulai'     => $bStart->format('H:i:s'),
-                        'jam_selesai'   => $bEnd->format('H:i:s'),
-                        'is_istirahat'  => true,
-                        'durasi_menit'  => $durasi1,
-                        'keterangan'    => 'Istirahat 1',
+                        'hari_kategori'   => $hariKategori,
+                        'jam_ke'          => 0,
+                        'jam_mulai'       => $bStart->format('H:i:s'),
+                        'jam_selesai'     => $bEnd->format('H:i:s'),
+                        'is_istirahat'    => true,
+                        'bisa_diisi_mapel'=> false,
+                        'durasi_menit'    => $durasi1,
+                        'keterangan'      => 'Istirahat 1',
                     ]);
                     $curr = $bEnd;
                     $break1Done = true;
@@ -144,13 +128,14 @@ class JamPelajaranController extends Controller
                 $bEnd   = $curr->copy()->addMinutes($durasi2);
                 if ($bEnd->lte($end)) {
                     JamPelajaran::create([
-                        'hari_kategori' => $hariKategori,
-                        'jam_ke'        => 0,
-                        'jam_mulai'     => $bStart->format('H:i:s'),
-                        'jam_selesai'   => $bEnd->format('H:i:s'),
-                        'is_istirahat'  => true,
-                        'durasi_menit'  => $durasi2,
-                        'keterangan'    => 'Istirahat 2 (Sholat/Makan)',
+                        'hari_kategori'   => $hariKategori,
+                        'jam_ke'          => 0,
+                        'jam_mulai'       => $bStart->format('H:i:s'),
+                        'jam_selesai'     => $bEnd->format('H:i:s'),
+                        'is_istirahat'    => true,
+                        'bisa_diisi_mapel'=> false,
+                        'durasi_menit'    => $durasi2,
+                        'keterangan'      => 'Istirahat 2 (Sholat/Makan)',
                     ]);
                     $curr = $bEnd;
                     $break2Done = true;
@@ -164,13 +149,14 @@ class JamPelajaranController extends Controller
             if ($slotEnd->gt($end)) break;
 
             JamPelajaran::create([
-                'hari_kategori' => $hariKategori,
-                'jam_ke'        => $jamKe,
-                'jam_mulai'     => $slotStart->format('H:i:s'),
-                'jam_selesai'   => $slotEnd->format('H:i:s'),
-                'is_istirahat'  => false,
-                'durasi_menit'  => $durasi,
-                'keterangan'    => 'Jam ke-' . $jamKe,
+                'hari_kategori'   => $hariKategori,
+                'jam_ke'          => $jamKe,
+                'jam_mulai'       => $slotStart->format('H:i:s'),
+                'jam_selesai'     => $slotEnd->format('H:i:s'),
+                'is_istirahat'    => false,
+                'bisa_diisi_mapel'=> true,
+                'durasi_menit'    => $durasi,
+                'keterangan'      => 'Jam ke-' . $jamKe,
             ]);
 
             $curr = $slotEnd;
@@ -182,8 +168,9 @@ class JamPelajaranController extends Controller
             ['hari_kategori' => $hariKategori],
             [
                 'durasi_per_jam' => $durasi,
-                'jam_masuk'      => $validated['jam_masuk'] . ':00',
-                'jam_pulang'     => $validated['jam_pulang'] . ':00',
+                'jam_masuk'      => strlen($validated['jam_masuk']) == 5 ? $validated['jam_masuk'] . ':00' : $validated['jam_masuk'],
+                'jam_pulang'     => strlen($validated['jam_pulang']) == 5 ? $validated['jam_pulang'] . ':00' : $validated['jam_pulang'],
+                'keterangan'     => $validated['keterangan'] ?? null,
             ]
         );
 
@@ -220,7 +207,7 @@ class JamPelajaranController extends Controller
     /**
      * Recalculate start and end times sequentially for a day category starting from jam_masuk.
      */
-    private function recalculateTimesForCategory($hariKategori, array $orderedIds = null)
+    public function recalculateTimesForCategory($hariKategori, ?array $orderedIds = null)
     {
         $setting = PengaturanJamSekolah::where('hari_kategori', $hariKategori)->first();
         $jamMasuk = $setting->jam_masuk ?? '07:00:00';
@@ -265,18 +252,27 @@ class JamPelajaranController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'hari_kategori' => 'required|string',
-            'jam_ke'        => 'required|integer|min:0|max:20',
-            'jam_mulai'     => 'required|date_format:H:i',
-            'jam_selesai'   => 'required|date_format:H:i',
-            'is_istirahat'  => 'nullable|boolean',
-            'keterangan'    => 'nullable|string|max:255',
+            'hari_kategori'   => 'required|string',
+            'jam_ke'          => 'required|integer|min:0|max:20',
+            'jam_mulai'       => 'required|date_format:H:i',
+            'jam_selesai'     => 'required|date_format:H:i',
+            'is_istirahat'    => 'nullable|boolean',
+            'bisa_diisi_mapel'=> 'nullable|boolean',
+            'berlaku_hari'    => 'nullable|string|max:100',
+            'keterangan'      => 'nullable|string|max:255',
         ]);
 
         $start = Carbon::createFromFormat('H:i', $validated['jam_mulai']);
         $end   = Carbon::createFromFormat('H:i', $validated['jam_selesai']);
         $validated['durasi_menit'] = max(1, $start->diffInMinutes($end));
-        $validated['is_istirahat'] = $request->has('is_istirahat') ? (bool) $request->is_istirahat : false;
+
+        $bisaDiisi = $request->boolean('bisa_diisi_mapel');
+        $validated['bisa_diisi_mapel'] = $bisaDiisi;
+        $validated['berlaku_hari'] = ($request->filled('berlaku_hari') && $request->berlaku_hari !== 'Semua Hari') ? $request->berlaku_hari : null;
+        // is_istirahat is ONLY true if jam_ke is 0 or explicitly set as istirahat.
+        // Non-KBM slots (like Upacara/Apel/Pembiasaan) have is_istirahat = false and maintain their jam_ke number (e.g. Jam 1).
+        $jamKeVal = isset($validated['jam_ke']) ? (int) $validated['jam_ke'] : 1;
+        $validated['is_istirahat'] = $request->has('is_istirahat') ? $request->boolean('is_istirahat') : ($jamKeVal === 0);
 
         JamPelajaran::create($validated);
         $this->recalculateTimesForCategory($validated['hari_kategori']);
@@ -328,20 +324,26 @@ class JamPelajaranController extends Controller
         }
 
         $validated = $request->validate([
-            'jam_ke'       => 'nullable|integer|min:0|max:20',
-            'jam_mulai'    => 'required|date_format:H:i',
-            'jam_selesai'  => 'required|date_format:H:i',
-            'is_istirahat' => 'nullable|boolean',
-            'keterangan'   => 'nullable|string|max:255',
+            'jam_ke'          => 'nullable|integer|min:0|max:20',
+            'jam_mulai'       => 'required|date_format:H:i',
+            'jam_selesai'     => 'required|date_format:H:i',
+            'is_istirahat'    => 'nullable|boolean',
+            'bisa_diisi_mapel'=> 'nullable|boolean',
+            'berlaku_hari'    => 'nullable|string|max:100',
+            'keterangan'      => 'nullable|string|max:255',
         ]);
 
         $start = Carbon::createFromFormat('H:i', substr($validated['jam_mulai'], 0, 5));
         $end   = Carbon::createFromFormat('H:i', substr($validated['jam_selesai'], 0, 5));
         $validated['durasi_menit'] = max(1, $start->diffInMinutes($end));
-        $validated['is_istirahat'] = $request->has('is_istirahat') ? (bool) $request->is_istirahat : false;
-        if ($validated['is_istirahat']) {
-            $validated['jam_ke'] = 0;
-        }
+        $jamKeVal = isset($validated['jam_ke']) ? (int) $validated['jam_ke'] : $jam->jam_ke;
+
+        $bisaDiisi = $request->boolean('bisa_diisi_mapel');
+        $validated['bisa_diisi_mapel'] = $bisaDiisi;
+        $validated['berlaku_hari'] = ($request->filled('berlaku_hari') && $request->berlaku_hari !== 'Semua Hari') ? $request->berlaku_hari : null;
+        // is_istirahat is ONLY true if jam_ke is 0 or explicitly set as istirahat.
+        // Non-KBM slots (like Upacara/Apel/Pembiasaan) are NOT istirahat, so they keep their jam_ke number.
+        $validated['is_istirahat'] = $request->has('is_istirahat') ? $request->boolean('is_istirahat') : ($jamKeVal === 0);
 
         $jam->update($validated);
         $this->recalculateTimesForCategory($jam->hari_kategori);

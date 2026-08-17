@@ -255,8 +255,9 @@
                 <div id="ajaxAlertContainer"></div>
 
                 @if(session('success'))
-                    <div class="flash-alert" style="background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 16px;">
-                        ✅ {{ session('success') }}
+                    <div class="flash-alert" style="background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        <span>{{ session('success') }}</span>
                     </div>
                 @endif
 
@@ -280,13 +281,6 @@
                             <span>Jumat (30 Menit/Jam)</span>
                         </a>
                     </div>
-
-                    <button type="button" class="btn-jadwal-tambah" onclick="openGeneratorModal()" style="background: linear-gradient(135deg, #10b981, #059669); border: none; color: #fff;">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                        </svg>
-                        <span>⚡ Auto Generate Slot {{ $activeTab }}</span>
-                    </button>
                 </div>
 
                 <!-- Current Setting Summary Card -->
@@ -311,13 +305,99 @@
                         </div>
                     </div>
 
-                    <button type="button" class="action-btn-icon edit" onclick="openSettingModal()" title="Ubah Pengaturan Waktu" style="padding: 8px 14px; width: auto; font-size: 0.85rem; font-weight: 700; gap: 6px;">
+                    <button type="button" class="action-btn-icon edit" onclick="toggleSettingForm()" title="Ubah Pengaturan Waktu" style="padding: 8px 14px; width: auto; font-size: 0.85rem; font-weight: 700; gap: 6px;">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                         </svg>
-                        <span>Ubah Waktu Pulang</span>
+                        <span id="settingBtnText">Ubah Pengaturan Waktu</span>
                     </button>
+                </div>
+
+                <!-- Inline Expandable Form (Hide/Unhide) -->
+                <div id="settingInlineForm" style="display: none; margin-top: 12px; margin-bottom: 24px; background: #ffffff; border: 1px solid var(--dash-border-subtle); border-radius: 18px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); transition: all 0.3s ease;">
+                    <div style="font-weight: 800; font-size: 1rem; color: #1e2538; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px;">
+                        <span style="display: flex; align-items: center; gap: 8px;"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> Form Pengaturan Waktu &amp; Auto Generate Slot ({{ $activeTab }})</span>
+                        <button type="button" onclick="toggleSettingForm()" style="background: none; border: none; font-weight: 700; color: #64748b; cursor: pointer; font-size: 0.85rem;">✕ Tutup Form</button>
+                    </div>
+
+                    <form action="{{ route('jam.settings') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="hari_kategori" value="{{ $activeTab }}">
+
+                        <!-- SECTION 1: Jam Operasional & Durasi KBM -->
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; margin-bottom: 18px;">
+                            <div style="font-size: 0.875rem; font-weight: 800; color: #1e293b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <span>1. Jam Masuk, Jam Pulang & Durasi KBM</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+                                <div class="form-field-group">
+                                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Jam Masuk Sekolah</label>
+                                    <input type="time" name="jam_masuk" class="form-field-input" value="{{ \Carbon\Carbon::parse($curSetting->jam_masuk ?? '07:00')->format('H:i') }}" required>
+                                </div>
+
+                                <div class="form-field-group">
+                                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Jam Pulang Sekolah</label>
+                                    <input type="time" name="jam_pulang" class="form-field-input" value="{{ \Carbon\Carbon::parse($curSetting->jam_pulang ?? '14:30')->format('H:i') }}" required>
+                                </div>
+
+                                <div class="form-field-group">
+                                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Durasi (Menit / Jam KBM)</label>
+                                    <input type="number" name="durasi_per_jam" class="form-field-input" value="{{ $curSetting->durasi_per_jam ?? ($activeTab === 'Jumat' ? 30 : 40) }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 2: Pengaturan Jam Istirahat -->
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; margin-bottom: 18px;">
+                            <div style="font-size: 0.875rem; font-weight: 800; color: #1e293b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                                <span>2. Pengaturan Jam Istirahat</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+                                <div class="form-field-group">
+                                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Istirahat 1 (Durasi Menit)</label>
+                                    <input type="number" name="durasi_istirahat_1" class="form-field-input" value="{{ $activeTab === 'Jumat' ? 15 : 20 }}" required>
+                                </div>
+
+                                <div class="form-field-group">
+                                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Istirahat 1 Setelah Jam Ke-</label>
+                                    <input type="number" name="setelah_jam_ke_1" class="form-field-input" value="{{ $activeTab === 'Jumat' ? 3 : 4 }}" required>
+                                </div>
+
+                                <div class="form-field-group">
+                                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Istirahat 2 (Durasi Menit)</label>
+                                    <input type="number" name="durasi_istirahat_2" class="form-field-input" value="{{ $activeTab === 'Jumat' ? 15 : 30 }}">
+                                </div>
+
+                                <div class="form-field-group">
+                                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Istirahat 2 Setelah Jam Ke-</label>
+                                    <input type="number" name="setelah_jam_ke_2" class="form-field-input" value="{{ $activeTab === 'Jumat' ? 5 : 7 }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 3: Keterangan Tambahan -->
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; margin-bottom: 20px;">
+                            <div style="font-size: 0.875rem; font-weight: 800; color: #1e293b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                <span>3. Informasi & Keterangan Tambahan</span>
+                            </div>
+                            <div class="form-field-group">
+                                <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Keterangan Tambahan</label>
+                                <input type="text" name="keterangan" class="form-field-input" value="{{ $curSetting->keterangan ?? '' }}" placeholder="Contoh: Hari Reguler Sekolah (1 Jam = 40 Menit)">
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+                            <button type="button" onclick="toggleSettingForm()" class="btn-modal-cancel" style="padding: 8px 18px; border-radius: 10px;">Batal</button>
+                            <button type="submit" class="btn-modal-submit" style="background: #059669; padding: 10px 24px; border-radius: 10px; font-weight: 700; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 6px;">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                                <span>Simpan & Generate Slot</span>
+                            </button>
+                        </div>
+                    </form>
                 </div>
 
                 <!-- Data Table Card -->
@@ -338,7 +418,10 @@
 
                     <div style="padding: 24px; width: 100%; overflow-x: auto;">
                         <div style="margin-bottom: 12px; font-size: 0.8rem; color: #64748b; font-weight: 600; display: flex; align-items: center; justify-content: space-between;">
-                            <span>💡 <strong>Tip Drag & Drop:</strong> Tarik baris jam (menggunakan ikon ⋮⋮) ke atas / bawah untuk mengatur ulang urutan jam pelajaran & jam istirahat.</span>
+                            <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                <svg width="16" height="16" fill="none" stroke="#eab308" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path></svg>
+                                <span><strong>Tip Drag & Drop:</strong> Tarik baris jam (menggunakan ikon ⋮⋮) ke atas / bawah untuk mengatur ulang urutan jam pelajaran & jam istirahat.</span>
+                            </span>
                             <span style="color: #059669; font-weight: 700;">2 Jam Istirahat Didukung</span>
                         </div>
 
@@ -380,15 +463,29 @@
                                         <td style="font-weight: 700; font-family: monospace; font-size: 0.9rem;">{{ $waktuRange }} WIB</td>
                                         <td style="font-weight: 600; color: #475569;">{{ $j->durasi_menit ?? \Carbon\Carbon::parse($j->jam_mulai)->diffInMinutes(\Carbon\Carbon::parse($j->jam_selesai)) }} Menit</td>
                                         <td>
-                                            @if($j->is_istirahat || $j->jam_ke == 0)
-                                                <span class="badge-istirahat" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.8rem;">☕ {{ $j->keterangan ?? 'Istirahat' }}</span>
+                                            @if(!$j->bisa_diisi_mapel || $j->is_istirahat || $j->jam_ke == 0)
+                                                <span class="badge-istirahat" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; inline-flex; align-items: center; gap: 4px;">
+                                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: -2px;"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                                                    <span>{{ $j->keterangan ?? 'Non-KBM / Istirahat' }}</span>
+                                                </span>
                                             @else
-                                                <span class="badge-pelajaran" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.8rem;">📖 {{ $j->keterangan ?? 'Jam Pelajaran' }}</span>
+                                                <span class="badge-pelajaran" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; inline-flex; align-items: center; gap: 4px;">
+                                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: -2px;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                                                    <span>{{ $j->keterangan ?? 'Jam ke-' . $j->jam_ke }}</span>
+                                                </span>
+                                            @endif
+                                            @if($j->berlaku_hari)
+                                                <div style="margin-top: 4px;">
+                                                    <span style="background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; padding: 2px 8px; border-radius: 12px; font-weight: 700; font-size: 0.72rem; inline-flex; align-items: center; gap: 3px;">
+                                                        <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                                        <span>{{ $j->berlaku_hari }} Saja</span>
+                                                    </span>
+                                                </div>
                                             @endif
                                         </td>
                                         <td>
                                             <div class="action-icons-cell" style="justify-content: center; gap: 6px;">
-                                                <button type="button" class="action-btn-icon edit" title="Edit Slot Jam / Istirahat" onclick="openEditSlotModal({{ $j->id_jam }}, {{ $j->jam_ke }}, '{{ \Carbon\Carbon::parse($j->jam_mulai)->format('H:i') }}', '{{ \Carbon\Carbon::parse($j->jam_selesai)->format('H:i') }}', {{ $j->is_istirahat ? 1 : 0 }}, '{{ addslashes($j->keterangan ?? '') }}')">
+                                                <button type="button" class="action-btn-icon edit" title="Edit Slot Jam / Istirahat" onclick="openEditSlotModal({{ $j->id_jam }}, {{ $j->jam_ke }}, '{{ \Carbon\Carbon::parse($j->jam_mulai)->format('H:i') }}', '{{ \Carbon\Carbon::parse($j->jam_selesai)->format('H:i') }}', {{ $j->is_istirahat ? 1 : 0 }}, {{ $j->bisa_diisi_mapel ? 1 : 0 }}, '{{ addslashes($j->keterangan ?? '') }}', '{{ addslashes($j->berlaku_hari ?? 'Semua Hari') }}')">
                                                     <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -411,7 +508,7 @@
                                     <tr>
                                         <td colspan="6" style="text-align: center; padding: 40px; color: #847e73;">
                                             Belum ada slot jam pelajaran untuk kelompok hari {{ $activeTab }}.<br>
-                                            Klik <strong>⚡ Auto Generate Slot</strong> untuk membangkitkan jam pelajaran otomatis.
+                                            Klik <strong>Auto Generate Slot</strong> untuk membangkitkan jam pelajaran otomatis.
                                         </td>
                                     </tr>
                                 @endforelse
@@ -425,104 +522,7 @@
         </main>
     </div>
 
-    <!-- Modal 1: Auto Generator Slot (Supports 2 Istirahat) -->
-    <div class="modal-overlay" id="generatorModal" style="display: none;">
-        <div class="modal-content-card" style="max-width: 580px;">
-            <div class="modal-header-bar">
-                <h3 class="modal-title-text">⚡ Auto Generate Slot Jam ({{ $activeTab }})</h3>
-                <button type="button" class="btn-close-modal" onclick="closeGeneratorModal()">&times;</button>
-            </div>
 
-            <form action="{{ route('jam.generate') }}" method="POST" class="modal-form-grid">
-                @csrf
-                <input type="hidden" name="hari_kategori" value="{{ $activeTab }}">
-
-                <div class="form-field-group">
-                    <label>Jam Masuk Sekolah</label>
-                    <input type="time" name="jam_masuk" class="form-field-input" value="{{ \Carbon\Carbon::parse($curSetting->jam_masuk ?? '07:00')->format('H:i') }}" required>
-                </div>
-
-                <div class="form-field-group">
-                    <label>Jam Pulang Sekolah</label>
-                    <input type="time" name="jam_pulang" class="form-field-input" value="{{ \Carbon\Carbon::parse($curSetting->jam_pulang ?? '14:30')->format('H:i') }}" required>
-                </div>
-
-                <div class="form-field-group" style="grid-column: span 2;">
-                    <label>Durasi 1 Jam Pelajaran (Menit)</label>
-                    <input type="number" name="durasi_per_jam" class="form-field-input" value="{{ $activeTab === 'Jumat' ? 30 : 40 }}" required>
-                </div>
-
-                <!-- Istirahat 1 -->
-                <div class="form-field-group">
-                    <label>☕ Istirahat 1 (Menit)</label>
-                    <input type="number" name="durasi_istirahat_1" class="form-field-input" value="{{ $activeTab === 'Jumat' ? 15 : 20 }}" required>
-                </div>
-
-                <div class="form-field-group">
-                    <label>Istirahat 1 Setelah Jam Ke-</label>
-                    <input type="number" name="setelah_jam_ke_1" class="form-field-input" value="{{ $activeTab === 'Jumat' ? 3 : 4 }}" required>
-                </div>
-
-                <!-- Istirahat 2 (Sholat / Makan) -->
-                @if($activeTab !== 'Jumat')
-                    <div class="form-field-group">
-                        <label>☕ Istirahat 2 / Sholat (Menit)</label>
-                        <input type="number" name="durasi_istirahat_2" class="form-field-input" value="30">
-                    </div>
-
-                    <div class="form-field-group">
-                        <label>Istirahat 2 Setelah Jam Ke-</label>
-                        <input type="number" name="setelah_jam_ke_2" class="form-field-input" value="7">
-                    </div>
-                @endif
-                
-                <div class="modal-actions-footer">
-                    <button type="button" class="btn-modal-cancel" onclick="closeGeneratorModal()">Batal</button>
-                    <button type="submit" class="btn-modal-submit" style="background: #10b981;">Generate Jam Pelajaran</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal 2: Edit Waktu Pulang & Pengaturan -->
-    <div class="modal-overlay" id="settingModal" style="display: none;">
-        <div class="modal-content-card">
-            <div class="modal-header-bar">
-                <h3 class="modal-title-text">Edit Waktu Pulang & Durasi ({{ $activeTab }})</h3>
-                <button type="button" class="btn-close-modal" onclick="closeSettingModal()">&times;</button>
-            </div>
-
-            <form action="{{ route('jam.settings') }}" method="POST" class="modal-form-grid">
-                @csrf
-                <input type="hidden" name="hari_kategori" value="{{ $activeTab }}">
-
-                <div class="form-field-group">
-                    <label>Jam Masuk Sekolah</label>
-                    <input type="time" name="jam_masuk" class="form-field-input" value="{{ \Carbon\Carbon::parse($curSetting->jam_masuk ?? '07:00')->format('H:i') }}" required>
-                </div>
-
-                <div class="form-field-group">
-                    <label>Jam Pulang Sekolah</label>
-                    <input type="time" name="jam_pulang" class="form-field-input" value="{{ \Carbon\Carbon::parse($curSetting->jam_pulang ?? '14:30')->format('H:i') }}" required>
-                </div>
-
-                <div class="form-field-group">
-                    <label>Durasi 1 Jam Pelajaran (Menit)</label>
-                    <input type="number" name="durasi_per_jam" class="form-field-input" value="{{ $curSetting->durasi_per_jam ?? 40 }}" required>
-                </div>
-
-                <div class="form-field-group">
-                    <label>Keterangan Tambahan</label>
-                    <input type="text" name="keterangan" class="form-field-input" value="{{ $curSetting->keterangan ?? '' }}" placeholder="Contoh: Hari Reguler Sekolah">
-                </div>
-
-                <div class="modal-actions-footer">
-                    <button type="button" class="btn-modal-cancel" onclick="closeSettingModal()">Batal</button>
-                    <button type="submit" class="btn-modal-submit">Simpan Pengaturan</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <!-- Modal 3: Tambah Slot Manual -->
     <div class="modal-overlay" id="createSlotModal" style="display: none;">
@@ -537,7 +537,7 @@
                 <input type="hidden" name="hari_kategori" value="{{ $activeTab }}">
 
                 <div class="form-field-group">
-                    <label>Jam Ke- (Isi 0 jika Istirahat)</label>
+                    <label>Jam Ke- (Isi 0 jika Istirahat/Apel)</label>
                     <input type="number" name="jam_ke" class="form-field-input" value="1" required>
                 </div>
 
@@ -552,8 +552,26 @@
                 </div>
 
                 <div class="form-field-group">
-                    <label>Keterangan</label>
-                    <input type="text" name="keterangan" class="form-field-input" placeholder="Contoh: Jam Ke-1 / Istirahat">
+                    <label>Tipe / Keterangan</label>
+                    <input type="text" name="keterangan" class="form-field-input" placeholder="Contoh: Pembiasaan / Upacara / Jam ke-1">
+                </div>
+
+                <div class="form-field-group">
+                    <label>Berlaku Pada Hari</label>
+                    <select name="berlaku_hari" class="form-field-input">
+                        <option value="Semua Hari">Semua Hari (Default)</option>
+                        <option value="Senin">Hari Senin Saja</option>
+                        <option value="Selasa">Hari Selasa Saja</option>
+                        <option value="Rabu">Hari Rabu Saja</option>
+                        <option value="Kamis">Hari Kamis Saja</option>
+                        <option value="Jumat">Hari Jumat Saja</option>
+                    </select>
+                </div>
+
+                <div class="form-field-group" style="grid-column: span 2; display: flex; align-items: center; gap: 8px; margin-top: 6px;">
+                    <input type="hidden" name="bisa_diisi_mapel" value="0">
+                    <input type="checkbox" name="bisa_diisi_mapel" id="create_bisa_diisi_mapel" value="1" checked style="width: 18px; height: 18px; cursor: pointer;">
+                    <label for="create_bisa_diisi_mapel" style="margin: 0; cursor: pointer; font-weight: 700; color: #1e2538;">Izinkan Diisi Mata Pelajaran (KBM)</label>
                 </div>
 
                 <div class="modal-actions-footer">
@@ -577,7 +595,7 @@
                 @method('PUT')
 
                 <div class="form-field-group">
-                    <label>Jam Ke- (Isi 0 jika Istirahat)</label>
+                    <label>Jam Ke- (Isi 0 jika Istirahat/Apel)</label>
                     <input type="number" name="jam_ke" id="edit_jam_ke" class="form-field-input" required>
                 </div>
 
@@ -593,12 +611,31 @@
 
                 <div class="form-field-group">
                     <label>Tipe / Keterangan</label>
-                    <input type="text" name="keterangan" id="edit_keterangan" class="form-field-input" placeholder="Contoh: Istirahat 1 / Sholat Dzuhur">
+                    <input type="text" name="keterangan" id="edit_keterangan" class="form-field-input" placeholder="Contoh: Upacara / Apel / Jam ke-1">
                 </div>
 
-                <div class="form-field-group" style="grid-column: span 2; display: flex; align-items: center; gap: 8px;">
-                    <input type="checkbox" name="is_istirahat" id="edit_is_istirahat" value="1" style="width: 18px; height: 18px;">
-                    <label for="edit_is_istirahat" style="margin: 0; cursor: pointer; font-weight: 700; color: #1e2538;">Tandai Sebagai Jam Istirahat ☕</label>
+                <div class="form-field-group">
+                    <label>Berlaku Pada Hari</label>
+                    <select name="berlaku_hari" id="edit_berlaku_hari" class="form-field-input">
+                        <option value="Semua Hari">Semua Hari (Default)</option>
+                        <option value="Senin">Hari Senin Saja</option>
+                        <option value="Selasa">Hari Selasa Saja</option>
+                        <option value="Rabu">Hari Rabu Saja</option>
+                        <option value="Kamis">Hari Kamis Saja</option>
+                        <option value="Jumat">Hari Jumat Saja</option>
+                    </select>
+                </div>
+
+                <div class="form-field-group" style="grid-column: span 2; margin-top: 6px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="hidden" name="bisa_diisi_mapel" value="0">
+                        <input type="checkbox" name="bisa_diisi_mapel" id="edit_bisa_diisi_mapel" value="1" style="width: 18px; height: 18px; cursor: pointer;">
+                        <label for="edit_bisa_diisi_mapel" style="margin: 0; cursor: pointer; font-weight: 700; color: #1e2538;">Izinkan Diisi Mata Pelajaran (KBM)</label>
+                    </div>
+                    <div style="font-size: 0.73rem; color: #64748b; margin-top: 4px; margin-left: 26px; display: flex; align-items: center; gap: 4px;">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span>Jika dinonaktifkan, slot ini akan ditandai Non-KBM. Jika sebelumnya sudah ada mapel di slot ini, mapel akan diberi tanda warning <span style="color: #dc2626; font-weight: 700; display: inline-flex; align-items: center; gap: 2px;"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Tertimpa</span> di matriks jadwal agar dapat dipindahkan ke jam lain.</span>
+                    </div>
                 </div>
 
                 <div class="modal-actions-footer">
@@ -615,22 +652,33 @@
             if (el) el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'flex' : 'none';
         }
 
-        function openGeneratorModal() { document.getElementById('generatorModal').style.display = 'flex'; }
-        function closeGeneratorModal() { document.getElementById('generatorModal').style.display = 'none'; }
+        function toggleSettingForm() {
+            const el = document.getElementById('settingInlineForm');
+            const btnText = document.getElementById('settingBtnText');
+            if (!el) return;
 
-        function openSettingModal() { document.getElementById('settingModal').style.display = 'flex'; }
-        function closeSettingModal() { document.getElementById('settingModal').style.display = 'none'; }
+            if (el.style.display === 'none' || el.style.display === '') {
+                el.style.display = 'block';
+                if (btnText) btnText.innerText = 'Sembunyikan Form';
+            } else {
+                el.style.display = 'none';
+                if (btnText) btnText.innerText = 'Ubah Pengaturan Waktu';
+            }
+        }
 
         function openCreateSlotModal() { document.getElementById('createSlotModal').style.display = 'flex'; }
         function closeCreateSlotModal() { document.getElementById('createSlotModal').style.display = 'none'; }
 
-        function openEditSlotModal(id, jamKe, jamMulai, jamSelesai, isIstirahat, keterangan) {
+        function openEditSlotModal(id, jamKe, jamMulai, jamSelesai, isIstirahat, bisaDiisiMapel, keterangan, berlakuHari) {
             document.getElementById('editSlotForm').action = '/jam-pelajaran/' + id;
             document.getElementById('edit_jam_ke').value = jamKe;
             document.getElementById('edit_jam_mulai').value = jamMulai;
             document.getElementById('edit_jam_selesai').value = jamSelesai;
             document.getElementById('edit_keterangan').value = keterangan;
-            document.getElementById('edit_is_istirahat').checked = (isIstirahat == 1);
+            const selectHari = document.getElementById('edit_berlaku_hari');
+            if (selectHari) selectHari.value = berlakuHari || 'Semua Hari';
+            const chk = document.getElementById('edit_bisa_diisi_mapel');
+            if (chk) chk.checked = (bisaDiisiMapel == 1);
             document.getElementById('editSlotModal').style.display = 'flex';
         }
 

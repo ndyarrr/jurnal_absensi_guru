@@ -15,6 +15,8 @@ class JamPelajaran extends Model
         'jam_mulai',
         'jam_selesai',
         'is_istirahat',
+        'bisa_diisi_mapel',
+        'berlaku_hari',
         'durasi_menit',
         'keterangan',
     ];

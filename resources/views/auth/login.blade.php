@@ -111,7 +111,10 @@
 
                 <!-- Quick Demo Picker -->
                 <div class="mockup-demo-bar">
-                    <div class="mockup-demo-title">💡 Akun Demo Cepat (Database Real)</div>
+                    <div class="mockup-demo-title" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M15.09 14A6 6 0 0 0 18 9 6 6 0 0 0 6 9a6 6 0 0 0 2.91 5z"></path></svg>
+                        <span>Akun Demo Cepat (Database Real)</span>
+                    </div>
                     <div class="mockup-demo-tags">
                         <button type="button" class="mockup-demo-tag" onclick="fillQuickAccount('Administrator', 'password', 'super_admin')">Admin Super</button>
                         <button type="button" class="mockup-demo-tag" onclick="fillQuickAccount('Trisno Wibowo (Guru)', 'password', 'guru_mengajar')">Guru Mengajar</button>

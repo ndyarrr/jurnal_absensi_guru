@@ -43,12 +43,21 @@ class JadwalPelajaranController extends Controller
 
         $jadwal = $query->orderBy('hari', 'asc')->orderBy('jam_ke', 'asc')->paginate(10)->withQueryString();
 
+        // Fetch all time slots for fallback resolution
+        $jamPelajaransAll = JamPelajaran::all();
+
         // If AJAX, return JSON for the table section
         if ($request->ajax() || $request->wantsJson()) {
-            $tableRows = $jadwal->map(function ($j) {
+            $tableRows = $jadwal->map(function ($j) use ($jamPelajaransAll) {
+                $jamObj = $j->jamPelajaran;
+                if (!$jamObj && $j->jam_ke) {
+                    $kat = ($j->hari === 'Jumat') ? 'Jumat' : 'Senin-Kamis';
+                    $jamObj = $jamPelajaransAll->where('hari_kategori', $kat)->where('jam_ke', $j->jam_ke)->first();
+                }
+
                 $waktu = '-';
-                if ($j->jamPelajaran) {
-                    $waktu = \Carbon\Carbon::parse($j->jamPelajaran->jam_mulai)->format('H.i') . '-' . \Carbon\Carbon::parse($j->jamPelajaran->jam_selesai)->format('H.i');
+                if ($jamObj) {
+                    $waktu = \Carbon\Carbon::parse($jamObj->jam_mulai)->format('H.i') . '-' . \Carbon\Carbon::parse($jamObj->jam_selesai)->format('H.i');
                 }
 
                 $isKelasDeleted = !$j->kelas || $j->kelas->trashed();
@@ -67,7 +76,10 @@ class JadwalPelajaranController extends Controller
                     'mapel'            => $mapelStr,
                     'kelas'            => $kelasStr,
                     'guru'             => $guruStr,
-                    'ruangan'          => $j->ruangan ?? 'R. 57',
+                    'nama_mapel'       => $mapelStr,
+                    'nama_kelas'       => $kelasStr,
+                    'nama_guru'        => $guruStr,
+                    'ruangan'          => $j->ruangan ?? '-',
                     'id_kelas'         => $j->id_kelas,
                     'id_guru'          => $j->id_guru,
                     'id_mapel'         => $j->id_mapel,
@@ -92,10 +104,10 @@ class JadwalPelajaranController extends Controller
         }
 
         // Dropdown Lists for Modals & Filters
-        $kelases       = Kelas::with('jurusan')->orderBy('tingkat')->orderBy('id_jurusan')->orderBy('rombel')->get();
+        $kelases       = Kelas::with(['jurusan', 'waliKelas'])->orderBy('tingkat')->orderBy('id_jurusan')->orderBy('rombel')->get();
         $gurus         = Guru::orderBy('nama_guru')->get();
         $mapels        = Mapel::orderBy('nama_mapel')->get();
-        $jamPelajarans = JamPelajaran::orderBy('jam_ke')->get();
+        $jamPelajarans = JamPelajaran::orderBy('jam_mulai')->get();
         $hariList      = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
         $allJadwal     = JadwalPelajaran::with(['kelas.jurusan', 'guru', 'mapel', 'jamPelajaran'])->get();
 
