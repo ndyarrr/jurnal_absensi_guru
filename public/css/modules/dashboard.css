@@ -1019,6 +1019,12 @@ table.pengguna-table tr:hover td {
     border-color: #fecaca;
 }
 
+.action-btn-icon:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 /* Footer Pagination Controls */
 .table-pagination-row {
     display: flex;
@@ -2041,6 +2047,12 @@ table.kelas-table tr:hover td {
    ========================================================================== */
 .flash-alert {
     transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+[data-ajax-pagination].ajax-pagination-loading {
+    opacity: 0.55;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
 }
 
 /* ==========================================================================

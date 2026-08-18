@@ -51,7 +51,7 @@ class KelasController extends Controller
         $totalKelasCount   = Kelas::count();
         $totalJurusanCount = Jurusan::count();
 
-        $jurusanList = Jurusan::orderBy('nama_jurusan')->get();
+        $jurusanList = Jurusan::withCount('kelas')->orderBy('nama_jurusan')->get();
         $guruList    = Guru::orderBy('nama_guru')->get();
         $tingkatList = ['X', 'XI', 'XII'];
 

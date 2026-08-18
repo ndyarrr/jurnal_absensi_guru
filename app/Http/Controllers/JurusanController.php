@@ -31,6 +31,17 @@ class JurusanController extends Controller
 
     public function show(Jurusan $jurusan)
     {
+        if (request()->wantsJson() || request()->ajax()) {
+            $jurusan->loadCount('kelas');
+
+            return response()->json([
+                'id_jurusan'   => $jurusan->id_jurusan,
+                'kode_jurusan' => $jurusan->kode_jurusan,
+                'nama_jurusan' => $jurusan->nama_jurusan,
+                'jumlah_kelas' => $jurusan->kelas_count,
+            ]);
+        }
+
         return view('admin.jurusan.show', compact('jurusan'));
     }
 
@@ -47,12 +58,24 @@ class JurusanController extends Controller
         ]);
 
         $jurusan->update($validated);
-        return redirect()->route('jurusan.index')->with('success', 'Jurusan berhasil diperbarui');
+
+        return redirect()->back()->with('success', 'Jurusan berhasil diperbarui');
     }
 
     public function destroy(Jurusan $jurusan)
     {
+        $kelasCount = $jurusan->kelas()->count();
+
+        if ($kelasCount > 0) {
+            return redirect()->back()->with(
+                'error',
+                'Jurusan "' . $jurusan->kode_jurusan . '" tidak dapat dihapus karena masih memiliki ' . $kelasCount . ' kelas terkait.'
+            );
+        }
+
+        $kode = $jurusan->kode_jurusan;
         $jurusan->delete();
-        return redirect()->route('jurusan.index')->with('success', 'Jurusan berhasil dihapus');
+
+        return redirect()->back()->with('success', 'Jurusan "' . $kode . '" berhasil dihapus');
     }
 }

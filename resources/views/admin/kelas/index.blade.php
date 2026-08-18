@@ -21,17 +21,7 @@
              Left Sidebar Navigation
              =================================================================== -->
         <aside class="dash-sidebar">
-            <a href="{{ route('dashboard') }}" class="dash-brand">
-                <svg width="42" height="42" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M20 75C20 70 30 65 50 65C70 65 80 70 80 75V80H20V75Z" fill="#252B3E"/>
-                    <path d="M50 20L15 40L50 60L85 40L50 20Z" fill="#D97706"/>
-                    <path d="M50 20L25 34.2857V60L50 45.7143V20Z" fill="#F59E0B"/>
-                    <path d="M35 65L20 50V70L35 80V65Z" fill="#252B3E"/>
-                    <path d="M65 65L80 50V70L65 80V65Z" fill="#252B3E"/>
-                    <circle cx="50" cy="50" r="12" fill="#252B3E"/>
-                    <path d="M46 50L49 53L55 47" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </a>
+            @include('partials.dash-brand')
 
             <ul class="dash-menu">
                 <!-- Dashboard Item -->
@@ -391,7 +381,7 @@
             <!-- ---------------------------------------------------------------
                  Data Table Card Component (Matching Mockup Design)
                  --------------------------------------------------------------- -->
-            <div class="kelas-table-card">
+            <div class="kelas-table-card" data-ajax-pagination="main">
                 <div class="table-responsive-clean">
                     <table class="kelas-table">
                         <thead>
@@ -485,6 +475,93 @@
                 </div>
             </div>
 
+            <!-- ---------------------------------------------------------------
+                 Data Jurusan Table Card
+                 --------------------------------------------------------------- -->
+            <div class="kelas-table-card" style="margin-top: 24px;">
+                <div class="collapsible-form-header" style="margin-bottom: 4px; padding-bottom: 16px;">
+                    <h3 class="collapsible-form-title">
+                        <svg width="20" height="20" fill="none" stroke="var(--dash-navy)" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                            <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                        </svg>
+                        <span>Daftar Jurusan / Kompetensi Keahlian</span>
+                    </h3>
+                    <span class="badge-kelas-count" style="padding: 8px 14px; font-size: 0.8rem;">{{ $totalJurusanCount }} Jurusan</span>
+                </div>
+
+                <div class="table-responsive-clean">
+                    <table class="kelas-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 5%;">No</th>
+                                <th style="width: 15%;">Kode</th>
+                                <th style="width: 45%;">Nama Jurusan</th>
+                                <th style="width: 15%;">Jumlah Kelas</th>
+                                <th style="width: 20%; text-align: center;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($jurusanList as $j)
+                                <tr>
+                                    <td class="td-no">{{ $loop->iteration }}</td>
+                                    <td>
+                                        <span class="jurusan-code-badge">{{ $j->kode_jurusan }}</span>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight: 700; color: #1e2538;">{{ $j->nama_jurusan }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge-status-aktif" style="background-color: #f1f5f9; color: #334155; border-color: #cbd5e1;">
+                                            {{ $j->kelas_count }} Kelas
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="action-icons-cell">
+                                            <button type="button" class="action-btn-icon view" title="Lihat Detail Jurusan" onclick="openViewJurusanModal({{ $j->id_jurusan }})">
+                                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                    <circle cx="12" cy="12" r="3"></circle>
+                                                </svg>
+                                            </button>
+
+                                            <button type="button" class="action-btn-icon edit" title="Edit Data Jurusan"
+                                                data-id="{{ $j->id_jurusan }}"
+                                                data-kode="{{ $j->kode_jurusan }}"
+                                                data-nama="{{ $j->nama_jurusan }}"
+                                                onclick="openEditJurusanModal(this)">
+                                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                                </svg>
+                                            </button>
+
+                                            <form action="{{ route('jurusan.destroy', $j) }}" method="POST" style="display: inline;"
+                                                onsubmit="return confirm(@if($j->kelas_count > 0)'Jurusan {{ $j->kode_jurusan }} masih memiliki {{ $j->kelas_count }} kelas terkait dan tidak dapat dihapus.'@else'Apakah Anda yakin ingin menghapus jurusan {{ $j->kode_jurusan }} - {{ $j->nama_jurusan }}?'@endif)">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="action-btn-icon delete" title="{{ $j->kelas_count > 0 ? 'Tidak dapat dihapus — masih ada kelas terkait' : 'Hapus Jurusan' }}" @if($j->kelas_count > 0) disabled @endif>
+                                                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 40px; color: #847e73;">
+                                        Belum ada data jurusan. Klik tombol <strong>Tambah Jurusan</strong> untuk menambahkan.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </main>
 
     </div>
@@ -516,6 +593,69 @@
                     <button type="submit" class="btn-modal-submit">Simpan Jurusan</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- ===================================================================
+         Edit Jurusan Modal Popup
+         =================================================================== -->
+    <div class="modal-overlay" id="editJurusanModal" style="display: none;">
+        <div class="modal-content-card">
+            <div class="modal-header-bar">
+                <h3 class="modal-title-text">Edit Data Jurusan</h3>
+                <button type="button" class="btn-close-modal" onclick="closeEditJurusanModal()">&times;</button>
+            </div>
+
+            <form id="editJurusanForm" method="POST" class="modal-form-grid">
+                @csrf
+                @method('PUT')
+
+                <div class="form-field-group">
+                    <label for="edit_kode_jurusan">Kode Singkatan Jurusan</label>
+                    <input type="text" name="kode_jurusan" id="edit_kode_jurusan" class="form-field-input" placeholder="Contoh: RPL, TKJ, DKV, AKL" maxlength="10" required style="text-transform: uppercase;">
+                </div>
+
+                <div class="form-field-group">
+                    <label for="edit_nama_jurusan">Nama Lengkap Jurusan</label>
+                    <input type="text" name="nama_jurusan" id="edit_nama_jurusan" class="form-field-input" placeholder="Contoh: Rekayasa Perangkat Lunak" required>
+                </div>
+
+                <div class="modal-actions-footer">
+                    <button type="button" class="btn-modal-cancel" onclick="closeEditJurusanModal()">Batal</button>
+                    <button type="submit" class="btn-modal-submit">Update Jurusan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================================================================
+         View Jurusan Modal Popup
+         =================================================================== -->
+    <div class="modal-overlay" id="viewJurusanModal" style="display: none;">
+        <div class="modal-content-card">
+            <div class="modal-header-bar">
+                <h3 class="modal-title-text">Detail Data Jurusan</h3>
+                <button type="button" class="btn-close-modal" onclick="closeViewJurusanModal()">&times;</button>
+            </div>
+
+            <div class="modal-form-grid">
+                <div class="form-field-group">
+                    <label>Kode Jurusan:</label>
+                    <div id="view_jurusan_kode" style="font-weight: 800; font-size: 1.1rem; color: var(--dash-navy);">-</div>
+                </div>
+                <div class="form-field-group">
+                    <label>Nama Lengkap Jurusan:</label>
+                    <div id="view_jurusan_nama" style="font-weight: 700; color: #1e2538;">-</div>
+                </div>
+                <div class="form-field-group">
+                    <label>Jumlah Kelas Terkait:</label>
+                    <div id="view_jurusan_kelas_count" style="font-weight: 700; color: #059669;">-</div>
+                </div>
+            </div>
+
+            <div class="modal-actions-footer">
+                <button type="button" class="btn-modal-cancel" onclick="closeViewJurusanModal()" style="width: 100%;">Tutup</button>
+            </div>
         </div>
     </div>
 
@@ -659,6 +799,36 @@
             document.getElementById('createJurusanModal').style.display = 'none';
         }
 
+        /* ---- Edit Jurusan Modal ---- */
+        function openEditJurusanModal(btn) {
+            document.getElementById('editJurusanForm').action = '/jurusan/' + btn.dataset.id;
+            document.getElementById('edit_kode_jurusan').value = btn.dataset.kode;
+            document.getElementById('edit_nama_jurusan').value = btn.dataset.nama;
+            document.getElementById('editJurusanModal').style.display = 'flex';
+        }
+
+        function closeEditJurusanModal() {
+            document.getElementById('editJurusanModal').style.display = 'none';
+        }
+
+        /* ---- View Jurusan Modal ---- */
+        function openViewJurusanModal(id) {
+            fetch('/jurusan/' + id, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('view_jurusan_kode').innerText = data.kode_jurusan;
+                    document.getElementById('view_jurusan_nama').innerText = data.nama_jurusan;
+                    document.getElementById('view_jurusan_kelas_count').innerText = data.jumlah_kelas + ' Kelas';
+                    document.getElementById('viewJurusanModal').style.display = 'flex';
+                });
+        }
+
+        function closeViewJurusanModal() {
+            document.getElementById('viewJurusanModal').style.display = 'none';
+        }
+
         /* ---- Guru & Wali Kelas Data for JS lookup ---- */
         const GURU_WALI_DATA = [
             @foreach($guruList as $g)
@@ -789,13 +959,15 @@
             const input = document.getElementById('kelasSearchInput');
             if (!input) return;
 
-            const tbody = document.querySelector('.kelas-table tbody');
-            if (!tbody) return;
+            const listSection = document.querySelector('[data-ajax-pagination="main"]');
+            if (!listSection) return;
 
-            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const tbody = listSection.querySelector('table tbody');
+            if (!tbody) return;
 
             input.addEventListener('input', function() {
                 const q = this.value.toLowerCase().trim();
+                const rows = tbody.querySelectorAll('tr');
 
                 rows.forEach(function(row) {
                     const text = row.innerText.toLowerCase();
@@ -807,7 +979,6 @@
                 });
             });
 
-            // Prevent form submit on Enter key
             input.closest('form').addEventListener('submit', function(e) {
                 e.preventDefault();
             });
@@ -822,6 +993,7 @@
             });
         }, 3000);
     </script>
+    <script src="/js/ajax-pagination.js"></script>
     <script src="/js/live-clock.js"></script>
 </body>
 </html>

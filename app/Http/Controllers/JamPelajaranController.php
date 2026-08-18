@@ -268,7 +268,10 @@ class JamPelajaranController extends Controller
 
         $bisaDiisi = $request->boolean('bisa_diisi_mapel');
         $validated['bisa_diisi_mapel'] = $bisaDiisi;
-        $validated['berlaku_hari'] = ($request->filled('berlaku_hari') && $request->berlaku_hari !== 'Semua Hari') ? $request->berlaku_hari : null;
+        $validated['berlaku_hari'] = $this->normalizeBerlakuHari(
+            $request->input('berlaku_hari'),
+            $validated['hari_kategori']
+        );
         // is_istirahat is ONLY true if jam_ke is 0 or explicitly set as istirahat.
         // Non-KBM slots (like Upacara/Apel/Pembiasaan) have is_istirahat = false and maintain their jam_ke number (e.g. Jam 1).
         $jamKeVal = isset($validated['jam_ke']) ? (int) $validated['jam_ke'] : 1;
@@ -340,7 +343,10 @@ class JamPelajaranController extends Controller
 
         $bisaDiisi = $request->boolean('bisa_diisi_mapel');
         $validated['bisa_diisi_mapel'] = $bisaDiisi;
-        $validated['berlaku_hari'] = ($request->filled('berlaku_hari') && $request->berlaku_hari !== 'Semua Hari') ? $request->berlaku_hari : null;
+        $validated['berlaku_hari'] = $this->normalizeBerlakuHari(
+            $request->input('berlaku_hari'),
+            $jam->hari_kategori
+        );
         // is_istirahat is ONLY true if jam_ke is 0 or explicitly set as istirahat.
         // Non-KBM slots (like Upacara/Apel/Pembiasaan) are NOT istirahat, so they keep their jam_ke number.
         $validated['is_istirahat'] = $request->has('is_istirahat') ? $request->boolean('is_istirahat') : ($jamKeVal === 0);
@@ -354,5 +360,23 @@ class JamPelajaranController extends Controller
 
         return redirect()->route('jam.index', ['tab' => $jam->hari_kategori])
             ->with('success', 'Slot jam pelajaran berhasil diperbarui & waktu beruntun disesuaikan.');
+    }
+
+    /**
+     * Normalize berlaku_hari based on hari_kategori tab rules.
+     */
+    private function normalizeBerlakuHari(?string $berlakuHari, string $hariKategori): ?string
+    {
+        if (!$berlakuHari || $berlakuHari === 'Semua Hari') {
+            return null;
+        }
+
+        if ($hariKategori === 'Jumat') {
+            return null;
+        }
+
+        $allowed = ['Senin', 'Selasa', 'Rabu', 'Kamis'];
+
+        return in_array($berlakuHari, $allowed, true) ? $berlakuHari : null;
     }
 }

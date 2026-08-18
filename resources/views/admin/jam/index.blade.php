@@ -73,17 +73,7 @@
              Left Sidebar Navigation (Fixed / Sticky Position)
              =================================================================== -->
         <aside class="dash-sidebar">
-            <a href="{{ route('dashboard') }}" class="dash-brand">
-                <svg width="42" height="42" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M20 75C20 70 30 65 50 65C70 65 80 70 80 75V80H20V75Z" fill="#252B3E"/>
-                    <path d="M50 20L15 40L50 60L85 40L50 20Z" fill="#D97706"/>
-                    <path d="M50 20L25 34.2857V60L50 45.7143V20Z" fill="#F59E0B"/>
-                    <path d="M35 65L20 50V70L35 80V65Z" fill="#252B3E"/>
-                    <path d="M65 65L80 50V70L65 80V65Z" fill="#252B3E"/>
-                    <circle cx="50" cy="50" r="12" fill="#252B3E"/>
-                    <path d="M46 50L49 53L55 47" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </a>
+            @include('partials.dash-brand')
 
             <ul class="dash-menu">
                 <!-- Dashboard Item -->
@@ -525,6 +515,11 @@
 
 
     <!-- Modal 3: Tambah Slot Manual -->
+    @php
+        $berlakuHariOptions = $activeTab === 'Jumat'
+            ? []
+            : ['Senin', 'Selasa', 'Rabu', 'Kamis'];
+    @endphp
     <div class="modal-overlay" id="createSlotModal" style="display: none;">
         <div class="modal-content-card">
             <div class="modal-header-bar">
@@ -560,12 +555,13 @@
                     <label>Berlaku Pada Hari</label>
                     <select name="berlaku_hari" class="form-field-input">
                         <option value="Semua Hari">Semua Hari (Default)</option>
-                        <option value="Senin">Hari Senin Saja</option>
-                        <option value="Selasa">Hari Selasa Saja</option>
-                        <option value="Rabu">Hari Rabu Saja</option>
-                        <option value="Kamis">Hari Kamis Saja</option>
-                        <option value="Jumat">Hari Jumat Saja</option>
+                        @foreach($berlakuHariOptions as $hari)
+                            <option value="{{ $hari }}">Hari {{ $hari }} Saja</option>
+                        @endforeach
                     </select>
+                    @if($activeTab === 'Jumat')
+                        <small style="display: block; margin-top: 6px; color: #64748b; font-weight: 600;">Tab Jumat hanya untuk slot hari Jumat — tidak perlu pilih hari tertentu.</small>
+                    @endif
                 </div>
 
                 <div class="form-field-group" style="grid-column: span 2; display: flex; align-items: center; gap: 8px; margin-top: 6px;">
@@ -618,12 +614,13 @@
                     <label>Berlaku Pada Hari</label>
                     <select name="berlaku_hari" id="edit_berlaku_hari" class="form-field-input">
                         <option value="Semua Hari">Semua Hari (Default)</option>
-                        <option value="Senin">Hari Senin Saja</option>
-                        <option value="Selasa">Hari Selasa Saja</option>
-                        <option value="Rabu">Hari Rabu Saja</option>
-                        <option value="Kamis">Hari Kamis Saja</option>
-                        <option value="Jumat">Hari Jumat Saja</option>
+                        @foreach($berlakuHariOptions as $hari)
+                            <option value="{{ $hari }}">Hari {{ $hari }} Saja</option>
+                        @endforeach
                     </select>
+                    @if($activeTab === 'Jumat')
+                        <small style="display: block; margin-top: 6px; color: #64748b; font-weight: 600;">Tab Jumat hanya untuk slot hari Jumat — tidak perlu pilih hari tertentu.</small>
+                    @endif
                 </div>
 
                 <div class="form-field-group" style="grid-column: span 2; margin-top: 6px;">
@@ -676,7 +673,12 @@
             document.getElementById('edit_jam_selesai').value = jamSelesai;
             document.getElementById('edit_keterangan').value = keterangan;
             const selectHari = document.getElementById('edit_berlaku_hari');
-            if (selectHari) selectHari.value = berlakuHari || 'Semua Hari';
+            if (selectHari) {
+                const val = berlakuHari || 'Semua Hari';
+                selectHari.value = Array.from(selectHari.options).some(function (o) { return o.value === val; })
+                    ? val
+                    : 'Semua Hari';
+            }
             const chk = document.getElementById('edit_bisa_diisi_mapel');
             if (chk) chk.checked = (bisaDiisiMapel == 1);
             document.getElementById('editSlotModal').style.display = 'flex';

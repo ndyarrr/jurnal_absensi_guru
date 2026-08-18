@@ -22,17 +22,7 @@
              Left Sidebar Navigation (Fixed / Sticky Position)
              =================================================================== -->
         <aside class="dash-sidebar">
-            <a href="{{ route('dashboard') }}" class="dash-brand">
-                <svg width="42" height="42" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M20 75C20 70 30 65 50 65C70 65 80 70 80 75V80H20V75Z" fill="#252B3E"/>
-                    <path d="M50 20L15 40L50 60L85 40L50 20Z" fill="#D97706"/>
-                    <path d="M50 20L25 34.2857V60L50 45.7143V20Z" fill="#F59E0B"/>
-                    <path d="M35 65L20 50V70L35 80V65Z" fill="#252B3E"/>
-                    <path d="M65 65L80 50V70L65 80V65Z" fill="#252B3E"/>
-                    <circle cx="50" cy="50" r="12" fill="#252B3E"/>
-                    <path d="M46 50L49 53L55 47" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </a>
+            @include('partials.dash-brand')
 
             <ul class="dash-menu">
                 <!-- Dashboard Item -->
@@ -817,7 +807,7 @@
                     </div>
 
                     <!-- RIGHT COLUMN: Full Schedule Data Table & AJAX Filters -->
-                    <div class="jadwal-table-column">
+                    <div class="jadwal-table-column" data-ajax-pagination="main">
                         <!-- Table Filter Dropdown Bar (No Page Refresh) -->
                         <div class="table-filter-bar">
                             <!-- Filter Hari -->
@@ -1726,6 +1716,7 @@
             });
         }, 3000);
     </script>
+    <script src="/js/ajax-pagination.js"></script>
     <script src="/js/live-clock.js"></script>
 </body>
 </html>
