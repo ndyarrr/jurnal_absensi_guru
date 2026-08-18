@@ -7,7 +7,9 @@ use App\Models\JamPelajaran;
 use App\Models\Kelas;
 use App\Models\Guru;
 use App\Models\Mapel;
+use App\Models\Ruangan;
 use App\Support\CsvExporter;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -94,13 +96,14 @@ class JadwalPelajaranController extends Controller
         $kelases       = Kelas::with(['jurusan', 'waliKelas'])->orderBy('tingkat')->orderBy('id_jurusan')->orderBy('rombel')->get();
         $gurus         = Guru::orderBy('nama_guru')->get();
         $mapels        = Mapel::orderBy('nama_mapel')->get();
+        $ruangans      = Ruangan::orderBy('nama_ruangan')->get();
         $jamPelajarans = JamPelajaran::orderBy('jam_mulai')->get();
         $hariList      = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
         $allJadwal     = JadwalPelajaran::with(['kelas.jurusan', 'guru', 'mapel', 'jamPelajaran'])->get();
 
         return view('admin.jadwal.index', compact(
             'jadwal', 'todayJadwal', 'todayDayName',
-            'kelases', 'gurus', 'mapels', 'jamPelajarans', 'hariList', 'allJadwal'
+            'kelases', 'gurus', 'mapels', 'ruangans', 'jamPelajarans', 'hariList', 'allJadwal'
         ));
     }
 
@@ -292,55 +295,193 @@ class JadwalPelajaranController extends Controller
     }
 
     /**
-     * Export filtered schedule data as CSV.
+     * Export filtered schedule data as CSV (Matrix Layout matching PDF).
      */
     public function exportCsv(Request $request)
     {
-        $records = $this->buildFilteredQuery($request)
-            ->orderBy('hari')
-            ->orderBy('jam_ke')
-            ->get();
+        $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        $records = $this->buildFilteredQuery($request)->get();
+
+        $kelasId = $request->input('id_kelas');
+
+        // Determine which classes to include
+        if ($request->filled('id_kelas')) {
+            $kelases = Kelas::with(['jurusan', 'waliKelas'])->where('id_kelas', $kelasId)->get();
+        } else {
+            $kelasIdsInRecords = $records->pluck('id_kelas')->unique()->filter();
+            if ($kelasIdsInRecords->isNotEmpty()) {
+                $kelases = Kelas::with(['jurusan', 'waliKelas'])->whereIn('id_kelas', $kelasIdsInRecords)->orderBy('tingkat')->orderBy('id_jurusan')->orderBy('rombel')->get();
+            } else {
+                $kelases = Kelas::with(['jurusan', 'waliKelas'])->orderBy('tingkat')->orderBy('id_jurusan')->orderBy('rombel')->get();
+            }
+        }
+
+        // Build matrix array: $matrix[id_kelas][hari][jam_ke]
+        $matrix = [];
+        foreach ($records as $r) {
+            $matrix[$r->id_kelas][$r->hari][$r->jam_ke] = $r;
+        }
+
+        $maxJamSeninKamis = JamPelajaran::where('hari_kategori', 'Senin-Kamis')->max('jam_ke') ?: 10;
+        $maxJamJumat      = JamPelajaran::where('hari_kategori', 'Jumat')->max('jam_ke') ?: 6;
+        $maxJamOverall    = max($maxJamSeninKamis, $maxJamJumat);
 
         $jamPelajaransAll = JamPelajaran::all();
+        $jamMap = [];
+        foreach ($jamPelajaransAll as $jp) {
+            $jamMap[$jp->hari_kategori][$jp->jam_ke] = $jp;
+        }
 
-        $rows = $records->map(function ($j) use ($jamPelajaransAll) {
-            $jamObj = $j->jamPelajaran;
-            if (!$jamObj && $j->jam_ke) {
-                $kat = ($j->hari === 'Jumat') ? 'Jumat' : 'Senin-Kamis';
-                $jamObj = $jamPelajaransAll->where('hari_kategori', $kat)->where('jam_ke', $j->jam_ke)->first();
+        $activeDays = ($request->filled('hari') && in_array($request->input('hari'), $hariList))
+            ? [$request->input('hari')]
+            : $hariList;
+
+        $rows = [];
+        foreach ($kelases as $k) {
+            $kelasLabel = $k->tingkat . ' ' . optional($k->jurusan)->kode_jurusan . ' ' . $k->rombel;
+            $waliGuru = optional($k->waliKelas)->nama_guru ?? '-';
+
+            foreach ($activeDays as $day) {
+                for ($jam = 1; $jam <= $maxJamOverall; $jam++) {
+                    $item = $matrix[$k->id_kelas][$day][$jam] ?? null;
+                    $kat = ($day === 'Jumat') ? 'Jumat' : 'Senin-Kamis';
+                    $jamSlot = $jamMap[$kat][$jam] ?? null;
+
+                    $isNonKbm = false;
+                    $nonKbmKet = '';
+                    if ($jamSlot) {
+                        $appliesToDay = !$jamSlot->berlaku_hari || $jamSlot->berlaku_hari === 'Semua Hari' || $jamSlot->berlaku_hari === $day;
+                        if ($jamSlot->bisa_diisi_mapel == 0 && $appliesToDay) {
+                            $isNonKbm = true;
+                            $nonKbmKet = ($day === 'Senin' && $jam == 1) ? 'UPACARA / APEL' : ($jamSlot->keterangan ?: 'NON-KBM');
+                        }
+                    }
+
+                    if ($item) {
+                        $rows[] = [
+                            $kelasLabel,
+                            $waliGuru,
+                            $day,
+                            'Jam Ke-' . $jam,
+                            optional($item->mapel)->nama_mapel ?? '-',
+                            optional($item->guru)->nama_guru ?? '-',
+                            $item->ruangan ?: '-',
+                            'KBM',
+                        ];
+                    } elseif ($isNonKbm) {
+                        $rows[] = [
+                            $kelasLabel,
+                            $waliGuru,
+                            $day,
+                            'Jam Ke-' . $jam,
+                            '-',
+                            '-',
+                            '-',
+                            strtoupper($nonKbmKet),
+                        ];
+                    } else {
+                        $rows[] = [
+                            $kelasLabel,
+                            $waliGuru,
+                            $day,
+                            'Jam Ke-' . $jam,
+                            '-',
+                            '-',
+                            '-',
+                            'Kosong',
+                        ];
+                    }
+                }
             }
+        }
 
-            $waktu = '-';
-            if ($jamObj) {
-                $waktu = Carbon::parse($jamObj->jam_mulai)->format('H:i') . ' - ' . Carbon::parse($jamObj->jam_selesai)->format('H:i');
-            }
-
-            $kelasStr = $j->kelas
-                ? trim($j->kelas->tingkat . ' ' . optional($j->kelas->jurusan)->kode_jurusan . ' ' . $j->kelas->rombel)
-                : '-';
-
-            return [
-                $j->hari,
-                'Jam Ke-' . $j->jam_ke,
-                $waktu,
-                optional($j->mapel)->nama_mapel ?? '-',
-                $kelasStr,
-                optional($j->guru)->nama_guru ?? '-',
-                $j->ruangan ?? '-',
-            ];
-        });
-
-        $filename = 'data-jadwal-pelajaran-' . Carbon::now('Asia/Jakarta')->format('Y-m-d') . '.csv';
+        $filename = 'jadwal-pelajaran-matriks-' . Carbon::now('Asia/Jakarta')->format('Y-m-d') . '.csv';
 
         return CsvExporter::download($filename, [
+            'Kelas',
+            'Wali Kelas',
             'Hari',
             'Jam Ke',
-            'Waktu',
             'Mata Pelajaran',
-            'Kelas',
             'Guru',
             'Ruangan',
+            'Keterangan',
         ], $rows);
+    }
+
+    /**
+     * Export filtered schedule data as PDF (Matrix Layout).
+     */
+    public function exportPdf(Request $request)
+    {
+        $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+
+        $records = $this->buildFilteredQuery($request)->get();
+
+        $filterHari  = $request->input('hari') ?: 'Semua Hari';
+        $filterKelas = 'Semua Kelas';
+        $filterMapel = 'Semua Mapel';
+
+        $kelasId = $request->input('id_kelas');
+        $mapelId = $request->input('id_mapel');
+
+        if ($request->filled('id_kelas')) {
+            $k = Kelas::with('jurusan')->find($kelasId);
+            if ($k) {
+                $filterKelas = $k->tingkat . ' ' . optional($k->jurusan)->kode_jurusan . ' ' . $k->rombel;
+            }
+        }
+
+        if ($request->filled('id_mapel')) {
+            $m = Mapel::find($mapelId);
+            if ($m) {
+                $filterMapel = $m->nama_mapel;
+            }
+        }
+
+        // Determine which classes to render in PDF
+        if ($request->filled('id_kelas')) {
+            $kelases = Kelas::with(['jurusan', 'waliKelas'])->where('id_kelas', $kelasId)->get();
+        } else {
+            $kelasIdsInRecords = $records->pluck('id_kelas')->unique()->filter();
+            if ($kelasIdsInRecords->isNotEmpty()) {
+                $kelases = Kelas::with(['jurusan', 'waliKelas'])->whereIn('id_kelas', $kelasIdsInRecords)->orderBy('tingkat')->orderBy('id_jurusan')->orderBy('rombel')->get();
+            } else {
+                $kelases = Kelas::with(['jurusan', 'waliKelas'])->orderBy('tingkat')->orderBy('id_jurusan')->orderBy('rombel')->get();
+            }
+        }
+
+        // Build matrix array: $matrix[id_kelas][hari][jam_ke]
+        $matrix = [];
+        foreach ($records as $r) {
+            $matrix[$r->id_kelas][$r->hari][$r->jam_ke] = $r;
+        }
+
+        $maxJamSeninKamis = JamPelajaran::where('hari_kategori', 'Senin-Kamis')->max('jam_ke') ?: 10;
+        $maxJamJumat      = JamPelajaran::where('hari_kategori', 'Jumat')->max('jam_ke') ?: 6;
+        $maxJamOverall    = max($maxJamSeninKamis, $maxJamJumat);
+
+        $jamPelajaransAll = JamPelajaran::all();
+        $jamMap = [];
+        foreach ($jamPelajaransAll as $jp) {
+            $jamMap[$jp->hari_kategori][$jp->jam_ke] = $jp;
+        }
+
+        $pdf = Pdf::loadView('admin.jadwal.pdf', compact(
+            'kelases',
+            'hariList',
+            'matrix',
+            'jamMap',
+            'maxJamOverall',
+            'filterHari',
+            'filterKelas',
+            'filterMapel',
+            'request'
+        ))->setPaper('a4', 'landscape');
+
+        $filename = 'jadwal-pelajaran-matriks-' . Carbon::now('Asia/Jakarta')->format('Y-m-d') . '.pdf';
+
+        return $pdf->stream($filename);
     }
 
     private function buildFilteredQuery(Request $request)

@@ -166,22 +166,7 @@
                         </div>
                     </div>
 
-                    <div class="dash-user-widget">
-                        <div style="display: flex; flex-direction: column; align-items: flex-end; line-height: 1.2;">
-                            <span style="font-size: 0.875rem; font-weight: 700; color: #1e2538;">{{ Auth::user()->name ?? 'Administrator' }}</span>
-                            <span style="font-size: 0.725rem; font-weight: 600; color: #847e73;">{{ Auth::user()->role_label ?? 'Admin' }}</span>
-                        </div>
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Avatar" class="dash-user-avatar">
-                        
-                        <form action="{{ route('logout') }}" method="POST" style="margin-left: 6px;">
-                            @csrf
-                            <button type="submit" title="Keluar dari Akun" style="background: none; border: none; cursor: pointer; color: #dc2626; padding: 4px; display: flex; align-items: center;">
-                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                                </svg>
-                            </button>
-                        </form>
-                    </div>
+                    @include('partials.dash-user-widget')
                 </div>
             </header>
 
@@ -334,7 +319,16 @@
                             @forelse($users as $index => $user)
                                 <tr id="row-user-{{ $user->id }}">
                                     <td class="td-no">{{ $loop->iteration + ($users->currentPage() - 1) * $users->perPage() }}</td>
-                                    <td class="td-nama">{{ $user->name }}</td>
+                                    <td class="td-nama">
+                                        <div class="user-name-with-avatar">
+                                            @if($user->avatar_url)
+                                                <img src="{{ $user->avatar_url }}" alt="Foto {{ $user->name }}" class="user-table-avatar">
+                                            @else
+                                                <span class="user-table-avatar dash-user-avatar-initial">{{ $user->avatar_initial }}</span>
+                                            @endif
+                                            <span>{{ $user->name }}</span>
+                                        </div>
+                                    </td>
                                     <td>
                                         <div style="display: inline-flex; align-items: center; gap: 8px;">
                                             <button type="button" onclick="toggleTablePassword({{ $user->id }})" style="background: none; border: none; cursor: pointer; padding: 2px; color: #94a3b8; display: inline-flex; align-items: center;" title="Tampilkan / Sembunyikan Password">
@@ -370,6 +364,11 @@
                                         {{ $user->created_at ? $user->created_at->format('d-m-Y') : '11-02-2026' }}
                                     </td>
                                     <td>
+                                        @php
+                                            $isSelf = (Auth::id() === $user->id);
+                                            $isTargetSuperAdmin = ($user->role === 'super_admin');
+                                            $isCurrentSuperAdmin = Auth::user()->isSuperAdmin();
+                                        @endphp
                                         <div class="action-icons-cell">
                                             <!-- View Action -->
                                             <button type="button" class="action-btn-icon view" title="Lihat Detail" onclick="openViewModal({{ $user->id }})">
@@ -379,25 +378,35 @@
                                                 </svg>
                                             </button>
 
-                                            <!-- Edit Action -->
-                                            <button type="button" class="action-btn-icon edit" title="Edit Pengguna" onclick="openEditModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ $user->email }}', '{{ $user->role }}', '{{ $user->id_guru }}')">
-                                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                                </svg>
-                                            </button>
-
-                                            <!-- Delete Action -->
-                                            <form action="{{ route('users.destroy', $user) }}" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna {{ $user->name }}?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="action-btn-icon delete" title="Hapus Pengguna">
+                                            @if($isSelf)
+                                                <span style="font-size: 0.72rem; font-weight: 700; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 12px; white-space: nowrap; border: 1px solid #e2e8f0;" title="Gunakan menu Pengaturan Profil di pojok kanan atas untuk mengubah akun Anda">
+                                                    (Akun Anda)
+                                                </span>
+                                            @elseif(!$isCurrentSuperAdmin && $isTargetSuperAdmin)
+                                                <span style="font-size: 0.72rem; font-weight: 700; color: #dc2626; background: #fef2f2; padding: 3px 8px; border-radius: 12px; border: 1px solid #fecaca; white-space: nowrap;" title="Admin biasa tidak dapat mengedit atau menghapus Super Admin">
+                                                    (Restricted)
+                                                </span>
+                                            @else
+                                                <!-- Edit Action -->
+                                                <button type="button" class="action-btn-icon edit" title="Edit Pengguna" onclick="openEditModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ $user->email }}', '{{ $user->role }}', '{{ $user->id_guru }}')">
                                                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                        <polyline points="3 6 5 6 21 6"></polyline>
-                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                                                     </svg>
                                                 </button>
-                                            </form>
+
+                                                <!-- Delete Action -->
+                                                <form action="{{ route('users.destroy', $user) }}" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna {{ $user->name }}?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="action-btn-icon delete" title="Hapus Pengguna">
+                                                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -458,7 +467,9 @@
                 <div class="form-field-group">
                     <label for="create_role">Role Hak Akses</label>
                     <select name="role" id="create_role" class="form-field-input" onchange="handleRoleChange('create')" required>
-                        <option value="super_admin">Admin (Super Admin)</option>
+                        @if(Auth::user()->isSuperAdmin())
+                            <option value="super_admin">Admin (Super Admin)</option>
+                        @endif
                         <option value="admin">Admin (Admin Biasa)</option>
                         <option value="guru_mengajar">Guru Mengajar</option>
                         <option value="wali_kelas">Wali Kelas</option>
@@ -528,7 +539,9 @@
                 <div class="form-field-group">
                     <label for="edit_role">Role Hak Akses</label>
                     <select name="role" id="edit_role" class="form-field-input" onchange="handleRoleChange('edit')" required>
-                        <option value="super_admin">Admin (Super Admin)</option>
+                        @if(Auth::user()->isSuperAdmin())
+                            <option value="super_admin">Admin (Super Admin)</option>
+                        @endif
                         <option value="admin">Admin (Admin Biasa)</option>
                         <option value="guru_mengajar">Guru Mengajar</option>
                         <option value="wali_kelas">Wali Kelas</option>
@@ -577,6 +590,10 @@
             </div>
 
             <div class="modal-form-grid">
+                <div class="form-field-group" style="align-items: center;">
+                    <img id="view_avatar_img" src="" alt="Foto profil" class="user-view-avatar" style="display: none;">
+                    <span id="view_avatar_initial" class="user-view-avatar dash-user-avatar-initial">A</span>
+                </div>
                 <div class="form-field-group">
                     <label>Nama Pengguna:</label>
                     <div id="view_name" style="font-weight: 700; font-size: 1rem; color: #1e2538;">-</div>
@@ -806,6 +823,19 @@
                     document.getElementById('view_role').innerText = data.role_label;
                     document.getElementById('view_guru').innerText = data.nama_guru;
                     document.getElementById('view_created_at').innerText = data.created_at;
+
+                    const avatarImg = document.getElementById('view_avatar_img');
+                    const avatarInitial = document.getElementById('view_avatar_initial');
+                    if (data.avatar_url) {
+                        avatarImg.src = data.avatar_url;
+                        avatarImg.style.display = 'block';
+                        avatarInitial.style.display = 'none';
+                    } else {
+                        avatarImg.style.display = 'none';
+                        avatarInitial.style.display = 'flex';
+                        avatarInitial.innerText = data.avatar_initial || (data.name || 'A').charAt(0).toUpperCase();
+                    }
+
                     document.getElementById('viewModal').style.display = 'flex';
                 });
         }

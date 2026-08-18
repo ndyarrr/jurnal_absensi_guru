@@ -11,6 +11,8 @@ use App\Http\Controllers\JurnalMengajarController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PanduanAdminController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RuanganController;
 use App\Http\Middleware\EnsureUserIsAdmin;
 
 // Public / Guest Auth Routes
@@ -30,15 +32,18 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/dashboard/export/csv', [DashboardController::class, 'exportCsv'])->name('dashboard.export-csv');
         Route::get('/panduan-admin', [PanduanAdminController::class, 'index'])->name('panduan.index');
+        Route::put('/profil', [ProfileController::class, 'update'])->name('profil.update');
 
         Route::get('/guru/export/csv', [GuruController::class, 'exportCsv'])->name('guru.export-csv');
         Route::resource('guru', GuruController::class);
         Route::resource('jurusan', JurusanController::class);
         Route::resource('kelas', KelasController::class)->parameters(['kelas' => 'kelas']);
         Route::resource('mapel', MapelController::class);
+        Route::resource('ruangan', RuanganController::class);
         Route::get('/siswa/export/csv', [SiswaController::class, 'exportCsv'])->name('siswa.export-csv');
         Route::resource('siswa', SiswaController::class);
         Route::get('/jadwal/export/csv', [JadwalPelajaranController::class, 'exportCsv'])->name('jadwal.export-csv');
+        Route::get('/jadwal/export/pdf', [JadwalPelajaranController::class, 'exportPdf'])->name('jadwal.export-pdf');
         Route::resource('jadwal', JadwalPelajaranController::class);
         Route::post('/jadwal/{jadwal}/move', [JadwalPelajaranController::class, 'move'])->name('jadwal.move');
         Route::get('/jurnal/export/csv', [JurnalMengajarController::class, 'exportCsv'])->name('jurnal.export-csv');

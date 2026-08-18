@@ -52,15 +52,40 @@ class UserController extends Controller
     }
 
     /**
+     * Check authorization for managing a specific target user.
+     */
+    private function checkUserAuthorization(User $targetUser, string $action = 'mengedit')
+    {
+        $currentUser = auth()->user();
+
+        // 1. Cannot edit/delete self in Users Management
+        if ($currentUser->id === $targetUser->id) {
+            return 'Anda tidak dapat ' . $action . ' akun Anda sendiri dari Kelola Pengguna. Silakan gunakan menu Pengaturan Profil di pojok kanan atas.';
+        }
+
+        // 2. Regular Admin cannot edit/delete Super Admin
+        if (!$currentUser->isSuperAdmin() && $targetUser->isSuperAdmin()) {
+            return 'Admin biasa tidak memiliki hak akses untuk ' . $action . ' akun Super Admin.';
+        }
+
+        return null;
+    }
+
+    /**
      * Store a newly created user in database.
      */
     public function store(Request $request)
     {
+        $isSuper = auth()->user()->isSuperAdmin();
+        $rolesAllowed = $isSuper
+            ? 'admin,super_admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_sdm,satpam'
+            : 'admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_sdm,satpam';
+
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
-            'role'     => 'required|in:admin,super_admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_sdm,satpam',
+            'role'     => 'required|in:' . $rolesAllowed,
             'id_guru'  => [
                 'nullable',
                 'integer',
@@ -72,6 +97,7 @@ class UserController extends Controller
             'email.required'    => 'Email wajib diisi.',
             'email.unique'      => 'Email sudah terdaftar.',
             'password.min'      => 'Password minimal 6 karakter.',
+            'role.in'           => 'Role tidak valid atau Anda tidak memiliki akses membuat Super Admin.',
             'id_guru.unique'    => 'Guru ini sudah memiliki akun pengguna.',
         ]);
 
@@ -102,6 +128,8 @@ class UserController extends Controller
             'id_guru'     => $user->id_guru,
             'nama_guru'   => optional($user->guru)->nama_guru ?? '-',
             'created_at'  => $user->created_at ? $user->created_at->format('d-m-Y H:i') : '-',
+            'avatar_url'  => $user->avatar_url,
+            'avatar_initial' => $user->avatar_initial,
         ]);
     }
 
@@ -110,6 +138,10 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
+        if ($error = $this->checkUserAuthorization($user, 'mengedit')) {
+            return redirect()->route('users.index')->with('error', $error);
+        }
+
         $guru = Guru::orderBy('nama_guru')->get();
         return view('admin.users.edit', compact('user', 'guru'));
     }
@@ -119,11 +151,23 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        if ($error = $this->checkUserAuthorization($user, 'mengedit')) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['error' => $error], 403);
+            }
+            return redirect()->route('users.index')->with('error', $error);
+        }
+
+        $isSuper = auth()->user()->isSuperAdmin();
+        $rolesAllowed = $isSuper
+            ? 'admin,super_admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_sdm,satpam'
+            : 'admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_sdm,satpam';
+
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:6',
-            'role'     => 'required|in:admin,super_admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_sdm,satpam',
+            'role'     => 'required|in:' . $rolesAllowed,
             'id_guru'  => [
                 'nullable',
                 'integer',
@@ -131,6 +175,7 @@ class UserController extends Controller
                 Rule::unique('users', 'id_guru')->ignore($user->id)->whereNotNull('id_guru'),
             ],
         ], [
+            'role.in'        => 'Role tidak valid atau Anda tidak memiliki akses memilih Super Admin.',
             'id_guru.unique' => 'Guru ini sudah memiliki akun pengguna lain.',
         ]);
 
@@ -156,9 +201,21 @@ class UserController extends Controller
     /**
      * Remove the specified user from database.
      */
-    public function destroy(User $user)
+    public function destroy(Request $request, User $user)
     {
+        if ($error = $this->checkUserAuthorization($user, 'menghapus')) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['error' => $error], 403);
+            }
+            return redirect()->route('users.index')->with('error', $error);
+        }
+
         $user->delete();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => 'Pengguna berhasil dihapus']);
+        }
+
         return redirect()->route('users.index')->with('success', 'Pengguna berhasil dihapus');
     }
 }

@@ -20,6 +20,13 @@ class User extends Authenticatable
         'password',
         'role',
         'id_guru',
+        'avatar',
+    ];
+
+    protected $appends = [
+        'role_label',
+        'avatar_url',
+        'avatar_initial',
     ];
 
     protected $hidden = [
@@ -121,5 +128,21 @@ class User extends Authenticatable
             'satpam' => 'Satpam',
             default => 'Guru Mengajar',
         };
+    }
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (! $this->avatar) {
+            return null;
+        }
+
+        return asset('storage/' . ltrim($this->avatar, '/'));
+    }
+
+    public function getAvatarInitialAttribute(): string
+    {
+        $name = trim((string) $this->name);
+
+        return strtoupper(mb_substr($name !== '' ? $name : 'A', 0, 1));
     }
 }

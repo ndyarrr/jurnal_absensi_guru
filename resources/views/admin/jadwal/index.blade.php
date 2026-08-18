@@ -97,6 +97,15 @@
                                 <span>Mapel</span>
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('ruangan.index') }}" class="dash-sub-link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                </svg>
+                                <span>Ruangan</span>
+                            </a>
+                        </li>
                     </ul>
                 </li>
 
@@ -166,22 +175,7 @@
                         </div>
                     </div>
 
-                    <div class="dash-user-widget">
-                        <div style="display: flex; flex-direction: column; align-items: flex-end; line-height: 1.2;">
-                            <span style="font-size: 0.875rem; font-weight: 700; color: #1e2538;">{{ Auth::user()->name ?? 'Administrator' }}</span>
-                            <span style="font-size: 0.725rem; font-weight: 600; color: #847e73;">{{ Auth::user()->role_label ?? 'Admin' }}</span>
-                        </div>
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Avatar" class="dash-user-avatar">
-                        
-                        <form action="{{ route('logout') }}" method="POST" style="margin-left: 6px;">
-                            @csrf
-                            <button type="submit" title="Keluar dari Akun" style="background: none; border: none; cursor: pointer; color: #dc2626; padding: 4px; display: flex; align-items: center;">
-                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                                </svg>
-                            </button>
-                        </form>
-                    </div>
+                    @include('partials.dash-user-widget')
                 </div>
             </header>
 
@@ -227,14 +221,26 @@
                         <span>Kelola Jam & Waktu Pulang</span>
                     </a>
 
-                    <!-- Export Button -->
-                    <button type="button" class="btn-export-pill" onclick="exportJadwalCsv()">
+                    <!-- Export CSV Button -->
+                    <button type="button" class="btn-export-pill" onclick="exportJadwalCsv()" title="Unduh format CSV">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="7 10 12 15 17 10"></polyline>
                             <line x1="12" y1="15" x2="12" y2="3"></line>
                         </svg>
-                        <span>Export</span>
+                        <span>Export CSV</span>
+                    </button>
+
+                    <!-- Export PDF Button -->
+                    <button type="button" class="btn-export-pill" onclick="exportJadwalPdf()" style="background: #dc2626; color: #ffffff; border: none;" title="Cetak / Unduh Format PDF">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        <span>Export PDF</span>
                     </button>
 
                     <!-- Tambah Jadwal Button -->
@@ -1047,8 +1053,22 @@
                 </div>
 
                 <div class="form-field-group">
-                    <label for="create_ruangan">Ruangan (Opsional)</label>
-                    <input type="text" name="ruangan" id="create_ruangan" class="form-field-input" placeholder="Contoh: Lab 1, R. 12 (kosongkan jika tidak ada)">
+                    <label>Ruangan (Opsional)</label>
+                    <input type="hidden" name="ruangan" id="create_ruangan" value="">
+                    <div class="searchable-select" id="create_ruangan_ss">
+                        <input type="text" class="form-field-input ss-input" id="create_ruangan_input" placeholder="Cari atau pilih ruangan..." autocomplete="off" onclick="openRuanganDropdown('create')" onkeyup="filterRuanganDropdown('create')">
+                        <div class="ss-dropdown ss-up" id="create_ruangan_dropdown" style="display: none; bottom: calc(100% + 6px); top: auto;">
+                            <div class="ss-option" data-value="" onclick="pickRuangan('create', '', '-- Tanpa Ruangan (Default Kosong) --')">-- Tanpa Ruangan (Default Kosong) --</div>
+                            @foreach($ruangans as $r)
+                                <div class="ss-option" data-value="{{ $r->nama_ruangan }}" onclick="pickRuangan('create', '{{ addslashes($r->nama_ruangan) }}', '{{ addslashes($r->nama_ruangan) }}')">
+                                    <strong>{{ $r->nama_ruangan }}</strong>
+                                    @if($r->keterangan)
+                                        <small style="color: #64748b; margin-left: 6px;">({{ $r->keterangan }})</small>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-actions-footer">
@@ -1119,8 +1139,22 @@
                 </div>
 
                 <div class="form-field-group">
-                    <label for="edit_ruangan">Ruangan</label>
-                    <input type="text" name="ruangan" id="edit_ruangan" class="form-field-input">
+                    <label>Ruangan</label>
+                    <input type="hidden" name="ruangan" id="edit_ruangan" value="">
+                    <div class="searchable-select" id="edit_ruangan_ss">
+                        <input type="text" class="form-field-input ss-input" id="edit_ruangan_input" placeholder="Cari atau pilih ruangan..." autocomplete="off" onclick="openRuanganDropdown('edit')" onkeyup="filterRuanganDropdown('edit')">
+                        <div class="ss-dropdown ss-up" id="edit_ruangan_dropdown" style="display: none; bottom: calc(100% + 6px); top: auto;">
+                            <div class="ss-option" data-value="" onclick="pickRuangan('edit', '', '-- Tanpa Ruangan (Default Kosong) --')">-- Tanpa Ruangan (Default Kosong) --</div>
+                            @foreach($ruangans as $r)
+                                <div class="ss-option" data-value="{{ $r->nama_ruangan }}" onclick="pickRuangan('edit', '{{ addslashes($r->nama_ruangan) }}', '{{ addslashes($r->nama_ruangan) }}')">
+                                    <strong>{{ $r->nama_ruangan }}</strong>
+                                    @if($r->keterangan)
+                                        <small style="color: #64748b; margin-left: 6px;">({{ $r->keterangan }})</small>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-actions-footer">
@@ -1228,6 +1262,16 @@
             if (currentFilters.id_mapel) params.append('id_mapel', currentFilters.id_mapel);
 
             window.location.href = '{{ route('jadwal.export-csv') }}' + (params.toString() ? '?' + params.toString() : '');
+        }
+
+        function exportJadwalPdf() {
+            const params = new URLSearchParams();
+            if (currentFilters.search) params.append('search', currentFilters.search);
+            if (currentFilters.hari) params.append('hari', currentFilters.hari);
+            if (currentFilters.id_kelas) params.append('id_kelas', currentFilters.id_kelas);
+            if (currentFilters.id_mapel) params.append('id_mapel', currentFilters.id_mapel);
+
+            window.open('{{ route('jadwal.export-pdf') }}' + (params.toString() ? '?' + params.toString() : ''), '_blank');
         }
 
         function showToast(message, type = 'success') {
@@ -1492,6 +1536,8 @@
         function openCreateModal() {
             document.getElementById('createModalAlert').innerHTML = '';
             document.getElementById('createJadwalForm').reset();
+            document.getElementById('create_ruangan').value = '';
+            document.getElementById('create_ruangan_input').value = '';
             populateJamOptions('create_hari', 'create_jam_ke');
             document.getElementById('createModal').style.display = 'flex';
         }
@@ -1509,8 +1555,58 @@
             document.getElementById('edit_id_guru').value = idGuru;
             document.getElementById('edit_id_mapel').value = idMapel;
             document.getElementById('edit_ruangan').value = ruangan || '';
+            document.getElementById('edit_ruangan_input').value = ruangan || '';
             document.getElementById('editModal').style.display = 'flex';
         }
+
+        /* ---- Searchable Select Ruangan Helpers ---- */
+        function openRuanganDropdown(type) {
+            var dropdown = document.getElementById(type + '_ruangan_dropdown');
+            if (!dropdown) return;
+            dropdown.style.display = 'block';
+            dropdown.classList.add('ss-open');
+        }
+
+        function filterRuanganDropdown(type) {
+            var input = document.getElementById(type + '_ruangan_input');
+            var dropdown = document.getElementById(type + '_ruangan_dropdown');
+            if (!input || !dropdown) return;
+            dropdown.style.display = 'block';
+            dropdown.classList.add('ss-open');
+            var filter = input.value.toLowerCase().trim();
+            var options = dropdown.getElementsByClassName('ss-option');
+            for (var i = 0; i < options.length; i++) {
+                var text = options[i].textContent || options[i].innerText;
+                if (text.toLowerCase().indexOf(filter) > -1) {
+                    options[i].style.display = '';
+                } else {
+                    options[i].style.display = 'none';
+                }
+            }
+        }
+
+        function pickRuangan(type, val, label) {
+            var hidden = document.getElementById(type + '_ruangan');
+            var input = document.getElementById(type + '_ruangan_input');
+            var dropdown = document.getElementById(type + '_ruangan_dropdown');
+            if (hidden) hidden.value = val;
+            if (input) input.value = val;
+            if (dropdown) {
+                dropdown.style.display = 'none';
+                dropdown.classList.remove('ss-open');
+            }
+        }
+
+        document.addEventListener('click', function (e) {
+            ['create', 'edit'].forEach(function(type) {
+                var container = document.getElementById(type + '_ruangan_ss');
+                var dropdown = document.getElementById(type + '_ruangan_dropdown');
+                if (container && dropdown && !container.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                    dropdown.classList.remove('ss-open');
+                }
+            });
+        });
 
         function closeEditModal() {
             document.getElementById('editModal').style.display = 'none';

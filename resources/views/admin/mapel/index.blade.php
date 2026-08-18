@@ -167,22 +167,7 @@
                         </div>
                     </div>
 
-                    <div class="dash-user-widget">
-                        <div style="display: flex; flex-direction: column; align-items: flex-end; line-height: 1.2;">
-                            <span style="font-size: 0.875rem; font-weight: 700; color: #1e2538;">{{ Auth::user()->name ?? 'Administrator' }}</span>
-                            <span style="font-size: 0.725rem; font-weight: 600; color: #847e73;">{{ Auth::user()->role_label ?? 'Admin' }}</span>
-                        </div>
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Avatar" class="dash-user-avatar">
-                        
-                        <form action="{{ route('logout') }}" method="POST" style="margin-left: 6px;">
-                            @csrf
-                            <button type="submit" title="Keluar dari Akun" style="background: none; border: none; cursor: pointer; color: #dc2626; padding: 4px; display: flex; align-items: center;">
-                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                                </svg>
-                            </button>
-                        </form>
-                    </div>
+                    @include('partials.dash-user-widget')
                 </div>
             </header>
 

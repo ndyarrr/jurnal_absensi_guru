@@ -12,9 +12,9 @@ class CsvExporter
     public static function download(string $filename, array $headers, iterable $rows): StreamedResponse
     {
         return self::stream($filename, function ($handle) use ($headers, $rows) {
-            fputcsv($handle, $headers);
+            fputcsv($handle, $headers, ',', '"', '\\');
             foreach ($rows as $row) {
-                fputcsv($handle, $row);
+                fputcsv($handle, $row, ',', '"', '\\');
             }
         });
     }
@@ -26,7 +26,7 @@ class CsvExporter
     {
         return self::stream($filename, function ($handle) use ($rows) {
             foreach ($rows as $row) {
-                fputcsv($handle, $row);
+                fputcsv($handle, $row, ',', '"', '\\');
             }
         });
     }

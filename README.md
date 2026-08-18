@@ -138,7 +138,8 @@ git push -u origin main
 
 | Role | Tugas Utama |
 |------|--------------|
-| **Admin/TU** | Kelola data master (guru, kelas, jurusan, mapel, jadwal) |
+| **Admin/TU** | Kelola data mastyay -S opencode
+er (guru, kelas, jurusan, mapel, jadwal) |
 | **Guru Mapel** | Isi jurnal mengajar, ajukan izin/sakit |
 | **Guru Piket** | Input izin siswa & guru, cari guru pengganti, teruskan izin guru ke Waka/Waka SDM/Kepsek |
 | **Wali Kelas** | Pantau rekap absensi & izin siswa di kelasnya |
