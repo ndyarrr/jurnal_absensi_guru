@@ -79,6 +79,50 @@ body.dashboard-body {
     flex-direction: column;
     gap: 8px;
     list-style: none;
+    flex: 1;
+}
+
+.dash-sidebar-footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--dash-border-subtle);
+    flex-shrink: 0;
+}
+
+.dash-sidebar-guide-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    color: #334155;
+    font-size: 0.925rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.dash-sidebar-guide-link:hover {
+    background-color: #f5efe6;
+    color: var(--dash-navy);
+}
+
+.dash-sidebar-guide-link.active {
+    background-color: var(--dash-navy);
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(35, 41, 59, 0.18);
+}
+
+.dash-sidebar-guide-link svg {
+    width: 20px;
+    height: 20px;
+    color: #64748b;
+    flex-shrink: 0;
+}
+
+.dash-sidebar-guide-link.active svg {
+    color: #ffffff;
 }
 
 /* Active Dashboard Pill */

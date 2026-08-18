@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Siswa;
 use App\Models\Kelas;
 use App\Models\Jurusan;
+use App\Support\CsvExporter;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class SiswaController extends Controller
 {
@@ -14,41 +16,7 @@ class SiswaController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Siswa::with(['kelas.jurusan']);
-
-        // Search Filter (NISN or Nama)
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('nisn', 'like', "%{$search}%")
-                  ->orWhere('nama_siswa', 'like', "%{$search}%");
-            });
-        }
-
-        // Filter by Tingkat
-        if ($request->filled('tingkat')) {
-            $tingkat = $request->input('tingkat');
-            $query->whereHas('kelas', function ($q) use ($tingkat) {
-                $q->where('tingkat', $tingkat);
-            });
-        }
-
-        // Filter by Jurusan
-        if ($request->filled('id_jurusan')) {
-            $idJurusan = $request->input('id_jurusan');
-            $query->whereHas('kelas', function ($q) use ($idJurusan) {
-                $q->where('id_jurusan', $idJurusan);
-            });
-        }
-
-        // Filter by Rombel
-        if ($request->filled('rombel')) {
-            $rombel = $request->input('rombel');
-            $query->whereHas('kelas', function ($q) use ($rombel) {
-                $q->where('rombel', $rombel);
-            });
-        }
-
+        $query = $this->buildFilteredQuery($request);
         $siswa = $query->orderBy('nama_siswa', 'asc')->paginate(8)->withQueryString();
         $totalSiswaCount = Siswa::count();
 
@@ -141,5 +109,78 @@ class SiswaController extends Controller
     {
         $siswa->delete();
         return redirect()->route('siswa.index')->with('success', 'Data siswa berhasil dihapus');
+    }
+
+    /**
+     * Export filtered siswa data as CSV.
+     */
+    public function exportCsv(Request $request)
+    {
+        $records = $this->buildFilteredQuery($request)
+            ->orderBy('nama_siswa')
+            ->get();
+
+        $rows = $records->map(function ($s) {
+            $kelasStr = '-';
+            if ($s->kelas && !$s->kelas->trashed()) {
+                $kelasStr = trim(
+                    $s->kelas->tingkat . ' '
+                    . optional($s->kelas->jurusan)->kode_jurusan . ' '
+                    . $s->kelas->rombel
+                );
+            }
+
+            return [
+                $s->nisn,
+                $s->nama_siswa,
+                $kelasStr,
+                'Aktif',
+            ];
+        });
+
+        $filename = 'data-siswa-' . Carbon::now('Asia/Jakarta')->format('Y-m-d') . '.csv';
+
+        return CsvExporter::download($filename, [
+            'NISN',
+            'Nama Siswa',
+            'Kelas',
+            'Status',
+        ], $rows);
+    }
+
+    private function buildFilteredQuery(Request $request)
+    {
+        $query = Siswa::with(['kelas.jurusan']);
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('nisn', 'like', "%{$search}%")
+                  ->orWhere('nama_siswa', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('tingkat')) {
+            $tingkat = $request->input('tingkat');
+            $query->whereHas('kelas', function ($q) use ($tingkat) {
+                $q->where('tingkat', $tingkat);
+            });
+        }
+
+        if ($request->filled('id_jurusan')) {
+            $idJurusan = $request->input('id_jurusan');
+            $query->whereHas('kelas', function ($q) use ($idJurusan) {
+                $q->where('id_jurusan', $idJurusan);
+            });
+        }
+
+        if ($request->filled('rombel')) {
+            $rombel = $request->input('rombel');
+            $query->whereHas('kelas', function ($q) use ($rombel) {
+                $q->where('rombel', $rombel);
+            });
+        }
+
+        return $query;
     }
 }

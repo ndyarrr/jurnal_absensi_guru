@@ -135,6 +135,8 @@
                     </ul>
                 </li>
             </ul>
+
+            @include('partials.dash-sidebar-footer')
         </aside>
 
         <!-- ===================================================================
@@ -226,7 +228,7 @@
                     </a>
 
                     <!-- Export Button -->
-                    <button type="button" class="btn-export-pill" onclick="showToast('Export data jadwal sedang diunduh...', 'success')">
+                    <button type="button" class="btn-export-pill" onclick="exportJadwalCsv()">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="7 10 12 15 17 10"></polyline>
@@ -1217,6 +1219,16 @@
                 }
             });
         });
+
+        function exportJadwalCsv() {
+            const params = new URLSearchParams();
+            if (currentFilters.search) params.append('search', currentFilters.search);
+            if (currentFilters.hari) params.append('hari', currentFilters.hari);
+            if (currentFilters.id_kelas) params.append('id_kelas', currentFilters.id_kelas);
+            if (currentFilters.id_mapel) params.append('id_mapel', currentFilters.id_mapel);
+
+            window.location.href = '{{ route('jadwal.export-csv') }}' + (params.toString() ? '?' + params.toString() : '');
+        }
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('ajaxAlertContainer');

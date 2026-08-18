@@ -7,7 +7,9 @@ use App\Models\JamPelajaran;
 use App\Models\Kelas;
 use App\Models\Guru;
 use App\Models\Mapel;
+use App\Support\CsvExporter;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class JadwalPelajaranController extends Controller
 {
@@ -25,22 +27,7 @@ class JadwalPelajaranController extends Controller
             ->orderBy('jam_ke', 'asc')
             ->get();
 
-        // Query Builder for Full Schedule Table with Filters
-        $query = JadwalPelajaran::with(['kelas.jurusan', 'guru', 'mapel', 'jamPelajaran']);
-
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('mapel', fn($mQ) => $mQ->where('nama_mapel', 'like', "%{$search}%"))
-                  ->orWhereHas('guru', fn($gQ) => $gQ->where('nama_guru', 'like', "%{$search}%"))
-                  ->orWhereHas('kelas', fn($kQ) => $kQ->where('tingkat', 'like', "%{$search}%")->orWhere('rombel', 'like', "%{$search}%")->orWhere('wali_kelas', 'like', "%{$search}%"))
-                  ->orWhere('ruangan', 'like', "%{$search}%");
-            });
-        }
-        if ($request->filled('hari'))     { $query->where('hari', $request->input('hari')); }
-        if ($request->filled('id_kelas')) { $query->where('id_kelas', $request->input('id_kelas')); }
-        if ($request->filled('id_mapel')) { $query->where('id_mapel', $request->input('id_mapel')); }
-
+        $query = $this->buildFilteredQuery($request);
         $jadwal = $query->orderBy('hari', 'asc')->orderBy('jam_ke', 'asc')->paginate(10)->withQueryString();
 
         // Fetch all time slots for fallback resolution
@@ -302,5 +289,83 @@ class JadwalPelajaranController extends Controller
         ]);
 
         return response()->json(['success' => 'Jadwal berhasil dipindahkan ke ' . $validated['hari'] . ' Jam Ke-' . $validated['jam_ke']]);
+    }
+
+    /**
+     * Export filtered schedule data as CSV.
+     */
+    public function exportCsv(Request $request)
+    {
+        $records = $this->buildFilteredQuery($request)
+            ->orderBy('hari')
+            ->orderBy('jam_ke')
+            ->get();
+
+        $jamPelajaransAll = JamPelajaran::all();
+
+        $rows = $records->map(function ($j) use ($jamPelajaransAll) {
+            $jamObj = $j->jamPelajaran;
+            if (!$jamObj && $j->jam_ke) {
+                $kat = ($j->hari === 'Jumat') ? 'Jumat' : 'Senin-Kamis';
+                $jamObj = $jamPelajaransAll->where('hari_kategori', $kat)->where('jam_ke', $j->jam_ke)->first();
+            }
+
+            $waktu = '-';
+            if ($jamObj) {
+                $waktu = Carbon::parse($jamObj->jam_mulai)->format('H:i') . ' - ' . Carbon::parse($jamObj->jam_selesai)->format('H:i');
+            }
+
+            $kelasStr = $j->kelas
+                ? trim($j->kelas->tingkat . ' ' . optional($j->kelas->jurusan)->kode_jurusan . ' ' . $j->kelas->rombel)
+                : '-';
+
+            return [
+                $j->hari,
+                'Jam Ke-' . $j->jam_ke,
+                $waktu,
+                optional($j->mapel)->nama_mapel ?? '-',
+                $kelasStr,
+                optional($j->guru)->nama_guru ?? '-',
+                $j->ruangan ?? '-',
+            ];
+        });
+
+        $filename = 'data-jadwal-pelajaran-' . Carbon::now('Asia/Jakarta')->format('Y-m-d') . '.csv';
+
+        return CsvExporter::download($filename, [
+            'Hari',
+            'Jam Ke',
+            'Waktu',
+            'Mata Pelajaran',
+            'Kelas',
+            'Guru',
+            'Ruangan',
+        ], $rows);
+    }
+
+    private function buildFilteredQuery(Request $request)
+    {
+        $query = JadwalPelajaran::with(['kelas.jurusan', 'guru', 'mapel', 'jamPelajaran']);
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('mapel', fn($mQ) => $mQ->where('nama_mapel', 'like', "%{$search}%"))
+                  ->orWhereHas('guru', fn($gQ) => $gQ->where('nama_guru', 'like', "%{$search}%"))
+                  ->orWhereHas('kelas', fn($kQ) => $kQ->where('tingkat', 'like', "%{$search}%")->orWhere('rombel', 'like', "%{$search}%")->orWhere('wali_kelas', 'like', "%{$search}%"))
+                  ->orWhere('ruangan', 'like', "%{$search}%");
+            });
+        }
+        if ($request->filled('hari')) {
+            $query->where('hari', $request->input('hari'));
+        }
+        if ($request->filled('id_kelas')) {
+            $query->where('id_kelas', $request->input('id_kelas'));
+        }
+        if ($request->filled('id_mapel')) {
+            $query->where('id_mapel', $request->input('id_mapel'));
+        }
+
+        return $query;
     }
 }

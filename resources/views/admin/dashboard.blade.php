@@ -139,6 +139,8 @@
                 </li>
 
             </ul>
+
+            @include('partials.dash-sidebar-footer')
         </aside>
 
         <!-- ===================================================================
@@ -262,7 +264,7 @@
 
             <!-- Action Bar Button -->
             <div class="dash-action-bar">
-                <a href="#" class="btn-unduh-csv" onclick="alert('Export CSV siap diunduh!')">
+                <a href="{{ route('dashboard.export-csv') }}" class="btn-unduh-csv">
                     <span>Unduh CSV</span>
                 </a>
             </div>

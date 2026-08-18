@@ -135,6 +135,8 @@
                     </ul>
                 </li>
             </ul>
+
+            @include('partials.dash-sidebar-footer')
         </aside>
 
         <!-- ===================================================================
@@ -217,6 +219,15 @@
 
                 <!-- Action Controls Group -->
                 <div class="siswa-action-group">
+                    <button type="button" class="btn-export-pill" onclick="exportSiswaCsv()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>Export</span>
+                    </button>
+
                     <!-- + Tambah Button -->
                     <button type="button" class="btn-siswa-tambah" onclick="openCreateModal()">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -501,6 +512,19 @@
             });
             const el = document.getElementById(id);
             if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function exportSiswaCsv() {
+            const params = new URLSearchParams(window.location.search);
+            const searchVal = document.getElementById('siswaSearchInput')?.value?.trim() || '';
+
+            if (searchVal) {
+                params.set('search', searchVal);
+            } else {
+                params.delete('search');
+            }
+
+            window.location.href = '{{ route('siswa.export-csv') }}' + (params.toString() ? '?' + params.toString() : '');
         }
 
         function openCreateModal() {

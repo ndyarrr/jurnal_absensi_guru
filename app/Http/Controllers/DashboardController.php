@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Support\CsvExporter;
 use App\Models\User;
 use App\Models\Siswa;
 use App\Models\Guru;
@@ -143,5 +144,99 @@ class DashboardController extends Controller
         }
 
         return view('admin.dashboard.role-coming-soon');
+    }
+
+    /**
+     * Export dashboard summary as CSV.
+     */
+    public function exportCsv()
+    {
+        $todayStr = Carbon::now('Asia/Jakarta')->toDateString();
+        $todayLabel = Carbon::now('Asia/Jakarta')->translatedFormat('d F Y');
+
+        $totalPengguna = User::count();
+        $totalSiswa    = Siswa::count();
+        $totalGuru     = Guru::count();
+        $totalKelas    = Kelas::count();
+        $totalJadwal   = JadwalPelajaran::count();
+        $sudahMengisi  = JurnalMengajar::whereDate('tanggal', $todayStr)->count();
+        $belumMengisi  = max(0, $totalJadwal - $sudahMengisi);
+        $persentase    = $totalJadwal > 0 ? round(($sudahMengisi / $totalJadwal) * 100) : 0;
+
+        $rows = [
+            ['Laporan Dashboard Admin'],
+            ['Tanggal Ekspor', $todayLabel],
+            [],
+            ['Ringkasan Statistik'],
+            ['Total Pengguna', $totalPengguna],
+            ['Total Siswa', $totalSiswa],
+            ['Total Guru', $totalGuru],
+            ['Total Kelas', $totalKelas],
+            ['Total Jadwal', $totalJadwal],
+            ['Rekap Jurnal Hari Ini'],
+            ['Sudah Mengisi', $sudahMengisi],
+            ['Belum Mengisi', $belumMengisi],
+            ['Persentase Penyelesaian', $persentase . '%'],
+            [],
+            ['Grafik Jurnal (9 Hari Terakhir)'],
+            ['Tanggal', 'Jumlah Jurnal'],
+        ];
+
+        for ($i = 8; $i >= 0; $i--) {
+            $date = Carbon::now('Asia/Jakarta')->subDays($i);
+            $count = JurnalMengajar::whereDate('tanggal', $date->toDateString())->count();
+            $rows[] = [$date->format('d/m/Y'), $count];
+        }
+
+        $rows[] = [];
+        $rows[] = ['Aktivitas Terbaru'];
+        $rows[] = ['Waktu', 'Guru', 'Detail'];
+
+        $recentJurnals = JurnalMengajar::with(['jadwal.guru', 'jadwal.kelas.jurusan', 'jadwal.mapel', 'jadwal.jamPelajaran'])
+            ->orderByDesc('id_jurnal')
+            ->take(20)
+            ->get();
+
+        foreach ($recentJurnals as $idx => $jurnal) {
+            $waktu = optional($jurnal->jadwal->jamPelajaran)->jam_mulai
+                ? Carbon::parse($jurnal->jadwal->jamPelajaran->jam_mulai)->format('H:i')
+                : '-';
+
+            $kelasStr = trim(
+                optional($jurnal->jadwal->kelas)->tingkat . ' '
+                . optional(optional($jurnal->jadwal->kelas)->jurusan)->kode_jurusan . ' '
+                . optional($jurnal->jadwal->kelas)->rombel
+            );
+            $mapelStr = optional($jurnal->jadwal->mapel)->nama_mapel ?? '';
+            $detail = trim($kelasStr . ' - ' . $mapelStr, ' -');
+
+            $rows[] = [
+                $waktu,
+                optional($jurnal->jadwal->guru)->nama_guru ?? '-',
+                $detail ?: '-',
+            ];
+        }
+
+        $filledJadwalIds = JurnalMengajar::whereDate('tanggal', $todayStr)->pluck('id_jadwal');
+        $unfilledJadwals = JadwalPelajaran::with(['guru', 'mapel'])
+            ->whereNotIn('id_jadwal', $filledJadwalIds)
+            ->get();
+
+        $rows[] = [];
+        $rows[] = ['Guru Belum Mengisi Hari Ini'];
+        $rows[] = ['Nama Guru', 'Mata Pelajaran'];
+
+        foreach ($unfilledJadwals as $jadwal) {
+            if ($jadwal->guru) {
+                $rows[] = [
+                    $jadwal->guru->nama_guru,
+                    optional($jadwal->mapel)->nama_mapel ?? '-',
+                ];
+            }
+        }
+
+        $filename = 'laporan-dashboard-' . Carbon::now('Asia/Jakarta')->format('Y-m-d') . '.csv';
+
+        return CsvExporter::downloadRows($filename, $rows);
     }
 }

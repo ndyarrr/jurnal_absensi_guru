@@ -8,6 +8,7 @@ use App\Models\Guru;
 use App\Models\Kelas;
 use App\Models\Mapel;
 use App\Models\Siswa;
+use App\Support\CsvExporter;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -15,67 +16,7 @@ class JurnalMengajarController extends Controller
 {
     public function index(Request $request)
     {
-        $query = JurnalMengajar::with(['jadwal.kelas.jurusan', 'jadwal.mapel', 'jadwal.guru', 'jadwal.jamPelajaran']);
-
-        // Search filter
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('materi', 'like', "%{$search}%")
-                  ->orWhereHas('jadwal.mapel', fn($mQ) => $mQ->withTrashed()->where('nama_mapel', 'like', "%{$search}%"))
-                  ->orWhereHas('jadwal.guru', fn($gQ) => $gQ->withTrashed()->where('nama_guru', 'like', "%{$search}%"))
-                  ->orWhereHas('jadwal.kelas', fn($kQ) => $kQ->withTrashed()->where('tingkat', 'like', "%{$search}%")->orWhere('rombel', 'like', "%{$search}%"));
-            });
-        }
-
-        // Filter by Guru (matching teacher name to cover duplicates & trashed)
-        if ($request->filled('id_guru')) {
-            $guruObj = Guru::withTrashed()->find($request->input('id_guru'));
-            if ($guruObj) {
-                $guruName = $guruObj->nama_guru;
-                $query->whereHas('jadwal.guru', fn($gQ) => $gQ->withTrashed()->where('nama_guru', $guruName));
-            } else {
-                $query->whereHas('jadwal', fn($q) => $q->withTrashed()->where('id_guru', $request->input('id_guru')));
-            }
-        }
-
-        // Filter by Kelas (matching tingkat, rombel, id_jurusan to cover duplicates & trashed)
-        if ($request->filled('id_kelas')) {
-            $kelasObj = Kelas::withTrashed()->find($request->input('id_kelas'));
-            if ($kelasObj) {
-                $query->whereHas('jadwal.kelas', function ($kQ) use ($kelasObj) {
-                    $kQ->withTrashed()
-                       ->where('tingkat', $kelasObj->tingkat)
-                       ->where('rombel', $kelasObj->rombel);
-                    if ($kelasObj->id_jurusan) {
-                        $kQ->where('id_jurusan', $kelasObj->id_jurusan);
-                    }
-                });
-            } else {
-                $query->whereHas('jadwal', fn($q) => $q->withTrashed()->where('id_kelas', $request->input('id_kelas')));
-            }
-        }
-
-        // Filter by Mapel (matching subject name to cover duplicates & trashed)
-        if ($request->filled('id_mapel')) {
-            $mapelObj = Mapel::withTrashed()->find($request->input('id_mapel'));
-            if ($mapelObj) {
-                $mapelName = $mapelObj->nama_mapel;
-                $query->whereHas('jadwal.mapel', fn($mQ) => $mQ->withTrashed()->where('nama_mapel', $mapelName));
-            } else {
-                $query->whereHas('jadwal', fn($q) => $q->withTrashed()->where('id_mapel', $request->input('id_mapel')));
-            }
-        }
-
-        // Filter by Date Range
-        if ($request->filled('date_from')) {
-            $query->whereDate('tanggal', '>=', $request->input('date_from'));
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('tanggal', '<=', $request->input('date_to'));
-        }
-
-        // Dynamic stats calculated from filtered query
+        $query = $this->buildFilteredQuery($request);
         $statsCollection = (clone $query)->get();
         $totalPertemuan  = $statsCollection->count();
         $terlaksana       = $statsCollection->where('status_kehadiran', 'Hadir')->count();
@@ -302,5 +243,120 @@ class JurnalMengajarController extends Controller
             return response()->json(['success' => 'Jurnal berhasil dihapus.']);
         }
         return redirect()->route('jurnal.index')->with('success', 'Jurnal berhasil dihapus');
+    }
+
+    public function exportCsv(Request $request)
+    {
+        $records = $this->buildFilteredQuery($request)
+            ->orderByDesc('tanggal')
+            ->get();
+
+        $rows = $records->map(function ($j) {
+            $jadwal = $j->jadwal;
+            $kelasStr = '-';
+            if ($jadwal && $jadwal->kelas) {
+                $kelasStr = trim(
+                    $jadwal->kelas->tingkat . ' '
+                    . optional($jadwal->kelas->jurusan)->kode_jurusan . ' '
+                    . $jadwal->kelas->rombel
+                );
+            }
+
+            return [
+                Carbon::parse($j->tanggal)->format('d/m/Y'),
+                optional($jadwal)->hari ?? '-',
+                optional(optional($jadwal)->mapel)->nama_mapel ?? '-',
+                $kelasStr,
+                optional(optional($jadwal)->guru)->nama_guru ?? '-',
+                $j->materi ?? '-',
+                $j->jumlah_hadir ?? 0,
+                $j->jumlah_tidak_hadir ?? 0,
+                $j->status_kehadiran ?? '-',
+                optional($j->guruPengganti)->nama_guru ?? '-',
+                $j->catatan ?? '-',
+            ];
+        });
+
+        $filename = 'data-jurnal-mengajar-' . Carbon::now('Asia/Jakarta')->format('Y-m-d') . '.csv';
+
+        return CsvExporter::download($filename, [
+            'Tanggal',
+            'Hari',
+            'Mata Pelajaran',
+            'Kelas',
+            'Guru',
+            'Materi',
+            'Jumlah Hadir',
+            'Jumlah Tidak Hadir',
+            'Status Kehadiran',
+            'Guru Pengganti',
+            'Catatan',
+        ], $rows);
+    }
+
+    private function buildFilteredQuery(Request $request)
+    {
+        $query = JurnalMengajar::with([
+            'jadwal.kelas.jurusan',
+            'jadwal.mapel',
+            'jadwal.guru',
+            'jadwal.jamPelajaran',
+            'guruPengganti',
+        ]);
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('materi', 'like', "%{$search}%")
+                  ->orWhereHas('jadwal.mapel', fn($mQ) => $mQ->withTrashed()->where('nama_mapel', 'like', "%{$search}%"))
+                  ->orWhereHas('jadwal.guru', fn($gQ) => $gQ->withTrashed()->where('nama_guru', 'like', "%{$search}%"))
+                  ->orWhereHas('jadwal.kelas', fn($kQ) => $kQ->withTrashed()->where('tingkat', 'like', "%{$search}%")->orWhere('rombel', 'like', "%{$search}%"));
+            });
+        }
+
+        if ($request->filled('id_guru')) {
+            $guruObj = Guru::withTrashed()->find($request->input('id_guru'));
+            if ($guruObj) {
+                $guruName = $guruObj->nama_guru;
+                $query->whereHas('jadwal.guru', fn($gQ) => $gQ->withTrashed()->where('nama_guru', $guruName));
+            } else {
+                $query->whereHas('jadwal', fn($q) => $q->withTrashed()->where('id_guru', $request->input('id_guru')));
+            }
+        }
+
+        if ($request->filled('id_kelas')) {
+            $kelasObj = Kelas::withTrashed()->find($request->input('id_kelas'));
+            if ($kelasObj) {
+                $query->whereHas('jadwal.kelas', function ($kQ) use ($kelasObj) {
+                    $kQ->withTrashed()
+                       ->where('tingkat', $kelasObj->tingkat)
+                       ->where('rombel', $kelasObj->rombel);
+                    if ($kelasObj->id_jurusan) {
+                        $kQ->where('id_jurusan', $kelasObj->id_jurusan);
+                    }
+                });
+            } else {
+                $query->whereHas('jadwal', fn($q) => $q->withTrashed()->where('id_kelas', $request->input('id_kelas')));
+            }
+        }
+
+        if ($request->filled('id_mapel')) {
+            $mapelObj = Mapel::withTrashed()->find($request->input('id_mapel'));
+            if ($mapelObj) {
+                $mapelName = $mapelObj->nama_mapel;
+                $query->whereHas('jadwal.mapel', fn($mQ) => $mQ->withTrashed()->where('nama_mapel', $mapelName));
+            } else {
+                $query->whereHas('jadwal', fn($q) => $q->withTrashed()->where('id_mapel', $request->input('id_mapel')));
+            }
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('tanggal', '>=', $request->input('date_from'));
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('tanggal', '<=', $request->input('date_to'));
+        }
+
+        return $query;
     }
 }

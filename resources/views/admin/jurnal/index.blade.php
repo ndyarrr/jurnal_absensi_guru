@@ -139,6 +139,8 @@
                     </ul>
                 </li>
             </ul>
+
+            @include('partials.dash-sidebar-footer')
         </aside>
 
         <!-- ===================================================================
@@ -218,7 +220,7 @@
                 </div>
 
                 <div class="jurnal-action-group">
-                    <button type="button" class="btn-export-pill" onclick="showToast('Export data jurnal sedang diunduh...', 'success')">
+                    <button type="button" class="btn-export-pill" onclick="exportJurnalCsv()">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="7 10 12 15 17 10"></polyline>
@@ -554,6 +556,25 @@
                 setTimeout(() => el.remove(), 500);
             });
         }, 3000);
+
+        function exportJurnalCsv() {
+            const params = new URLSearchParams();
+            const searchVal = document.getElementById('jurnalSearchInput')?.value || '';
+            const dateFrom = document.getElementById('filterDateFrom')?.value || '';
+            const dateTo = document.getElementById('filterDateTo')?.value || '';
+            const guruId = document.getElementById('filterGuru')?.value || '';
+            const kelasId = document.getElementById('filterKelas')?.value || '';
+            const mapelId = document.getElementById('filterMapel')?.value || '';
+
+            if (searchVal) params.append('search', searchVal);
+            if (dateFrom) params.append('date_from', dateFrom);
+            if (dateTo) params.append('date_to', dateTo);
+            if (guruId) params.append('id_guru', guruId);
+            if (kelasId) params.append('id_kelas', kelasId);
+            if (mapelId) params.append('id_mapel', mapelId);
+
+            window.location.href = '{{ route('jurnal.export-csv') }}' + (params.toString() ? '?' + params.toString() : '');
+        }
 
         /* ---- Reload Main Jurnal Table via AJAX ---- */
         function reloadJurnalTable() {

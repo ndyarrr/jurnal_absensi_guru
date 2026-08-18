@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Guru;
 use App\Models\Mapel;
+use App\Support\CsvExporter;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class GuruController extends Controller
 {
@@ -13,25 +15,7 @@ class GuruController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Guru::with(['mapel', 'user']);
-
-        // Search Filter (NUPTK or Nama Guru)
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('nuptk', 'like', "%{$search}%")
-                  ->orWhere('nama_guru', 'like', "%{$search}%");
-            });
-        }
-
-        // Filter by Mapel
-        if ($request->filled('id_mapel')) {
-            $idMapel = $request->input('id_mapel');
-            $query->whereHas('mapel', function ($q) use ($idMapel) {
-                $q->where('mapel.id_mapel', $idMapel);
-            });
-        }
-
+        $query = $this->buildFilteredQuery($request);
         $guru = $query->orderBy('nama_guru', 'asc')->paginate(8)->withQueryString();
         $totalGuruCount = Guru::count();
         $mapelList = Mapel::orderBy('nama_mapel')->get();
@@ -133,5 +117,61 @@ class GuruController extends Controller
     {
         $guru->delete();
         return redirect()->route('guru.index')->with('success', 'Data guru berhasil dihapus');
+    }
+
+    /**
+     * Export filtered guru data as CSV.
+     */
+    public function exportCsv(Request $request)
+    {
+        $records = $this->buildFilteredQuery($request)
+            ->orderBy('nama_guru')
+            ->get();
+
+        $rows = $records->map(function ($g) {
+            $mapelNames = $g->mapel->pluck('nama_mapel')->join(', ');
+
+            return [
+                $g->nuptk ?? '-',
+                $g->nama_guru,
+                $mapelNames ?: '-',
+                $g->no_hp ?? '-',
+                optional($g->user)->email ?? '-',
+                optional($g->user)->role_label ?? 'Belum Punya Akun',
+            ];
+        });
+
+        $filename = 'data-guru-' . Carbon::now('Asia/Jakarta')->format('Y-m-d') . '.csv';
+
+        return CsvExporter::download($filename, [
+            'NUPTK',
+            'Nama Guru',
+            'Mapel Diampu',
+            'No Telp',
+            'Email',
+            'Status Akun',
+        ], $rows);
+    }
+
+    private function buildFilteredQuery(Request $request)
+    {
+        $query = Guru::with(['mapel', 'user']);
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('nuptk', 'like', "%{$search}%")
+                  ->orWhere('nama_guru', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('id_mapel')) {
+            $idMapel = $request->input('id_mapel');
+            $query->whereHas('mapel', function ($q) use ($idMapel) {
+                $q->where('mapel.id_mapel', $idMapel);
+            });
+        }
+
+        return $query;
     }
 }

@@ -1,5 +1,4 @@
 <div align="center">
-<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=220&section=header&text=E-JURNAL&fontSize=60&fontColor=ffffff&fontAlignY=35&desc=Sistem%20Jurnal%20%26%20Absensi%20Guru%20Digital&descSize=18&descAlignY=55&animation=fadeIn" />
 
 <a href="https://github.com/ndyarrr/jurnal_absensi_guru">
   <img src="https://img.shields.io/badge/GITHUB-e--jurnal-6f42c1?style=for-the-badge&logo=github&logoColor=white&labelColor=181717" />
@@ -12,8 +11,6 @@
 <br/><br/>
 </div>
 
-<img width="100%" src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.gif" />
-
 ## Overview
 
 ```bash
@@ -25,7 +22,7 @@ $ cat about.txt
 > Dibuat untuk Tugas Akhir
 ```
 
-<img width="100%" src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.gif" />
+
 
 ## ✨ Fitur
 
@@ -44,7 +41,6 @@ $ cat about.txt
 
 </div>
 
-<img width="100%" src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.gif" />
 
 ## 🛠️ Tech Stack
 
@@ -72,7 +68,6 @@ $ cat about.txt
 
 </div>
 
-<img width="100%" src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.gif" />
 
 ## 🚀 Cara Install (Pertama Kali)
 
@@ -120,7 +115,6 @@ npm install
 > php artisan queue:work
 > ```
 
-<img width="100%" src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.gif" />
 
 ## 🔄 Workflow Sebelum Ngoding
 
@@ -139,7 +133,6 @@ git commit -m "tambah fitur"
 git push -u origin main
 ```
 
-<img width="100%" src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.gif" />
 
 ## Role Pengguna
 
@@ -154,7 +147,7 @@ git push -u origin main
 | **Kepala Sekolah** | Approval izin guru mapel & lihat laporan keseluruhan |
 | **Satpam** | Cek status izin siswa di gerbang, lapor ke Wali Kelas & Guru Piket |
 
-<img width="100%" src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.gif" />
+
 
 ## 📁 Struktur Folder
 
@@ -187,7 +180,6 @@ $ tree
 
 > 📌 *Struktur folder di atas mengikuti konvensi standar Laravel — sesuaikan dengan struktur folder proyek kalian yang sebenarnya.*
 
-<img width="100%" src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.gif" />
 
 <div align="center">
 
@@ -195,8 +187,5 @@ $ tree
 
 **[Nama Tim Kalian]** — *Tugas Akhir.*
 
-<img src="https://komarev.com/ghpvc/?username=e-jurnal&color=blueviolet&style=for-the-badge&label=README+VIEWS" />
-
-<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=20,11,6&height=120&section=footer" />
 
 </div>

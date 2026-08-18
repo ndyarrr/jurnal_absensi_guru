@@ -197,6 +197,8 @@
                     </ul>
                 </li>
             </ul>
+
+            @include('partials.dash-sidebar-footer')
         </aside>
 
         <!-- Main Content Container -->
