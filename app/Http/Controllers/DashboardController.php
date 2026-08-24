@@ -17,7 +17,7 @@ class DashboardController extends Controller
     /**
      * Display the Admin Dashboard for Admin users.
      */
-    public function index()
+    public function index(Request $request)
     {
         // Redirect non-admin users to their dedicated Coming Soon dashboard
         if (! auth()->user()->isAdmin()) {
@@ -81,14 +81,6 @@ class DashboardController extends Controller
             ];
         }
 
-        // Fallback for Aktivitas if database has fewer records
-        if (empty($aktivitasList)) {
-            $aktivitasList = [
-                ['waktu' => '07:03', 'nama' => 'Trisno Wibowo, S.Pd., M.M.', 'detail' => 'XI RPL 1 - Konsentrasi RPL', 'bg' => $gradients[0]],
-                ['waktu' => '07:05', 'nama' => 'Kurnila Putri Islamawati, S.Pd', 'detail' => 'X RPL 1 - Informatika', 'bg' => $gradients[1]],
-            ];
-        }
-
         // 3. Real Guru Belum Mengisi Hari Ini
         $filledJadwalIds = JurnalMengajar::whereDate('tanggal', $todayStr)->pluck('id_jadwal');
 
@@ -107,31 +99,33 @@ class DashboardController extends Controller
             }
         }
 
-        // Fallback if none found
-        if (empty($guruBelumMengisi)) {
-            $guruBelumMengisi = [
-                ['nama' => 'Dewi Lestari, S.Pd', 'mapel' => 'Bahasa Inggris'],
-                ['nama' => 'Hendra Wijaya, S.Kom', 'mapel' => 'Bahasa Jepang'],
-                ['nama' => 'Siti Nurhaliza, S.Pd', 'mapel' => 'IPAS'],
-                ['nama' => 'Anisa Kusumawati, S.Pd', 'mapel' => 'PPKN'],
-            ];
-        }
-
-        // 4. Real 7 Days Chart Data
+        // 4. Real Dynamic Chart Data
+        $days = in_array((int) $request->input('days'), [7, 14, 30]) ? (int) $request->input('days') : 7;
         $chartData = [];
-        for ($i = 8; $i >= 0; $i--) {
+        for ($i = $days - 1; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
             $count = JurnalMengajar::whereDate('tanggal', $date->toDateString())->count();
-            // Provide visual representation if 0 for realistic graph bars
-            $displayVal = $count > 0 ? $count : rand(8, 29);
             $chartData[] = [
                 'label'  => $date->format('n/j'),
-                'val'    => $displayVal,
-                'active' => $i === 2 || $i === 7,
+                'val'    => $count,
+                'active' => $i === 0,
             ];
         }
 
-        return view('admin.dashboard', compact('stats', 'aktivitasList', 'guruBelumMengisi', 'chartData'));
+        $maxVal = max(array_column($chartData, 'val')) ?: 10;
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'stats'            => $stats,
+                'aktivitasList'    => $aktivitasList,
+                'guruBelumMengisi' => $guruBelumMengisi,
+                'chartData'        => $chartData,
+                'maxVal'           => $maxVal,
+                'days'             => $days,
+            ]);
+        }
+
+        return view('admin.dashboard', compact('stats', 'aktivitasList', 'guruBelumMengisi', 'chartData', 'maxVal', 'days'));
     }
 
     /**
@@ -141,6 +135,10 @@ class DashboardController extends Controller
     {
         if (auth()->user()->isAdmin()) {
             return redirect()->route('dashboard');
+        }
+
+        if (auth()->user()->isWaliKelas()) {
+            return redirect()->route('wali-kelas.dashboard');
         }
 
         return view('admin.dashboard.role-coming-soon');

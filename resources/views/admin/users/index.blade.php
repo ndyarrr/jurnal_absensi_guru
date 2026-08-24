@@ -12,6 +12,7 @@
 
     <!-- Modular Dashboard CSS -->
     <link rel="stylesheet" href="{{ asset('css/modules/dashboard.css') }}">
+    <script src="/js/sidebar-toggle.js"></script>
 </head>
 <body class="dashboard-body">
 
@@ -139,6 +140,8 @@
             @include('partials.dash-sidebar-footer')
         </aside>
 
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
         <!-- ===================================================================
              Main Content Region
              =================================================================== -->
@@ -146,9 +149,18 @@
 
             <!-- Top Header Bar -->
             <header class="dash-top-bar">
-                <div>
-                    <h1 class="dash-header-title">Master Data - Pengguna</h1>
-                    <p class="dash-header-subtitle">Lihat pengguna dan kelola mereka</p>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button type="button" class="dash-hamburger-btn" onclick="toggleSidebar()" title="Menu">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="dash-header-title">Master Data - Pengguna</h1>
+                        <p class="dash-header-subtitle">Lihat pengguna dan kelola mereka</p>
+                    </div>
                 </div>
 
                 <div class="dash-top-right">
@@ -388,7 +400,7 @@
                                                 </span>
                                             @else
                                                 <!-- Edit Action -->
-                                                <button type="button" class="action-btn-icon edit" title="Edit Pengguna" onclick="openEditModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ $user->email }}', '{{ $user->role }}', '{{ $user->id_guru }}')">
+                                                <button type="button" class="action-btn-icon edit" title="Edit Pengguna" onclick="openEditModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ $user->email }}', '{{ $user->role }}', '{{ $user->id_guru }}', '{{ $user->avatar_url }}', '{{ $user->avatar_initial }}')">
                                                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -447,8 +459,14 @@
                 <button type="button" class="btn-close-modal" onclick="closeCreateModal()">&times;</button>
             </div>
 
-            <form action="{{ route('users.store') }}" method="POST" class="modal-form-grid">
+            <form action="{{ route('users.store') }}" method="POST" enctype="multipart/form-data" class="modal-form-grid">
                 @csrf
+                <div class="form-field-group">
+                    <label for="create_avatar">Foto Profil (Opsional)</label>
+                    <input type="file" name="avatar" id="create_avatar" class="form-field-input" accept="image/jpeg,image/png,image/webp">
+                    <small style="color: #64748b; margin-top: 4px;">Format: JPG, PNG, atau WebP. Maksimal 2MB.</small>
+                </div>
+
                 <div class="form-field-group">
                     <label for="create_name">Nama Pengguna / Username</label>
                     <input type="text" name="name" id="create_name" class="form-field-input" placeholder="Masukkan nama pengguna" required>
@@ -517,9 +535,22 @@
                 <button type="button" class="btn-close-modal" onclick="closeEditModal()">&times;</button>
             </div>
 
-            <form id="editForm" method="POST" class="modal-form-grid">
+            <form id="editForm" method="POST" enctype="multipart/form-data" class="modal-form-grid">
                 @csrf
                 @method('PUT')
+
+                <div class="form-field-group">
+                    <label for="edit_avatar">Foto Profil (Opsional)</label>
+                    <div id="edit_avatar_preview_container" style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                        <img id="edit_avatar_img" src="" alt="Foto saat ini" class="user-table-avatar" style="width: 48px; height: 48px; display: none; object-fit: cover; border-radius: 50%;">
+                        <span id="edit_avatar_initial" class="user-table-avatar dash-user-avatar-initial" style="width: 48px; height: 48px; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; border-radius: 50%;">A</span>
+                        <label id="edit_avatar_remove_label" style="font-size: 0.825rem; font-weight: 600; color: #dc2626; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                            <input type="checkbox" name="remove_avatar" value="1"> Hapus Foto
+                        </label>
+                    </div>
+                    <input type="file" name="avatar" id="edit_avatar" class="form-field-input" accept="image/jpeg,image/png,image/webp">
+                    <small style="color: #64748b; margin-top: 4px;">Kosongkan jika tidak ingin mengubah foto profil.</small>
+                </div>
 
                 <div class="form-field-group">
                     <label for="edit_name">Nama Pengguna / Username</label>
@@ -748,12 +779,38 @@
             document.getElementById('createModal').style.display = 'none';
         }
 
-        function openEditModal(id, name, email, role, idGuru) {
+        function openEditModal(id, name, email, role, idGuru, avatarUrl, avatarInitial) {
             document.getElementById('editForm').action = '/users/' + id;
             document.getElementById('edit_name').value = name;
             document.getElementById('edit_email').value = email;
             document.getElementById('edit_role').value = role;
             document.getElementById('edit_id_guru').value = idGuru || '';
+
+            // Reset avatar file input & remove checkbox
+            const editAvatarFile = document.getElementById('edit_avatar');
+            if (editAvatarFile) editAvatarFile.value = '';
+            const removeCb = document.querySelector('input[name="remove_avatar"]');
+            if (removeCb) removeCb.checked = false;
+
+            const avatarImg = document.getElementById('edit_avatar_img');
+            const avatarInitialEl = document.getElementById('edit_avatar_initial');
+            const removeLabel = document.getElementById('edit_avatar_remove_label');
+
+            if (avatarUrl && avatarUrl !== 'null' && avatarUrl !== '') {
+                if (avatarImg) {
+                    avatarImg.src = avatarUrl;
+                    avatarImg.style.display = 'block';
+                }
+                if (avatarInitialEl) avatarInitialEl.style.display = 'none';
+                if (removeLabel) removeLabel.style.display = 'flex';
+            } else {
+                if (avatarImg) avatarImg.style.display = 'none';
+                if (avatarInitialEl) {
+                    avatarInitialEl.style.display = 'flex';
+                    avatarInitialEl.innerText = avatarInitial || (name || 'A').charAt(0).toUpperCase();
+                }
+                if (removeLabel) removeLabel.style.display = 'none';
+            }
 
             // Set guru input display text from id
             const guru = GURU_DATA.find(g => g.id == idGuru);
@@ -885,6 +942,7 @@
         }, 3000);
     </script>
     <script src="/js/ajax-pagination.js"></script>
+    <script src="/js/sidebar-toggle.js"></script>
     <script src="/js/live-clock.js"></script>
 </body>
 </html>

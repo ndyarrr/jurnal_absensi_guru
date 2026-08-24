@@ -12,6 +12,7 @@
 
     <!-- Modular Dashboard CSS -->
     <link rel="stylesheet" href="{{ asset('css/modules/dashboard.css') }}">
+    <script src="/js/sidebar-toggle.js"></script>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body class="dashboard-body">
@@ -140,6 +141,8 @@
             @include('partials.dash-sidebar-footer')
         </aside>
 
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
         <!-- ===================================================================
              Main Content Region
              =================================================================== -->
@@ -147,9 +150,18 @@
 
             <!-- Top Header Bar -->
             <header class="dash-top-bar">
-                <div>
-                    <h1 class="dash-header-title">Master Data - Mapel</h1>
-                    <p class="dash-header-subtitle">Pengelolaan mapel</p>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button type="button" class="dash-hamburger-btn" onclick="toggleSidebar()" title="Menu">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="dash-header-title">Master Data - Mapel</h1>
+                        <p class="dash-header-subtitle">Pengelolaan mapel</p>
+                    </div>
                 </div>
 
                 <div class="dash-top-right">
@@ -398,7 +410,7 @@
                                 <div id="detailTeacherList" style="display: flex; flex-direction: column; gap: 10px; max-height: 180px; overflow-y: auto;">
                                     @forelse($defaultTeachers as $gt)
                                         <div style="display: flex; align-items: center; gap: 10px;">
-                                            <div class="teacher-avatar-circle"></div>
+                                            <div class="teacher-avatar-circle">{{ strtoupper(substr($gt->nama_guru, 0, 1)) }}</div>
                                             <span style="font-size: 0.85rem; font-weight: 700; color: #334155;">{{ $gt->nama_guru }}</span>
                                         </div>
                                     @empty
@@ -504,12 +516,15 @@
                     if (!data.gurus || data.gurus.length === 0) {
                         listEl.innerHTML = `<div style="font-size: 0.825rem; color: #94a3b8; font-weight: 600;">Belum ada guru pengampu terdaftar.</div>`;
                     } else {
-                        listEl.innerHTML = data.gurus.map(g => `
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div class="teacher-avatar-circle"></div>
-                                <span style="font-size: 0.85rem; font-weight: 700; color: #334155;">${g.nama_guru}</span>
-                            </div>
-                        `).join('');
+                        listEl.innerHTML = data.gurus.map(g => {
+                            const initial = (g.nama_guru || 'G').charAt(0).toUpperCase();
+                            return `
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="teacher-avatar-circle">${initial}</div>
+                                    <span style="font-size: 0.85rem; font-weight: 700; color: #334155;">${g.nama_guru}</span>
+                                </div>
+                            `;
+                        }).join('');
                     }
                 }
             });
@@ -771,6 +786,7 @@
         }, 3000);
     </script>
     <script src="/js/ajax-pagination.js"></script>
+    <script src="/js/sidebar-toggle.js"></script>
     <script src="/js/live-clock.js"></script>
 </body>
 </html>

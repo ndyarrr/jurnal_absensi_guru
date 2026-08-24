@@ -12,6 +12,7 @@
 
     <!-- Modular Dashboard CSS -->
     <link rel="stylesheet" href="{{ asset('css/modules/dashboard.css') }}">
+    <script src="/js/sidebar-toggle.js"></script>
 </head>
 <body class="dashboard-body">
 
@@ -139,6 +140,8 @@
             @include('partials.dash-sidebar-footer')
         </aside>
 
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
         <!-- ===================================================================
              Main Content Region
              =================================================================== -->
@@ -146,9 +149,18 @@
 
             <!-- Top Header Bar -->
             <header class="dash-top-bar">
-                <div>
-                    <h1 class="dash-header-title">Master Data - Siswa</h1>
-                    <p class="dash-header-subtitle">Pengelolaan siswa</p>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button type="button" class="dash-hamburger-btn" onclick="toggleSidebar()" title="Menu">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="dash-header-title">Master Data - Siswa</h1>
+                        <p class="dash-header-subtitle">Pengelolaan siswa</p>
+                    </div>
                 </div>
 
                 <div class="dash-top-right">
@@ -296,10 +308,11 @@
                         <thead>
                             <tr>
                                 <th style="width: 5%;">No</th>
-                                <th style="width: 18%;">NISN</th>
-                                <th style="width: 32%;">Nama Siswa</th>
-                                <th style="width: 18%;">Kelas</th>
-                                <th style="width: 12%; text-align: center;">Status</th>
+                                <th style="width: 15%;">NISN</th>
+                                <th style="width: 25%;">Nama Siswa</th>
+                                <th style="width: 15%;">No. Telepon</th>
+                                <th style="width: 15%;">Kelas</th>
+                                <th style="width: 10%; text-align: center;">Status</th>
                                 <th style="width: 15%; text-align: center;">Aksi</th>
                             </tr>
                         </thead>
@@ -320,6 +333,9 @@
                                                 <small style="color: #64748b; font-weight: 500;">ID: SIS-{{ str_pad($s->id_siswa, 4, '0', STR_PAD_LEFT) }}</small>
                                             </div>
                                         </div>
+                                    </td>
+                                    <td class="td-siswa-telepon" style="font-size: 0.85rem; font-weight: 600; color: #334155;">
+                                        {{ $s->no_telepon ?? '-' }}
                                     </td>
                                     <td class="td-siswa-kelas">
                                         @if($s->kelas && !$s->kelas->trashed())
@@ -344,7 +360,7 @@
                                             </button>
 
                                             <!-- Edit Action (Inline Row Edit) -->
-                                            <button type="button" class="action-btn-icon edit" title="Edit Data Siswa" onclick="startInlineEditSiswa({{ $s->id_siswa }}, '{{ addslashes($s->nisn) }}', '{{ addslashes($s->nama_siswa) }}', '{{ $s->id_kelas }}')">
+                                            <button type="button" class="action-btn-icon edit" title="Edit Data Siswa" onclick="startInlineEditSiswa({{ $s->id_siswa }}, '{{ addslashes($s->nisn) }}', '{{ addslashes($s->nama_siswa) }}', '{{ addslashes($s->no_telepon ?? '') }}', '{{ $s->id_kelas }}')">
                                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -367,7 +383,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" style="text-align: center; padding: 40px; color: #847e73;">
+                                    <td colspan="7" style="text-align: center; padding: 40px; color: #847e73;">
                                         Belum ada data siswa.
                                     </td>
                                 </tr>
@@ -415,6 +431,11 @@
                 </div>
 
                 <div class="form-field-group">
+                    <label for="create_no_telepon">No. Telepon</label>
+                    <input type="text" name="no_telepon" id="create_no_telepon" class="form-field-input" placeholder="Contoh: 081234567890" maxlength="20" inputmode="tel">
+                </div>
+
+                <div class="form-field-group">
                     <label for="create_id_kelas">Kelas</label>
                     <select name="id_kelas" id="create_id_kelas" class="form-field-input" required>
                         <option value="">-- Pilih Kelas --</option>
@@ -454,6 +475,10 @@
                 <div class="form-field-group">
                     <label>Nama Lengkap Siswa:</label>
                     <div id="view_nama_siswa" style="font-weight: 700; color: #1e2538;">-</div>
+                </div>
+                <div class="form-field-group">
+                    <label>No. Telepon:</label>
+                    <div id="view_no_telepon" style="font-weight: 700; color: #1e2538;">-</div>
                 </div>
                 <div class="form-field-group">
                     <label>Kelas:</label>
@@ -521,7 +546,7 @@
         }
 
         /* ---- Inline Table Row Edit for Siswa ---- */
-        function startInlineEditSiswa(id, nisn, nama, idKelas) {
+        function startInlineEditSiswa(id, nisn, nama, noTelp, idKelas) {
             if (editingSiswaId && editingSiswaId !== id) {
                 cancelInlineEditSiswa(editingSiswaId);
             }
@@ -532,6 +557,7 @@
 
             const tdNisn = row.querySelector('.td-siswa-nisn');
             const tdNama = row.querySelector('.td-siswa-nama');
+            const tdTelp = row.querySelector('.td-siswa-telepon');
             const tdKelas = row.querySelector('.td-siswa-kelas');
             const tdAksi = row.querySelector('.action-icons-cell');
 
@@ -539,6 +565,10 @@
                 tdNisn.innerHTML = `<input type="text" id="inline-nisn-${id}" class="form-field-input" value="${nisn}" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'')" style="padding: 4px 8px; font-size: 0.825rem; font-family: monospace; width: 100%; border-radius: 6px; border: 1.5px solid var(--dash-navy);" autocomplete="off">`;
                 
                 tdNama.innerHTML = `<input type="text" id="inline-nama-${id}" class="form-field-input" value="${nama.replace(/"/g, '&quot;')}" style="padding: 4px 8px; font-size: 0.85rem; font-weight: 700; width: 100%; border-radius: 6px; border: 1.5px solid var(--dash-navy);" autocomplete="off">`;
+
+                if (tdTelp) {
+                    tdTelp.innerHTML = `<input type="text" id="inline-telp-${id}" class="form-field-input" value="${(noTelp || '').replace(/"/g, '&quot;')}" placeholder="08..." style="padding: 4px 8px; font-size: 0.825rem; width: 100%; border-radius: 6px; border: 1.5px solid var(--dash-navy);" autocomplete="off">`;
+                }
 
                 let selectOptionsHtml = '<option value="">-- Pilih Kelas --</option>';
                 KELAS_OPTIONS.forEach(k => {
@@ -574,6 +604,7 @@
         function saveInlineEditSiswa(id) {
             const nisn = document.getElementById(`inline-nisn-${id}`).value.trim();
             const nama = document.getElementById(`inline-nama-${id}`).value.trim();
+            const noTelp = document.getElementById(`inline-telp-${id}`) ? document.getElementById(`inline-telp-${id}`).value.trim() : '';
             const idKelas = document.getElementById(`inline-kelas-${id}`).value;
 
             if (!nisn || !nama || !idKelas) {
@@ -589,6 +620,7 @@
             const formData = new FormData();
             formData.append('nisn', nisn);
             formData.append('nama_siswa', nama);
+            formData.append('no_telepon', noTelp);
             formData.append('id_kelas', idKelas);
             formData.append('_method', 'PUT');
 
@@ -621,6 +653,7 @@
                 .then(data => {
                     document.getElementById('view_nisn').innerText = data.nisn;
                     document.getElementById('view_nama_siswa').innerText = data.nama_siswa;
+                    document.getElementById('view_no_telepon').innerText = data.no_telepon || '-';
                     document.getElementById('view_kelas_str').innerText = data.kelas_str;
                     document.getElementById('viewModal').style.display = 'flex';
                 });
@@ -704,6 +737,7 @@
         }, 3000);
     </script>
     <script src="/js/ajax-pagination.js"></script>
+    <script src="/js/sidebar-toggle.js"></script>
     <script src="/js/live-clock.js"></script>
 </body>
 </html>

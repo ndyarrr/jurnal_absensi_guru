@@ -26,6 +26,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Dedicated coming-soon dashboard for non-admin roles
     Route::get('/role-dashboard', [DashboardController::class, 'roleDashboard'])->name('role.dashboard');
+    Route::get('/wali-kelas/dashboard', [\App\Http\Controllers\WaliKelasController::class, 'dashboard'])->name('wali-kelas.dashboard');
+    Route::get('/wali-kelas/perwalian', [\App\Http\Controllers\WaliKelasController::class, 'perwalian'])->name('wali-kelas.perwalian');
+    Route::get('/wali-kelas/rekap-kehadiran', [\App\Http\Controllers\WaliKelasController::class, 'rekapKehadiran'])->name('wali-kelas.rekap-kehadiran');
+    Route::get('/wali-kelas/rekap-kehadiran/export/csv', [\App\Http\Controllers\WaliKelasController::class, 'exportRekapCsv'])->name('wali-kelas.rekap-kehadiran.export-csv');
 
     // Admin Only Protected Routes
     Route::middleware([EnsureUserIsAdmin::class])->group(function () {

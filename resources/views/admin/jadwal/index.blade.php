@@ -12,6 +12,7 @@
 
     <!-- Modular Dashboard CSS -->
     <link rel="stylesheet" href="{{ asset('css/modules/dashboard.css') }}">
+    <script src="/js/sidebar-toggle.js"></script>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body class="dashboard-body">
@@ -148,6 +149,8 @@
             @include('partials.dash-sidebar-footer')
         </aside>
 
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
         <!-- ===================================================================
              Main Content Region
              =================================================================== -->
@@ -155,9 +158,18 @@
 
             <!-- Top Header Bar -->
             <header class="dash-top-bar">
-                <div>
-                    <h1 class="dash-header-title">Akademik - Jadwal Pelajaran</h1>
-                    <p class="dash-header-subtitle">Statistik Jadwal</p>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button type="button" class="dash-hamburger-btn" onclick="toggleSidebar()" title="Menu">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="dash-header-title">Akademik - Jadwal Pelajaran</h1>
+                        <p class="dash-header-subtitle">Statistik Jadwal</p>
+                    </div>
                 </div>
 
                 <div class="dash-top-right">
@@ -298,6 +310,8 @@
                     padding: 8px 10px;
                     cursor: grab;
                     user-select: none;
+                    -webkit-user-select: none;
+                    touch-action: manipulation;
                     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
                     transition: all 0.2s ease;
                 }
@@ -327,6 +341,20 @@
                     background: #f1f5f9;
                     color: var(--dash-navy);
                     border-color: var(--dash-navy);
+                }
+                @media (max-width: 768px) {
+                    .matrix-cell-slot {
+                        min-width: 140px;
+                        height: auto;
+                        min-height: 105px;
+                        padding: 6px;
+                    }
+                    .matrix-drag-box {
+                        padding: 6px 8px;
+                    }
+                    .kelas-matrix-block {
+                        padding: 12px !important;
+                    }
                 }
             </style>
 
@@ -520,12 +548,27 @@
 
                                         $matrixRows = collect();
 
-                                        // 1) KBM rows: group by jam_ke (>0), match SK & JM by jam_ke
+                                        // 1) KBM rows: group by jam_ke (>0), match SK & JM by jam_ke in strict sequential order
                                         $allJamKe = $jamPelajarans->where('jam_ke', '>', 0)->pluck('jam_ke')->unique()->sort();
+                                        $lastKbmTime = '00:00:00';
                                         foreach ($allJamKe as $jk) {
                                             $sk = $slotsSK->where('jam_ke', $jk)->first();
                                             $jm = $slotsJM->where('jam_ke', $jk)->first();
-                                            $sortTime = $sk ? $sk->jam_mulai : ($jm ? $jm->jam_mulai : '99:99');
+
+                                            if ($sk && $sk->jam_mulai) {
+                                                $sortTime = $sk->jam_mulai;
+                                            } elseif ($jm && $jm->jam_mulai) {
+                                                $sortTime = ($jm->jam_mulai > $lastKbmTime) 
+                                                    ? $jm->jam_mulai 
+                                                    : \Carbon\Carbon::parse($lastKbmTime)->addSecond()->format('H:i:s');
+                                            } else {
+                                                $sortTime = \Carbon\Carbon::parse($lastKbmTime)->addMinute()->format('H:i:s');
+                                            }
+
+                                            if ($sortTime > $lastKbmTime) {
+                                                $lastKbmTime = $sortTime;
+                                            }
+
                                             $matrixRows->push([
                                                 'jam_ke' => $jk, 'sk' => $sk, 'jm' => $jm, 
                                                 'time' => $sortTime, 'is_break' => false
@@ -547,7 +590,7 @@
                                             ]);
                                         }
 
-                                        // Sort all rows by time
+                                        // Sort all rows by time (ensuring KBM rows remain strictly in jam_ke order while breaks sit in their correct time slots)
                                         $matrixRows = $matrixRows->sortBy('time')->values();
                                     @endphp
 
@@ -679,9 +722,19 @@
                                                                 <div style="display: flex; align-items: center; justify-content: space-between;">
                                                                     <span style="font-size: 0.85rem; font-weight: 800; color: #1e2538;">{{ optional($jItem->mapel)->nama_mapel ?? '-' }}</span>
                                                                     <div style="display: flex; gap: 4px;">
+                                                                        <button type="button" class="action-btn-icon move" title="Pindahkan Sesi (Mobile)" onclick="openMoveModal({{ $jItem->id_jadwal }}, '{{ $jItem->id_kelas }}', '{{ $jItem->hari }}', '{{ $jItem->jam_ke }}')" style="width: 24px; height: 24px; border-radius: 6px; padding: 0; background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
+                                                                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                                                <polyline points="5 9 2 12 5 15"></polyline>
+                                                                                <polyline points="9 5 12 2 15 5"></polyline>
+                                                                                <polyline points="15 19 12 22 9 19"></polyline>
+                                                                                <polyline points="19 9 22 12 19 15"></polyline>
+                                                                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                                                                <line x1="12" y1="2" x2="12" y2="22"></line>
+                                                                            </svg>
+                                                                        </button>
                                                                         <button type="button" class="action-btn-icon edit" title="Edit Jadwal" onclick="openEditModal({{ $jItem->id_jadwal }}, '{{ $jItem->id_kelas }}', '{{ $jItem->hari }}', '{{ $jItem->jam_ke }}', '{{ $jItem->id_guru }}', '{{ $jItem->id_mapel }}', '{{ addslashes($jItem->ruangan ?? '') }}')" style="width: 24px; height: 24px; border-radius: 6px; padding: 0;">
                                                                             <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                                                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                                                                             </svg>
                                                                         </button>
@@ -1204,6 +1257,53 @@
         </div>
     </div>
 
+    <!-- Quick Move Schedule Modal (Mobile & Fast Action) -->
+    <div class="modal-backdrop" id="quickMoveModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+        <div class="modal-card" style="background: #fff; border-radius: 18px; max-width: 420px; width: 90%; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <polyline points="5 9 2 12 5 15"></polyline>
+                        <polyline points="9 5 12 2 15 5"></polyline>
+                        <polyline points="15 19 12 22 9 19"></polyline>
+                        <polyline points="19 9 22 12 19 15"></polyline>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <line x1="12" y1="2" x2="12" y2="22"></line>
+                    </svg>
+                    <h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #1e293b;">Pindahkan Slot Jadwal</h3>
+                </div>
+                <button type="button" onclick="closeQuickMoveModal()" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #94a3b8; line-height: 1;">&times;</button>
+            </div>
+
+            <form id="quickMoveForm" onsubmit="submitQuickMove(event)">
+                <input type="hidden" id="move_id_jadwal" name="id_jadwal">
+                <input type="hidden" id="move_id_kelas" name="id_kelas">
+
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 6px;">Pindah Ke Hari</label>
+                    <select id="move_target_hari" class="form-field-input" style="width: 100%; height: 42px; border-radius: 10px; border: 1px solid #cbd5e1; padding: 0 12px; font-weight: 600;" required onchange="populateJamOptions('move_target_hari', 'move_target_jam_ke')">
+                        <option value="Senin">Senin</option>
+                        <option value="Selasa">Selasa</option>
+                        <option value="Rabu">Rabu</option>
+                        <option value="Kamis">Kamis</option>
+                        <option value="Jumat">Jumat</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 6px;">Pindah Ke Slot Jam</label>
+                    <select id="move_target_jam_ke" class="form-field-input" style="width: 100%; height: 42px; border-radius: 10px; border: 1px solid #cbd5e1; padding: 0 12px; font-weight: 600;" required>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn-cancel" onclick="closeQuickMoveModal()" style="padding: 10px 18px; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; font-weight: 700; cursor: pointer;">Batal</button>
+                    <button type="submit" class="btn-save-submit" style="padding: 10px 18px; border-radius: 10px; border: none; background: #0284c7; color: #fff; font-weight: 700; cursor: pointer;">Simpan Perpindahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Script for Full AJAX Operations (No Page Refresh) -->
     <script>
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -1481,29 +1581,8 @@
             }
         }
 
-        /* ---- Drag & Drop Event Handlers ---- */
-        function onDragStartJadwal(event, idJadwal) {
-            event.dataTransfer.setData('text/plain', idJadwal.toString());
-            event.dataTransfer.effectAllowed = 'move';
-        }
-
-        function allowDropJadwal(event) {
-            event.preventDefault();
-            event.dataTransfer.dropEffect = 'move';
-            event.currentTarget.classList.add('drop-target-active');
-        }
-
-        function leaveDropJadwal(event) {
-            event.currentTarget.classList.remove('drop-target-active');
-        }
-
-        function onDropJadwal(event, targetKelasId, targetHari, targetJamKe) {
-            event.preventDefault();
-            event.currentTarget.classList.remove('drop-target-active');
-
-            const idJadwal = event.dataTransfer.getData('text/plain');
-            if (!idJadwal) return;
-
+        /* ---- Move Schedule AJAX Helper ---- */
+        function moveJadwalAjax(idJadwal, targetKelasId, targetHari, targetJamKe) {
             const formData = new FormData();
             formData.append('hari', targetHari);
             formData.append('jam_ke', targetJamKe);
@@ -1531,6 +1610,149 @@
                 showToast('Terjadi kesalahan koneksi server.', 'error');
             });
         }
+
+        /* ---- HTML5 Desktop Drag & Drop Handlers ---- */
+        function onDragStartJadwal(event, idJadwal) {
+            event.dataTransfer.setData('text/plain', idJadwal.toString());
+            event.dataTransfer.effectAllowed = 'move';
+        }
+
+        function allowDropJadwal(event) {
+            event.preventDefault();
+            if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+            event.currentTarget.classList.add('drop-target-active');
+        }
+
+        function leaveDropJadwal(event) {
+            event.currentTarget.classList.remove('drop-target-active');
+        }
+
+        function onDropJadwal(event, targetKelasId, targetHari, targetJamKe) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('drop-target-active');
+
+            const idJadwal = event.dataTransfer.getData('text/plain');
+            if (!idJadwal) return;
+
+            moveJadwalAjax(idJadwal, targetKelasId, targetHari, targetJamKe);
+        }
+
+        /* ---- Touchscreen Drag & Drop Support (Mobile Devices) ---- */
+        let touchDragItem = null;
+        let touchGhost = null;
+        let currentDropTarget = null;
+
+        function initTouchDragDrop() {
+            const dragBoxes = document.querySelectorAll('.matrix-drag-box');
+            dragBoxes.forEach(box => {
+                box.addEventListener('touchstart', handleTouchStart, { passive: false });
+                box.addEventListener('touchmove', handleTouchMove, { passive: false });
+                box.addEventListener('touchend', handleTouchEnd, { passive: false });
+            });
+        }
+
+        function handleTouchStart(e) {
+            if (e.target.closest('button')) return;
+
+            touchDragItem = this;
+            const touch = e.touches[0];
+
+            touchGhost = this.cloneNode(true);
+            touchGhost.style.position = 'fixed';
+            touchGhost.style.pointerEvents = 'none';
+            touchGhost.style.zIndex = '99999';
+            touchGhost.style.opacity = '0.9';
+            touchGhost.style.width = (this.offsetWidth || 140) + 'px';
+            touchGhost.style.boxShadow = '0 10px 25px rgba(0,0,0,0.25)';
+            touchGhost.style.transform = 'scale(1.05)';
+            touchGhost.style.left = (touch.clientX - 40) + 'px';
+            touchGhost.style.top = (touch.clientY - 20) + 'px';
+            document.body.appendChild(touchGhost);
+
+            this.style.opacity = '0.4';
+        }
+
+        function handleTouchMove(e) {
+            if (!touchDragItem || !touchGhost) return;
+            e.preventDefault();
+
+            const touch = e.touches[0];
+            touchGhost.style.left = (touch.clientX - 40) + 'px';
+            touchGhost.style.top = (touch.clientY - 20) + 'px';
+
+            touchGhost.style.display = 'none';
+            const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            touchGhost.style.display = 'block';
+
+            if (!elemBelow) return;
+
+            const cell = elemBelow.closest('.matrix-cell-slot');
+
+            if (currentDropTarget && currentDropTarget !== cell) {
+                currentDropTarget.classList.remove('drop-target-active');
+            }
+
+            if (cell) {
+                cell.classList.add('drop-target-active');
+                currentDropTarget = cell;
+            } else {
+                currentDropTarget = null;
+            }
+        }
+
+        function handleTouchEnd(e) {
+            if (!touchDragItem) return;
+
+            if (touchGhost && touchGhost.parentNode) {
+                touchGhost.parentNode.removeChild(touchGhost);
+            }
+            touchGhost = null;
+
+            touchDragItem.style.opacity = '1';
+
+            if (currentDropTarget) {
+                currentDropTarget.classList.remove('drop-target-active');
+                const targetKelasId = currentDropTarget.dataset.kelas;
+                const targetHari = currentDropTarget.dataset.hari;
+                const targetJamKe = currentDropTarget.dataset.jam;
+                const idJadwal = touchDragItem.id.replace('drag-jadwal-', '');
+
+                if (idJadwal && targetHari && targetJamKe) {
+                    moveJadwalAjax(idJadwal, targetKelasId, targetHari, targetJamKe);
+                }
+            }
+
+            touchDragItem = null;
+            currentDropTarget = null;
+        }
+
+        /* ---- Quick Move Modal (Fast Tap Option for Mobile) ---- */
+        function openMoveModal(idJadwal, idKelas, currentHari, currentJamKe) {
+            document.getElementById('move_id_jadwal').value = idJadwal;
+            document.getElementById('move_id_kelas').value = idKelas;
+            document.getElementById('move_target_hari').value = currentHari;
+            populateJamOptions('move_target_hari', 'move_target_jam_ke', currentJamKe);
+            document.getElementById('quickMoveModal').style.display = 'flex';
+        }
+
+        function closeQuickMoveModal() {
+            document.getElementById('quickMoveModal').style.display = 'none';
+        }
+
+        function submitQuickMove(e) {
+            e.preventDefault();
+            const idJadwal = document.getElementById('move_id_jadwal').value;
+            const idKelas = document.getElementById('move_id_kelas').value;
+            const targetHari = document.getElementById('move_target_hari').value;
+            const targetJamKe = document.getElementById('move_target_jam_ke').value;
+
+            closeQuickMoveModal();
+            moveJadwalAjax(idJadwal, idKelas, targetHari, targetJamKe);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initTouchDragDrop();
+        });
 
         /* ---- Modal Control Functions ---- */
         function openCreateModal() {
@@ -1825,6 +2047,7 @@
         }, 3000);
     </script>
     <script src="/js/ajax-pagination.js"></script>
+    <script src="/js/sidebar-toggle.js"></script>
     <script src="/js/live-clock.js"></script>
 </body>
 </html>

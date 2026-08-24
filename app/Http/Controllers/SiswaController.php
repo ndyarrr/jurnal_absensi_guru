@@ -47,6 +47,7 @@ class SiswaController extends Controller
         $validated = $request->validate([
             'nisn'       => 'required|digits:10|unique:siswa,nisn',
             'nama_siswa' => 'required|string|max:100',
+            'no_telepon' => 'nullable|string|max:20',
             'id_kelas'   => 'required|exists:kelas,id_kelas',
         ], [
             'nisn.required'       => 'NISN wajib diisi.',
@@ -71,6 +72,7 @@ class SiswaController extends Controller
             'id_siswa'   => $siswa->id_siswa,
             'nisn'       => $siswa->nisn,
             'nama_siswa' => $siswa->nama_siswa,
+            'no_telepon' => $siswa->no_telepon,
             'kelas_str'  => optional($siswa->kelas)->tingkat
                             . ' ' . optional(optional($siswa->kelas)->jurusan)->kode_jurusan
                             . ' ' . optional($siswa->kelas)->rombel,
@@ -86,6 +88,7 @@ class SiswaController extends Controller
         $validated = $request->validate([
             'nisn'       => 'required|digits:10|unique:siswa,nisn,' . $siswa->id_siswa . ',id_siswa',
             'nama_siswa' => 'required|string|max:100',
+            'no_telepon' => 'nullable|string|max:20',
             'id_kelas'   => 'required|exists:kelas,id_kelas',
         ], [
             'nisn.required' => 'NISN wajib diisi.',

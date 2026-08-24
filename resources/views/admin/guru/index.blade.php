@@ -12,6 +12,7 @@
 
     <!-- Modular Dashboard CSS -->
     <link rel="stylesheet" href="{{ asset('css/modules/dashboard.css') }}">
+    <script src="/js/sidebar-toggle.js"></script>
 </head>
 <body class="dashboard-body">
 
@@ -141,6 +142,8 @@
             @include('partials.dash-sidebar-footer')
         </aside>
 
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
         <!-- ===================================================================
              Main Content Region
              =================================================================== -->
@@ -148,9 +151,18 @@
 
             <!-- Top Header Bar -->
             <header class="dash-top-bar">
-                <div>
-                    <h1 class="dash-header-title">Master Data - Guru</h1>
-                    <p class="dash-header-subtitle">Pengelolaan guru fleksibel</p>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button type="button" class="dash-hamburger-btn" onclick="toggleSidebar()" title="Menu">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="dash-header-title">Master Data - Guru</h1>
+                        <p class="dash-header-subtitle">Pengelolaan guru fleksibel</p>
+                    </div>
                 </div>
 
                 <div class="dash-top-right">
@@ -662,6 +674,7 @@
         }, 3000);
     </script>
     <script src="/js/ajax-pagination.js"></script>
+    <script src="/js/sidebar-toggle.js"></script>
     <script src="/js/live-clock.js"></script>
 </body>
 </html>

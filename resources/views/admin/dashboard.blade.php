@@ -12,6 +12,7 @@
 
     <!-- Dashboard CSS Module -->
     <link rel="stylesheet" href="{{ asset('css/modules/dashboard.css') }}">
+    <script src="/js/sidebar-toggle.js"></script>
 </head>
 <body class="dashboard-body">
 
@@ -143,6 +144,8 @@
             @include('partials.dash-sidebar-footer')
         </aside>
 
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
         <!-- ===================================================================
              Main Content Region
              =================================================================== -->
@@ -150,9 +153,18 @@
 
             <!-- Top Header Bar -->
             <header class="dash-top-bar">
-                <div>
-                    <h1 class="dash-header-title">Dashboard</h1>
-                    <p class="dash-header-subtitle">Ringkasan Pengelolaan</p>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button type="button" class="dash-hamburger-btn" onclick="toggleSidebar()" title="Menu">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="dash-header-title">Dashboard</h1>
+                        <p class="dash-header-subtitle">Ringkasan Pengelolaan</p>
+                    </div>
                 </div>
 
                 <div class="dash-top-right">
@@ -191,7 +203,7 @@
                         <span>Pengguna</span>
                     </div>
                     <div class="dash-card-value">
-                        {{ $stats['total_pengguna'] }} <span>Total</span>
+                        <span id="stat_total_pengguna">{{ $stats['total_pengguna'] }}</span> <span>Total</span>
                     </div>
                 </div>
 
@@ -207,7 +219,7 @@
                         <span>Siswa</span>
                     </div>
                     <div class="dash-card-value">
-                        {{ $stats['total_siswa'] }} <span>Total</span>
+                        <span id="stat_total_siswa">{{ $stats['total_siswa'] }}</span> <span>Total</span>
                     </div>
                 </div>
 
@@ -225,7 +237,7 @@
                         <span>Guru</span>
                     </div>
                     <div class="dash-card-value">
-                        {{ $stats['total_guru'] }} <span>Total</span>
+                        <span id="stat_total_guru">{{ $stats['total_guru'] }}</span> <span>Total</span>
                     </div>
                 </div>
 
@@ -241,7 +253,7 @@
                         <span>Kelas</span>
                     </div>
                     <div class="dash-card-value">
-                        {{ $stats['total_kelas'] }} <span>Total</span>
+                        <span id="stat_total_kelas">{{ $stats['total_kelas'] }}</span> <span>Total</span>
                     </div>
                 </div>
             </section>
@@ -264,29 +276,23 @@
                     <!-- Panel 1: Grafik -->
                     <div class="dash-panel-card">
                         <div class="dash-panel-header">
-                            <h2 class="dash-panel-title">Grafik</h2>
-                            <select class="dash-select-filter">
-                                <option value="7">7 Hari Terakhir</option>
-                                <option value="30">30 Hari Terakhir</option>
+                            <h2 class="dash-panel-title">Grafik Jurnal Mengajar</h2>
+                            <select id="chart_filter_select" class="dash-select-filter" onchange="pollDashboardData()">
+                                <option value="7" {{ ($days ?? 7) == 7 ? 'selected' : '' }}>7 Hari Terakhir</option>
+                                <option value="14" {{ ($days ?? 7) == 14 ? 'selected' : '' }}>14 Hari Terakhir</option>
+                                <option value="30" {{ ($days ?? 7) == 30 ? 'selected' : '' }}>30 Hari Terakhir</option>
                             </select>
                         </div>
 
                         <!-- Bar Chart Canvas/DOM -->
-                        <div class="dash-chart-container">
-                            <div class="chart-y-axis">
-                                <span>30</span>
-                                <span>25</span>
-                                <span>20</span>
-                                <span>15</span>
-                                <span>10</span>
-                                <span>5</span>
-                                <span>0</span>
-                            </div>
-
+                        <div class="dash-chart-container" id="chart_bars_container">
+                            @php
+                                $maxChartVal = max(max(array_column($chartData, 'val')), 5);
+                            @endphp
                             @foreach($chartData as $bar)
-                                <div class="chart-bar-item">
-                                    <span class="chart-bar-val">{{ $bar['val'] }}</span>
-                                    <div class="chart-bar-fill {{ $bar['active'] ? 'active' : '' }}" style="height: {{ ($bar['val'] / 32) * 100 }}%;"></div>
+                                <div class="chart-bar-item {{ $bar['active'] ? 'active-item' : '' }}">
+                                    <span class="chart-bar-val {{ $bar['val'] == 0 ? 'zero-val' : '' }}">{{ $bar['val'] }}</span>
+                                    <div class="chart-bar-fill {{ $bar['active'] ? 'active' : '' }} {{ $bar['val'] == 0 ? 'zero-fill' : '' }}" style="height: {{ round(($bar['val'] / $maxChartVal) * 100) }}%;"></div>
                                     <span class="chart-bar-label">{{ $bar['label'] }}</span>
                                 </div>
                             @endforeach
@@ -302,10 +308,10 @@
                             <div class="donut-wrapper">
                                 <svg class="donut-svg" viewBox="0 0 100 100">
                                     <circle class="donut-bg" cx="50" cy="50" r="42"></circle>
-                                    <circle class="donut-fill" cx="50" cy="50" r="42" style="stroke-dashoffset: {{ 263.89 - (263.89 * $stats['persentase'] / 100) }};"></circle>
+                                    <circle class="donut-fill" id="stat_donut_fill" cx="50" cy="50" r="42" style="stroke-dashoffset: {{ 263.89 - (263.89 * $stats['persentase'] / 100) }};"></circle>
                                 </svg>
                                 <div class="donut-center-text">
-                                    <span class="donut-percent">{{ $stats['persentase'] }}%</span>
+                                    <span class="donut-percent" id="stat_persentase">{{ $stats['persentase'] }}%</span>
                                     <span class="donut-sub">Penyelesaian</span>
                                 </div>
                             </div>
@@ -322,7 +328,7 @@
                                     </div>
                                     <div class="rekap-info-box">
                                         <span class="rekap-label">Total Jadwal</span>
-                                        <span class="rekap-num">{{ $stats['total_jadwal'] }} <span class="rekap-unit">Sesi</span></span>
+                                        <span class="rekap-num"><span id="stat_total_jadwal_num">{{ $stats['total_jadwal'] }}</span> <span class="rekap-unit">Sesi</span></span>
                                     </div>
                                 </div>
 
@@ -335,7 +341,7 @@
                                     </div>
                                     <div class="rekap-info-box">
                                         <span class="rekap-label">Sudah Mengisi</span>
-                                        <span class="rekap-num">{{ $stats['sudah_mengisi'] }} <span class="rekap-unit">Sesi</span></span>
+                                        <span class="rekap-num"><span id="stat_sudah_mengisi_num">{{ $stats['sudah_mengisi'] }}</span> <span class="rekap-unit">Sesi</span></span>
                                     </div>
                                 </div>
 
@@ -350,7 +356,7 @@
                                     </div>
                                     <div class="rekap-info-box">
                                         <span class="rekap-label">Belum Mengisi</span>
-                                        <span class="rekap-num">{{ $stats['belum_mengisi'] }} <span class="rekap-unit">Sesi</span></span>
+                                        <span class="rekap-num"><span id="stat_belum_mengisi_num">{{ $stats['belum_mengisi'] }}</span> <span class="rekap-unit">Sesi</span></span>
                                     </div>
                                 </div>
                             </div>
@@ -369,7 +375,7 @@
                             <a href="{{ route('jurnal.index') }}" class="btn-lihat-semua">Lihat Semua</a>
                         </div>
 
-                        <div class="dash-list-wrapper">
+                        <div class="dash-list-wrapper" id="aktivitas_list_container">
                             @foreach($aktivitasList as $act)
                                 <div class="dash-list-item">
                                     <span class="activity-time">{{ $act['waktu'] }}</span>
@@ -392,7 +398,7 @@
                             <a href="{{ route('jurnal.index') }}" class="btn-lihat-semua">Lihat Semua</a>
                         </div>
 
-                        <div class="dash-list-wrapper">
+                        <div class="dash-list-wrapper" id="guru_belum_mengisi_container">
                             @foreach($guruBelumMengisi as $guru)
                                 <div class="dash-list-item">
                                     <div class="avatar-circle" style="background: #f1ebd9; color: #847e73;">
@@ -415,7 +421,7 @@
 
     </div>
 
-    <!-- Toggle Submenu & Live Clock Script -->
+    <!-- Toggle Submenu, Live Clock & Live Auto-Refresh Script -->
     <script>
         function toggleSubmenu(id) {
             const el = document.getElementById(id);
@@ -425,7 +431,79 @@
                 el.style.display = 'none';
             }
         }
+
+        // Live Auto-Refresh Data Polling (every 15 seconds or when chart filter changes)
+        function pollDashboardData() {
+            const selectEl = document.getElementById('chart_filter_select');
+            const days = selectEl ? selectEl.value : 7;
+
+            fetch('{{ route("dashboard") }}?days=' + days, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data || !data.stats) return;
+                
+                // Update 4 Summary Cards
+                const p = document.getElementById('stat_total_pengguna');
+                if (p) p.textContent = data.stats.total_pengguna;
+                const s = document.getElementById('stat_total_siswa');
+                if (s) s.textContent = data.stats.total_siswa;
+                const g = document.getElementById('stat_total_guru');
+                if (g) g.textContent = data.stats.total_guru;
+                const k = document.getElementById('stat_total_kelas');
+                if (k) k.textContent = data.stats.total_kelas;
+
+                // Update Rekap stats
+                const pct = document.getElementById('stat_persentase');
+                if (pct) pct.textContent = data.stats.persentase + '%';
+                const tj = document.getElementById('stat_total_jadwal_num');
+                if (tj) tj.textContent = data.stats.total_jadwal;
+                const sm = document.getElementById('stat_sudah_mengisi_num');
+                if (sm) sm.textContent = data.stats.sudah_mengisi;
+                const bm = document.getElementById('stat_belum_mengisi_num');
+                if (bm) bm.textContent = data.stats.belum_mengisi;
+
+                // Update Donut circle
+                const fill = document.getElementById('stat_donut_fill');
+                if (fill) {
+                    fill.style.strokeDashoffset = 263.89 - (263.89 * data.stats.persentase / 100);
+                }
+
+                // Update Chart Bars Dynamically
+                if (data.chartData && Array.isArray(data.chartData)) {
+                    const chartContainer = document.getElementById('chart_bars_container');
+                    if (chartContainer) {
+                        const vals = data.chartData.map(b => b.val);
+                        const maxVal = Math.max(Math.max(...vals), 5);
+                        let html = '';
+                        data.chartData.forEach(b => {
+                            const pctVal = Math.round((b.val / maxVal) * 100);
+                            const activeClass = b.active ? 'active' : '';
+                            const activeItemClass = b.active ? 'active-item' : '';
+                            const zeroValClass = b.val == 0 ? 'zero-val' : '';
+                            const zeroFillClass = b.val == 0 ? 'zero-fill' : '';
+                            html += `
+                                <div class="chart-bar-item ${activeItemClass}">
+                                    <span class="chart-bar-val ${zeroValClass}">${b.val}</span>
+                                    <div class="chart-bar-fill ${activeClass} ${zeroFillClass}" style="height: ${pctVal}%;"></div>
+                                    <span class="chart-bar-label">${b.label}</span>
+                                </div>
+                            `;
+                        });
+                        chartContainer.innerHTML = html;
+                    }
+                }
+            })
+            .catch(() => {});
+        }
+
+        setInterval(pollDashboardData, 15000);
     </script>
+    <script src="/js/sidebar-toggle.js"></script>
     <script src="/js/live-clock.js"></script>
 </body>
 </html>

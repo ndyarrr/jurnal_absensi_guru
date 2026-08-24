@@ -6,6 +6,7 @@ use App\Models\Guru;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
@@ -92,6 +93,7 @@ class UserController extends Controller
                 'exists:guru,id_guru',
                 Rule::unique('users', 'id_guru')->whereNotNull('id_guru'),
             ],
+            'avatar'   => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ], [
             'name.required'     => 'Nama pengguna wajib diisi.',
             'email.required'    => 'Email wajib diisi.',
@@ -99,6 +101,9 @@ class UserController extends Controller
             'password.min'      => 'Password minimal 6 karakter.',
             'role.in'           => 'Role tidak valid atau Anda tidak memiliki akses membuat Super Admin.',
             'id_guru.unique'    => 'Guru ini sudah memiliki akun pengguna.',
+            'avatar.image'      => 'File harus berupa gambar.',
+            'avatar.mimes'      => 'Format gambar harus JPG, PNG, atau WebP.',
+            'avatar.max'        => 'Ukuran foto maksimal 2MB.',
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
@@ -106,6 +111,13 @@ class UserController extends Controller
         // Admin & Satpam do not require guru profile mapping
         if (in_array($validated['role'], ['admin', 'super_admin', 'satpam'], true)) {
             $validated['id_guru'] = null;
+        }
+
+        // Handle avatar upload
+        if ($request->hasFile('avatar')) {
+            $validated['avatar'] = $request->file('avatar')->store('avatars', 'public');
+        } else {
+            unset($validated['avatar']);
         }
 
         User::create($validated);
@@ -174,9 +186,13 @@ class UserController extends Controller
                 'exists:guru,id_guru',
                 Rule::unique('users', 'id_guru')->ignore($user->id)->whereNotNull('id_guru'),
             ],
+            'avatar'   => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ], [
             'role.in'        => 'Role tidak valid atau Anda tidak memiliki akses memilih Super Admin.',
             'id_guru.unique' => 'Guru ini sudah memiliki akun pengguna lain.',
+            'avatar.image'   => 'File harus berupa gambar.',
+            'avatar.mimes'   => 'Format gambar harus JPG, PNG, atau WebP.',
+            'avatar.max'     => 'Ukuran foto maksimal 2MB.',
         ]);
 
         if (!empty($validated['password'])) {
@@ -187,6 +203,25 @@ class UserController extends Controller
 
         if (in_array($validated['role'], ['admin', 'super_admin', 'satpam'], true)) {
             $validated['id_guru'] = null;
+        }
+
+        // Handle avatar upload
+        if ($request->hasFile('avatar')) {
+            // Delete old avatar if exists
+            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $validated['avatar'] = $request->file('avatar')->store('avatars', 'public');
+        } else {
+            unset($validated['avatar']);
+        }
+
+        // Handle avatar removal
+        if ($request->boolean('remove_avatar')) {
+            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $validated['avatar'] = null;
         }
 
         $user->update($validated);
@@ -208,6 +243,11 @@ class UserController extends Controller
                 return response()->json(['error' => $error], 403);
             }
             return redirect()->route('users.index')->with('error', $error);
+        }
+
+        // Delete avatar file when user is deleted
+        if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+            Storage::disk('public')->delete($user->avatar);
         }
 
         $user->delete();

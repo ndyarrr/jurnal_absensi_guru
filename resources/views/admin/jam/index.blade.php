@@ -9,6 +9,7 @@
     <!-- CSS Modules -->
     <link rel="stylesheet" href="{{ asset('css/modules/dashboard.css') }}">
     <link rel="stylesheet" href="{{ asset('css/modules/jadwal.css') }}">
+    <script src="/js/sidebar-toggle.js"></script>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -201,14 +202,25 @@
             @include('partials.dash-sidebar-footer')
         </aside>
 
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
         <!-- Main Content Container -->
         <main class="dash-main">
             
             <!-- Top Header Bar -->
             <header class="dash-top-bar">
-                <div>
-                    <h1 class="dash-header-title">Master Jam Pelajaran & Waktu Pulang</h1>
-                    <p class="dash-header-subtitle">Pengaturan Durasi, Jam Masuk & Generator Slot Otomatis</p>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button type="button" class="dash-hamburger-btn" onclick="toggleSidebar()" title="Menu">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="dash-header-title">Master Jam Pelajaran & Waktu Pulang</h1>
+                        <p class="dash-header-subtitle">Pengaturan Durasi, Jam Masuk & Generator Slot Otomatis</p>
+                    </div>
                 </div>
 
                 <div class="dash-top-right">
@@ -304,53 +316,167 @@
 
                         <!-- SECTION 1: Jam Operasional & Durasi KBM -->
                         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; margin-bottom: 18px;">
-                            <div style="font-size: 0.875rem; font-weight: 800; color: #1e293b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                <span>1. Jam Masuk, Jam Pulang & Durasi KBM</span>
+                            <div style="font-size: 0.875rem; font-weight: 800; color: #1e293b; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 16 14"></polyline></svg>
+                                    <span>1. Jam Masuk, Jam Pulang & Durasi KBM</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 14px; font-size: 0.8rem; font-weight: 700; color: #475569;">
+                                    <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                                        <input type="radio" name="mode_durasi_kbm" value="seragam" onchange="toggleKbmMode('seragam')" {{ old('mode_durasi_kbm', $detectedSetting['mode_durasi_kbm'] ?? ($curSetting->mode_durasi_kbm ?? 'seragam')) === 'seragam' ? 'checked' : '' }}>
+                                        <span>⏱️ Durasi Sama Semua Jam</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                                        <input type="radio" name="mode_durasi_kbm" value="variatif" onchange="toggleKbmMode('variatif')" {{ old('mode_durasi_kbm', $detectedSetting['mode_durasi_kbm'] ?? ($curSetting->mode_durasi_kbm ?? 'seragam')) === 'variatif' ? 'checked' : '' }}>
+                                        <span>📊 Durasi Variatif (Misal Jam 1-4 = 40m, Jam 5+ = 35m)</span>
+                                    </label>
+                                </div>
                             </div>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+
+                            @if ($errors->has('durasi_per_jam') || $errors->has('durasi_jam_utama') || $errors->has('sampai_jam_ke') || $errors->has('durasi_jam_setelahnya'))
+                                <div style="background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 10px 14px; border-radius: 8px; font-size: 0.825rem; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                    <span>{{ $errors->first('durasi_per_jam') ?: ($errors->first('durasi_jam_utama') ?: ($errors->first('sampai_jam_ke') ?: $errors->first('durasi_jam_setelahnya'))) }}</span>
+                                </div>
+                            @endif
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 12px;">
                                 <div class="form-field-group">
                                     <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Jam Masuk Sekolah</label>
-                                    <input type="time" name="jam_masuk" class="form-field-input" value="{{ \Carbon\Carbon::parse($curSetting->jam_masuk ?? '07:00')->format('H:i') }}" required>
+                                    <input type="time" name="jam_masuk" class="form-field-input" value="{{ old('jam_masuk', $detectedSetting['jam_masuk'] ?? \Carbon\Carbon::parse($curSetting->jam_masuk ?? '07:00')->format('H:i')) }}" required>
                                 </div>
 
                                 <div class="form-field-group">
                                     <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Jam Pulang Sekolah</label>
-                                    <input type="time" name="jam_pulang" class="form-field-input" value="{{ \Carbon\Carbon::parse($curSetting->jam_pulang ?? '14:30')->format('H:i') }}" required>
+                                    <input type="time" name="jam_pulang" class="form-field-input" value="{{ old('jam_pulang', $detectedSetting['jam_pulang'] ?? \Carbon\Carbon::parse($curSetting->jam_pulang ?? '14:30')->format('H:i')) }}" required>
                                 </div>
 
-                                <div class="form-field-group">
+                                <!-- Mode KBM Seragam Container -->
+                                <div id="kbm_seragam_container" class="form-field-group">
                                     <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Durasi (Menit / Jam KBM)</label>
-                                    <input type="number" name="durasi_per_jam" class="form-field-input" value="{{ $curSetting->durasi_per_jam ?? ($activeTab === 'Jumat' ? 30 : 40) }}" required>
+                                    <input type="number" id="durasi_per_jam_input" name="durasi_per_jam" class="form-field-input" value="{{ old('durasi_per_jam', $detectedSetting['durasi_per_jam'] ?? ($curSetting->durasi_per_jam ?? ($activeTab === 'Jumat' ? 30 : 40))) }}">
+                                </div>
+                            </div>
+
+                            <!-- Mode KBM Variatif Container -->
+                            <div id="kbm_variatif_container" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px;">
+                                <div class="form-field-group">
+                                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Durasi Jam Utama (Menit)</label>
+                                    <input type="number" id="durasi_jam_utama_input" name="durasi_jam_utama" class="form-field-input" value="{{ old('durasi_jam_utama', $detectedSetting['durasi_jam_utama'] ?? ($curSetting->durasi_jam_utama ?? 40)) }}" placeholder="Contoh: 40 (Jam 1 s/d X)">
+                                </div>
+                                <div class="form-field-group">
+                                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Sampai Jam Ke-</label>
+                                    <input type="number" id="sampai_jam_ke_input" name="sampai_jam_ke" class="form-field-input" value="{{ old('sampai_jam_ke', $detectedSetting['sampai_jam_ke'] ?? ($curSetting->sampai_jam_ke ?? 4)) }}" placeholder="Contoh: 4">
+                                </div>
+                                <div class="form-field-group">
+                                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Durasi Jam Setelahnya (Menit)</label>
+                                    <input type="number" id="durasi_jam_setelahnya_input" name="durasi_jam_setelahnya" class="form-field-input" value="{{ old('durasi_jam_setelahnya', $detectedSetting['durasi_jam_setelahnya'] ?? ($curSetting->durasi_jam_setelahnya ?? 35)) }}" placeholder="Contoh: 35 (Jam 5 dst)">
                                 </div>
                             </div>
                         </div>
 
                         <!-- SECTION 2: Pengaturan Jam Istirahat -->
                         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; margin-bottom: 18px;">
-                            <div style="font-size: 0.875rem; font-weight: 800; color: #1e293b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
-                                <span>2. Pengaturan Jam Istirahat</span>
+                            <div style="font-size: 0.875rem; font-weight: 800; color: #1e293b; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                                    <span>2. Pengaturan Jam Istirahat</span>
+                                </div>
                             </div>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
-                                <div class="form-field-group">
-                                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Istirahat 1 (Durasi Menit)</label>
-                                    <input type="number" name="durasi_istirahat_1" class="form-field-input" value="{{ $activeTab === 'Jumat' ? 15 : 20 }}" required>
+
+                            @if ($errors->has('durasi_istirahat_1') || $errors->has('setelah_jam_ke_1') || $errors->has('jam_mulai_istirahat_1') || $errors->has('jam_selesai_istirahat_1'))
+                                <div style="background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 10px 14px; border-radius: 8px; font-size: 0.825rem; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                    <span>{{ $errors->first('durasi_istirahat_1') ?: ($errors->first('setelah_jam_ke_1') ?: ($errors->first('jam_mulai_istirahat_1') ?: $errors->first('jam_selesai_istirahat_1'))) }}</span>
+                                </div>
+                            @endif
+
+                            <!-- ISTIRAHAT 1 -->
+                            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 14px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                                    <span style="font-size: 0.825rem; font-weight: 800; color: #334155;">Istirahat 1</span>
+                                    <div style="display: flex; align-items: center; gap: 14px; font-size: 0.8rem; font-weight: 700; color: #475569;">
+                                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                                            <input type="radio" name="mode_istirahat_1" value="durasi" onchange="toggleBreakMode('1', 'durasi')" {{ old('mode_istirahat_1', $detectedSetting['mode_istirahat_1'] ?? ($curSetting->mode_istirahat_1 ?? 'durasi')) === 'durasi' ? 'checked' : '' }}>
+                                            <span>Mode Durasi & Jam Ke-</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                                            <input type="radio" name="mode_istirahat_1" value="pukul" onchange="toggleBreakMode('1', 'pukul')" {{ old('mode_istirahat_1', $detectedSetting['mode_istirahat_1'] ?? ($curSetting->mode_istirahat_1 ?? 'durasi')) === 'pukul' ? 'checked' : '' }}>
+                                            <span>Mode Pukul (Jam Mulai - Selesai)</span>
+                                        </label>
+                                    </div>
                                 </div>
 
-                                <div class="form-field-group">
-                                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Istirahat 1 Setelah Jam Ke-</label>
-                                    <input type="number" name="setelah_jam_ke_1" class="form-field-input" value="{{ $activeTab === 'Jumat' ? 3 : 4 }}" required>
+                                <!-- Mode Durasi Fields -->
+                                <div id="break_1_durasi_container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+                                    <div class="form-field-group">
+                                        <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Istirahat 1 (Durasi Menit) <span style="color: #dc2626;">*</span></label>
+                                        <input type="number" id="durasi_istirahat_1_input" name="durasi_istirahat_1" class="form-field-input" value="{{ old('durasi_istirahat_1', $detectedSetting['durasi_istirahat_1'] ?? ($curSetting->durasi_istirahat_1 ?? '')) }}" placeholder="Contoh: 20 (Wajib Isi)">
+                                    </div>
+                                    <div class="form-field-group">
+                                        <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Istirahat 1 Setelah Jam Ke- <span style="color: #dc2626;">*</span></label>
+                                        <input type="number" id="setelah_jam_ke_1_input" name="setelah_jam_ke_1" class="form-field-input" value="{{ old('setelah_jam_ke_1', $detectedSetting['setelah_jam_ke_1'] ?? ($curSetting->setelah_jam_ke_1 ?? '')) }}" placeholder="Contoh: 4 (Wajib Isi)">
+                                    </div>
                                 </div>
 
-                                <div class="form-field-group">
-                                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Istirahat 2 (Durasi Menit)</label>
-                                    <input type="number" name="durasi_istirahat_2" class="form-field-input" value="{{ $activeTab === 'Jumat' ? 15 : 30 }}">
+                                <!-- Mode Pukul Fields -->
+                                <div id="break_1_pukul_container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+                                    <div class="form-field-group">
+                                        <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Jam Mulai Istirahat 1 <span style="color: #dc2626;">*</span></label>
+                                        <input type="time" id="jam_mulai_istirahat_1_input" name="jam_mulai_istirahat_1" class="form-field-input" value="{{ old('jam_mulai_istirahat_1', $detectedSetting['jam_mulai_istirahat_1'] ?? ($curSetting->jam_mulai_istirahat_1 ? \Carbon\Carbon::parse($curSetting->jam_mulai_istirahat_1)->format('H:i') : '')) }}">
+                                    </div>
+                                    <div class="form-field-group">
+                                        <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Jam Selesai Istirahat 1 <span style="color: #dc2626;">*</span></label>
+                                        <input type="time" id="jam_selesai_istirahat_1_input" name="jam_selesai_istirahat_1" class="form-field-input" value="{{ old('jam_selesai_istirahat_1', $detectedSetting['jam_selesai_istirahat_1'] ?? ($curSetting->jam_selesai_istirahat_1 ? \Carbon\Carbon::parse($curSetting->jam_selesai_istirahat_1)->format('H:i') : '')) }}">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ISTIRAHAT 2 -->
+                            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px;">
+                                @if ($errors->has('durasi_istirahat_2') || $errors->has('setelah_jam_ke_2') || $errors->has('jam_mulai_istirahat_2') || $errors->has('jam_selesai_istirahat_2'))
+                                    <div style="background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; padding: 10px 14px; border-radius: 8px; font-size: 0.825rem; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+                                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                        <span>{{ $errors->first('durasi_istirahat_2') ?: ($errors->first('setelah_jam_ke_2') ?: ($errors->first('jam_mulai_istirahat_2') ?: $errors->first('jam_selesai_istirahat_2'))) }}</span>
+                                    </div>
+                                @endif
+
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                                    <span style="font-size: 0.825rem; font-weight: 800; color: #334155;">Istirahat 2 <span style="font-weight: 600; color: #64748b;">(Opsional / Tambahan)</span></span>
+                                    <div style="display: flex; align-items: center; gap: 14px; font-size: 0.8rem; font-weight: 700; color: #475569;">
+                                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                                            <input type="radio" name="mode_istirahat_2" value="durasi" onchange="toggleBreakMode('2', 'durasi')" {{ old('mode_istirahat_2', $detectedSetting['mode_istirahat_2'] ?? ($curSetting->mode_istirahat_2 ?? 'durasi')) === 'durasi' ? 'checked' : '' }}>
+                                            <span>Mode Durasi & Jam Ke-</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                                            <input type="radio" name="mode_istirahat_2" value="pukul" onchange="toggleBreakMode('2', 'pukul')" {{ old('mode_istirahat_2', $detectedSetting['mode_istirahat_2'] ?? ($curSetting->mode_istirahat_2 ?? 'durasi')) === 'pukul' ? 'checked' : '' }}>
+                                            <span>Mode Pukul (Jam Mulai - Selesai)</span>
+                                        </label>
+                                    </div>
                                 </div>
 
-                                <div class="form-field-group">
-                                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Istirahat 2 Setelah Jam Ke-</label>
-                                    <input type="number" name="setelah_jam_ke_2" class="form-field-input" value="{{ $activeTab === 'Jumat' ? 5 : 7 }}">
+                                <!-- Mode Durasi Fields -->
+                                <div id="break_2_durasi_container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+                                    <div class="form-field-group">
+                                        <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Istirahat 2 (Durasi Menit)</label>
+                                        <input type="number" id="durasi_istirahat_2_input" name="durasi_istirahat_2" class="form-field-input" value="{{ old('durasi_istirahat_2', $detectedSetting['durasi_istirahat_2'] ?? ($curSetting->durasi_istirahat_2 ?? '')) }}" placeholder="Contoh: 30 (Kosongkan jika tidak ada)">
+                                    </div>
+                                    <div class="form-field-group">
+                                        <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Istirahat 2 Setelah Jam Ke-</label>
+                                        <input type="number" id="setelah_jam_ke_2_input" name="setelah_jam_ke_2" class="form-field-input" value="{{ old('setelah_jam_ke_2', $detectedSetting['setelah_jam_ke_2'] ?? ($curSetting->setelah_jam_ke_2 ?? '')) }}" placeholder="Contoh: 7 (Kosongkan jika tidak ada)">
+                                    </div>
+                                </div>
+
+                                <!-- Mode Pukul Fields -->
+                                <div id="break_2_pukul_container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+                                    <div class="form-field-group">
+                                        <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Jam Mulai Istirahat 2</label>
+                                        <input type="time" id="jam_mulai_istirahat_2_input" name="jam_mulai_istirahat_2" class="form-field-input" value="{{ old('jam_mulai_istirahat_2', $detectedSetting['jam_mulai_istirahat_2'] ?? ($curSetting->jam_mulai_istirahat_2 ? \Carbon\Carbon::parse($curSetting->jam_mulai_istirahat_2)->format('H:i') : '')) }}">
+                                    </div>
+                                    <div class="form-field-group">
+                                        <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Jam Selesai Istirahat 2</label>
+                                        <input type="time" id="jam_selesai_istirahat_2_input" name="jam_selesai_istirahat_2" class="form-field-input" value="{{ old('jam_selesai_istirahat_2', $detectedSetting['jam_selesai_istirahat_2'] ?? ($curSetting->jam_selesai_istirahat_2 ? \Carbon\Carbon::parse($curSetting->jam_selesai_istirahat_2)->format('H:i') : '')) }}">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -631,6 +757,87 @@
     </div>
 
     <script>
+        function toggleKbmMode(mode) {
+            const seragamContainer  = document.getElementById('kbm_seragam_container');
+            const variatifContainer = document.getElementById('kbm_variatif_container');
+
+            if (!seragamContainer || !variatifContainer) return;
+
+            if (mode === 'seragam') {
+                seragamContainer.style.display  = 'block';
+                variatifContainer.style.display = 'none';
+
+                const durInput = document.getElementById('durasi_per_jam_input');
+                const utmInput = document.getElementById('durasi_jam_utama_input');
+                const smpInput = document.getElementById('sampai_jam_ke_input');
+                const ljtInput = document.getElementById('durasi_jam_setelahnya_input');
+
+                if (durInput) durInput.required = true;
+                if (utmInput) utmInput.required = false;
+                if (smpInput) smpInput.required = false;
+                if (ljtInput) ljtInput.required = false;
+            } else {
+                seragamContainer.style.display  = 'none';
+                variatifContainer.style.display = 'grid';
+
+                const durInput = document.getElementById('durasi_per_jam_input');
+                const utmInput = document.getElementById('durasi_jam_utama_input');
+                const smpInput = document.getElementById('sampai_jam_ke_input');
+                const ljtInput = document.getElementById('durasi_jam_setelahnya_input');
+
+                if (durInput) durInput.required = false;
+                if (utmInput) utmInput.required = true;
+                if (smpInput) smpInput.required = true;
+                if (ljtInput) ljtInput.required = true;
+            }
+        }
+
+        function toggleBreakMode(breakNo, mode) {
+            const durasiContainer = document.getElementById('break_' + breakNo + '_durasi_container');
+            const pukulContainer  = document.getElementById('break_' + breakNo + '_pukul_container');
+            
+            if (!durasiContainer || !pukulContainer) return;
+
+            if (mode === 'durasi') {
+                durasiContainer.style.display = 'grid';
+                pukulContainer.style.display  = 'none';
+                
+                if (breakNo === '1') {
+                    const durInput = document.getElementById('durasi_istirahat_1_input');
+                    const setInput = document.getElementById('setelah_jam_ke_1_input');
+                    const jmMulai  = document.getElementById('jam_mulai_istirahat_1_input');
+                    const jmSelesai= document.getElementById('jam_selesai_istirahat_1_input');
+                    if (durInput) durInput.required = true;
+                    if (setInput) setInput.required = true;
+                    if (jmMulai) jmMulai.required = false;
+                    if (jmSelesai) jmSelesai.required = false;
+                }
+            } else {
+                durasiContainer.style.display = 'none';
+                pukulContainer.style.display  = 'grid';
+                
+                if (breakNo === '1') {
+                    const durInput = document.getElementById('durasi_istirahat_1_input');
+                    const setInput = document.getElementById('setelah_jam_ke_1_input');
+                    const jmMulai  = document.getElementById('jam_mulai_istirahat_1_input');
+                    const jmSelesai= document.getElementById('jam_selesai_istirahat_1_input');
+                    if (durInput) durInput.required = false;
+                    if (setInput) setInput.required = false;
+                    if (jmMulai) jmMulai.required = true;
+                    if (jmSelesai) jmSelesai.required = true;
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const modeKbmInput = document.querySelector('input[name="mode_durasi_kbm"]:checked');
+            const mode1Input   = document.querySelector('input[name="mode_istirahat_1"]:checked');
+            const mode2Input   = document.querySelector('input[name="mode_istirahat_2"]:checked');
+            toggleKbmMode(modeKbmInput ? modeKbmInput.value : 'seragam');
+            toggleBreakMode('1', mode1Input ? mode1Input.value : 'durasi');
+            toggleBreakMode('2', mode2Input ? mode2Input.value : 'durasi');
+        });
+
         function toggleSubmenu(id) {
             const el = document.getElementById(id);
             if (el) el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'flex' : 'none';
@@ -743,6 +950,7 @@
             }
         }
     </script>
+    <script src="/js/sidebar-toggle.js"></script>
     <script src="/js/live-clock.js"></script>
 </body>
 </html>
