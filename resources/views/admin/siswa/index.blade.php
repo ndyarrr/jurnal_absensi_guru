@@ -18,127 +18,7 @@
 
     <div class="dash-layout">
 
-        <!-- ===================================================================
-             Left Sidebar Navigation
-             =================================================================== -->
-        <aside class="dash-sidebar">
-            @include('partials.dash-brand')
-
-            <ul class="dash-menu">
-                <!-- Dashboard Item -->
-                <li class="dash-menu-item {{ request()->is('dashboard') ? 'active' : '' }}">
-                    <a href="{{ route('dashboard') }}" class="dash-menu-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                            <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
-                            <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
-                            <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
-                            <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
-                        </svg>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-
-                <!-- Master Data Category (Expanded) -->
-                <li class="dash-menu-category">
-                    <button type="button" class="dash-category-btn" onclick="toggleSubmenu('masterDataSub')">
-                        <div class="dash-category-title">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M4 6h16M4 12h16M4 18h16"></path>
-                            </svg>
-                            <span>Master Data</span>
-                        </div>
-                        <svg class="dash-category-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </button>
-                    <ul class="dash-sub-menu" id="masterDataSub" style="display: flex;">
-                        <li>
-                            <a href="{{ route('users.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="12" cy="7" r="4"></circle>
-                                </svg>
-                                <span>Pengguna</span>
-                            </a>
-                        </li>
-                        <!-- Siswa Active Sub Link -->
-                        <li>
-                            <a href="{{ route('siswa.index') }}" class="dash-sub-link" style="background-color: var(--dash-navy); color: #ffffff; font-weight: 700;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #ffffff;">
-                                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
-                                    <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
-                                </svg>
-                                <span>Siswa</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('guru.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="9" cy="7" r="4"></circle>
-                                </svg>
-                                <span>Guru</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('kelas.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                                    <path d="M3 9h18M9 21V9"></path>
-                                </svg>
-                                <span>Kelas</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('mapel.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                                </svg>
-                                <span>Mapel</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <!-- Akademik Category -->
-                <li class="dash-menu-category">
-                    <button type="button" class="dash-category-btn" onclick="toggleSubmenu('akademikSub')">
-                        <div class="dash-category-title">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                            </svg>
-                            <span>Akademik</span>
-                        </div>
-                        <svg class="dash-category-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </button>
-                    <ul class="dash-sub-menu" id="akademikSub">
-                        <li>
-                            <a href="{{ route('jadwal.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"></circle>
-                                    <polyline points="12 6 12 12 16 14"></polyline>
-                                </svg>
-                                <span>Jadwal Pelajaran</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('jurnal.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                                    <rect x="8" y="2" width="8" height="4" rx="1"></rect>
-                                </svg>
-                                <span>Jurnal Mengajar</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-
-            @include('partials.dash-sidebar-footer')
-        </aside>
+        @include('partials.dash-sidebar')
 
         <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
@@ -234,6 +114,25 @@
                         <span>Tambah</span>
                     </button>
 
+                    <!-- Filter Jenis Kelamin -->
+                    <div style="position: relative;">
+                        <button type="button" class="btn-filter-pill" onclick="toggleDropdown('jkMenu')">
+                            <span>
+                                @if(request('jenis_kelamin') === 'L') Laki-laki (L)
+                                @elseif(request('jenis_kelamin') === 'P') Perempuan (P)
+                                @else L/P @endif
+                            </span>
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                        <div id="jkMenu" style="display: none; position: absolute; right: 0; top: 48px; background: #ffffff; border: 1px solid var(--dash-cream-border); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 8px; width: 150px; z-index: 50;">
+                            <a href="{{ route('siswa.index', array_merge(request()->except('jenis_kelamin'), [])) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Semua Gender</a>
+                            <a href="{{ route('siswa.index', array_merge(request()->except('jenis_kelamin'), ['jenis_kelamin' => 'L'])) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Laki-laki (L)</a>
+                            <a href="{{ route('siswa.index', array_merge(request()->except('jenis_kelamin'), ['jenis_kelamin' => 'P'])) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Perempuan (P)</a>
+                        </div>
+                    </div>
+
                     <!-- Filter Tingkat -->
                     <div style="position: relative;">
                         <button type="button" class="btn-filter-pill" onclick="toggleDropdown('tingkatMenu')">
@@ -308,12 +207,13 @@
                         <thead>
                             <tr>
                                 <th style="width: 5%;">No</th>
-                                <th style="width: 15%;">NISN</th>
-                                <th style="width: 25%;">Nama Siswa</th>
-                                <th style="width: 15%;">No. Telepon</th>
-                                <th style="width: 15%;">Kelas</th>
-                                <th style="width: 10%; text-align: center;">Status</th>
-                                <th style="width: 15%; text-align: center;">Aksi</th>
+                                <th style="width: 14%;">NISN</th>
+                                <th style="width: 22%;">Nama Siswa</th>
+                                <th style="width: 8%; text-align: center;">L/P</th>
+                                <th style="width: 14%;">No. Telepon</th>
+                                <th style="width: 14%;">Kelas</th>
+                                <th style="width: 9%; text-align: center;">Status</th>
+                                <th style="width: 14%; text-align: center;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -333,6 +233,15 @@
                                                 <small style="color: #64748b; font-weight: 500;">ID: SIS-{{ str_pad($s->id_siswa, 4, '0', STR_PAD_LEFT) }}</small>
                                             </div>
                                         </div>
+                                    </td>
+                                    <td class="td-siswa-jk" style="text-align: center;">
+                                        @if($s->jenis_kelamin === 'L')
+                                            <span style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: 800;" title="Laki-laki">L</span>
+                                        @elseif($s->jenis_kelamin === 'P')
+                                            <span style="background: #fce7f3; color: #be185d; padding: 2px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: 800;" title="Perempuan">P</span>
+                                        @else
+                                            <span style="color: #94a3b8; font-weight: 600;">-</span>
+                                        @endif
                                     </td>
                                     <td class="td-siswa-telepon" style="font-size: 0.85rem; font-weight: 600; color: #334155;">
                                         {{ $s->no_telepon ?? '-' }}
@@ -360,7 +269,7 @@
                                             </button>
 
                                             <!-- Edit Action (Inline Row Edit) -->
-                                            <button type="button" class="action-btn-icon edit" title="Edit Data Siswa" onclick="startInlineEditSiswa({{ $s->id_siswa }}, '{{ addslashes($s->nisn) }}', '{{ addslashes($s->nama_siswa) }}', '{{ addslashes($s->no_telepon ?? '') }}', '{{ $s->id_kelas }}')">
+                                            <button type="button" class="action-btn-icon edit" title="Edit Data Siswa" onclick="startInlineEditSiswa({{ $s->id_siswa }}, '{{ addslashes($s->nisn) }}', '{{ addslashes($s->nama_siswa) }}', '{{ $s->jenis_kelamin ?? '' }}', '{{ addslashes($s->no_telepon ?? '') }}', '{{ $s->id_kelas }}')">
                                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -383,7 +292,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" style="text-align: center; padding: 40px; color: #847e73;">
+                                    <td colspan="8" style="text-align: center; padding: 40px; color: #847e73;">
                                         Belum ada data siswa.
                                     </td>
                                 </tr>
@@ -428,6 +337,15 @@
                 <div class="form-field-group">
                     <label for="create_nama_siswa">Nama Lengkap Siswa</label>
                     <input type="text" name="nama_siswa" id="create_nama_siswa" class="form-field-input" placeholder="Masukkan nama lengkap siswa" required>
+                </div>
+
+                <div class="form-field-group">
+                    <label for="create_jenis_kelamin">Jenis Kelamin</label>
+                    <select name="jenis_kelamin" id="create_jenis_kelamin" class="form-field-input">
+                        <option value="">-- Pilih Jenis Kelamin --</option>
+                        <option value="L">Laki-laki (L)</option>
+                        <option value="P">Perempuan (P)</option>
+                    </select>
                 </div>
 
                 <div class="form-field-group">
@@ -477,6 +395,10 @@
                     <div id="view_nama_siswa" style="font-weight: 700; color: #1e2538;">-</div>
                 </div>
                 <div class="form-field-group">
+                    <label>Jenis Kelamin:</label>
+                    <div id="view_jenis_kelamin" style="font-weight: 700; color: #1e2538;">-</div>
+                </div>
+                <div class="form-field-group">
                     <label>No. Telepon:</label>
                     <div id="view_no_telepon" style="font-weight: 700; color: #1e2538;">-</div>
                 </div>
@@ -513,7 +435,7 @@
         }
 
         function toggleDropdown(id) {
-            const dropdowns = ['tingkatMenu', 'jurusanMenu', 'rombelMenu'];
+            const dropdowns = ['jkMenu', 'tingkatMenu', 'jurusanMenu', 'rombelMenu'];
             dropdowns.forEach(dId => {
                 if (dId !== id) {
                     const el = document.getElementById(dId);
@@ -546,7 +468,7 @@
         }
 
         /* ---- Inline Table Row Edit for Siswa ---- */
-        function startInlineEditSiswa(id, nisn, nama, noTelp, idKelas) {
+        function startInlineEditSiswa(id, nisn, nama, jk, noTelp, idKelas) {
             if (editingSiswaId && editingSiswaId !== id) {
                 cancelInlineEditSiswa(editingSiswaId);
             }
@@ -557,6 +479,7 @@
 
             const tdNisn = row.querySelector('.td-siswa-nisn');
             const tdNama = row.querySelector('.td-siswa-nama');
+            const tdJk = row.querySelector('.td-siswa-jk');
             const tdTelp = row.querySelector('.td-siswa-telepon');
             const tdKelas = row.querySelector('.td-siswa-kelas');
             const tdAksi = row.querySelector('.action-icons-cell');
@@ -565,6 +488,16 @@
                 tdNisn.innerHTML = `<input type="text" id="inline-nisn-${id}" class="form-field-input" value="${nisn}" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'')" style="padding: 4px 8px; font-size: 0.825rem; font-family: monospace; width: 100%; border-radius: 6px; border: 1.5px solid var(--dash-navy);" autocomplete="off">`;
                 
                 tdNama.innerHTML = `<input type="text" id="inline-nama-${id}" class="form-field-input" value="${nama.replace(/"/g, '&quot;')}" style="padding: 4px 8px; font-size: 0.85rem; font-weight: 700; width: 100%; border-radius: 6px; border: 1.5px solid var(--dash-navy);" autocomplete="off">`;
+
+                if (tdJk) {
+                    tdJk.innerHTML = `
+                        <select id="inline-jk-${id}" class="form-field-input" style="padding: 4px; font-size: 0.825rem; width: 100%; border-radius: 6px; border: 1.5px solid var(--dash-navy);">
+                            <option value="">-</option>
+                            <option value="L" ${jk === 'L' ? 'selected' : ''}>L</option>
+                            <option value="P" ${jk === 'P' ? 'selected' : ''}>P</option>
+                        </select>
+                    `;
+                }
 
                 if (tdTelp) {
                     tdTelp.innerHTML = `<input type="text" id="inline-telp-${id}" class="form-field-input" value="${(noTelp || '').replace(/"/g, '&quot;')}" placeholder="08..." style="padding: 4px 8px; font-size: 0.825rem; width: 100%; border-radius: 6px; border: 1.5px solid var(--dash-navy);" autocomplete="off">`;
@@ -604,6 +537,7 @@
         function saveInlineEditSiswa(id) {
             const nisn = document.getElementById(`inline-nisn-${id}`).value.trim();
             const nama = document.getElementById(`inline-nama-${id}`).value.trim();
+            const jk = document.getElementById(`inline-jk-${id}`) ? document.getElementById(`inline-jk-${id}`).value : '';
             const noTelp = document.getElementById(`inline-telp-${id}`) ? document.getElementById(`inline-telp-${id}`).value.trim() : '';
             const idKelas = document.getElementById(`inline-kelas-${id}`).value;
 
@@ -620,6 +554,7 @@
             const formData = new FormData();
             formData.append('nisn', nisn);
             formData.append('nama_siswa', nama);
+            formData.append('jenis_kelamin', jk);
             formData.append('no_telepon', noTelp);
             formData.append('id_kelas', idKelas);
             formData.append('_method', 'PUT');
@@ -653,6 +588,7 @@
                 .then(data => {
                     document.getElementById('view_nisn').innerText = data.nisn;
                     document.getElementById('view_nama_siswa').innerText = data.nama_siswa;
+                    document.getElementById('view_jenis_kelamin').innerText = data.jk_label || '-';
                     document.getElementById('view_no_telepon').innerText = data.no_telepon || '-';
                     document.getElementById('view_kelas_str').innerText = data.kelas_str;
                     document.getElementById('viewModal').style.display = 'flex';

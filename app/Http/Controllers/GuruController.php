@@ -29,11 +29,11 @@ class GuruController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nuptk'     => 'required|regex:/^[0-9]{16}$|^[0-9]{18}$/|unique:guru,nuptk',
-            'nama_guru' => 'required|string|max:255',
-            'no_hp'     => 'nullable|string|max:20',
-            'mapel'     => 'nullable|array',
-            'mapel.*'   => 'exists:mapel,id_mapel',
+            'nuptk'     => ['required', 'regex:/^([0-9]{16}|[0-9]{18})$/', 'unique:guru,nuptk'],
+            'nama_guru' => ['required', 'string', 'max:255'],
+            'no_hp'     => ['nullable', 'string', 'max:20'],
+            'mapel'     => ['nullable', 'array'],
+            'mapel.*'   => ['exists:mapel,id_mapel'],
         ], [
             'nuptk.required'     => 'NUPTK / NIP wajib diisi.',
             'nuptk.regex'        => 'NUPTK harus berisi tepat 16 digit angka (atau NIP 18 digit angka).',
@@ -47,9 +47,7 @@ class GuruController extends Controller
             'no_hp'     => $validated['no_hp'] ?? null,
         ]);
 
-        if (!empty($request->input('mapel'))) {
-            $guru->mapel()->sync($request->input('mapel'));
-        }
+        $guru->mapel()->sync($request->input('mapel', []));
 
         return redirect()->route('guru.index')->with('success', 'Data guru berhasil ditambahkan');
     }
@@ -61,10 +59,12 @@ class GuruController extends Controller
     {
         $guru->load(['mapel', 'user']);
 
-        $mapelNames = $guru->mapel->pluck('nama_mapel')->join(', ');
+        $mapelNames = $guru->mapel ? $guru->mapel->pluck('nama_mapel')->filter()->join(', ') : '';
         if (empty($mapelNames)) {
             $mapelNames = '-';
         }
+
+        $mapelIds = $guru->mapel ? $guru->mapel->pluck('id_mapel')->map(function($id) { return (int) $id; })->toArray() : [];
 
         return response()->json([
             'id_guru'     => $guru->id_guru,
@@ -72,7 +72,7 @@ class GuruController extends Controller
             'nama_guru'   => $guru->nama_guru,
             'no_hp'       => $guru->no_hp ?? '-',
             'mapel_names' => $mapelNames,
-            'mapel_ids'   => $guru->mapel->pluck('id_mapel')->toArray(),
+            'mapel_ids'   => $mapelIds,
             'user_email'  => optional($guru->user)->email ?? '-',
             'user_role'   => optional($guru->user)->role_label ?? 'Belum Punya Akun',
         ]);
@@ -84,11 +84,11 @@ class GuruController extends Controller
     public function update(Request $request, Guru $guru)
     {
         $validated = $request->validate([
-            'nuptk'     => 'required|regex:/^[0-9]{16}$|^[0-9]{18}$/|unique:guru,nuptk,' . $guru->id_guru . ',id_guru',
-            'nama_guru' => 'required|string|max:255',
-            'no_hp'     => 'nullable|string|max:20',
-            'mapel'     => 'nullable|array',
-            'mapel.*'   => 'exists:mapel,id_mapel',
+            'nuptk'     => ['required', 'regex:/^([0-9]{16}|[0-9]{18})$/', 'unique:guru,nuptk,' . $guru->id_guru . ',id_guru'],
+            'nama_guru' => ['required', 'string', 'max:255'],
+            'no_hp'     => ['nullable', 'string', 'max:20'],
+            'mapel'     => ['nullable', 'array'],
+            'mapel.*'   => ['exists:mapel,id_mapel'],
         ], [
             'nuptk.required' => 'NUPTK / NIP wajib diisi.',
             'nuptk.regex'    => 'NUPTK harus berisi tepat 16 digit angka (atau NIP 18 digit angka).',

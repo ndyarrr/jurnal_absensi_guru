@@ -15,7 +15,7 @@ class KelasController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Kelas::with(['jurusan', 'waliKelasGuru']);
+        $query = Kelas::with(['jurusan', 'waliKelasGuru'])->withCount('siswa');
 
         // Search Filter (Tingkat, Kode Jurusan, Nama Jurusan, Wali Kelas)
         if ($request->filled('search')) {
@@ -95,7 +95,7 @@ class KelasController extends Controller
                 'exists:guru,id_guru',
                 Rule::unique('kelas', 'id_guru_wali'),
             ],
-            'jumlah_siswa' => 'nullable|integer|min:0',
+            'jumlah_siswa' => 'nullable|integer|min:1',
         ], [
             'tingkat.required'      => 'Tingkat kelas wajib dipilih.',
             'id_jurusan.required'   => 'Jurusan wajib dipilih.',
@@ -103,6 +103,11 @@ class KelasController extends Controller
             'id_guru_wali.required' => 'Wali Kelas wajib dipilih.',
             'id_guru_wali.unique'   => 'Guru ini sudah ditugaskan menjadi Wali Kelas di kelas lain.',
         ]);
+
+        // Default pagu 36 if not specified
+        if (empty($validated['jumlah_siswa'])) {
+            $validated['jumlah_siswa'] = 36;
+        }
 
         // Auto fill wali_kelas string from Guru relationship
         $guru = Guru::find($validated['id_guru_wali']);
@@ -118,7 +123,19 @@ class KelasController extends Controller
      */
     public function show(Kelas $kelas)
     {
-        $kelas->load(['jurusan', 'waliKelasGuru']);
+        $kelas->load(['jurusan', 'waliKelasGuru', 'siswa'])->loadCount('siswa');
+
+        $enrolledCount = $kelas->siswa_count ?? $kelas->siswa()->count();
+        $pagu = $kelas->jumlah_siswa ?? 36;
+
+        $siswaList = $kelas->siswa->map(function ($s) {
+            return [
+                'id_siswa'      => $s->id_siswa,
+                'nisn'          => $s->nisn ?? '-',
+                'nama_siswa'    => $s->nama_siswa ?? $s->nama ?? '-',
+                'jenis_kelamin' => $s->jenis_kelamin ?? '-',
+            ];
+        });
 
         return response()->json([
             'id_kelas'     => $kelas->id_kelas,
@@ -130,7 +147,9 @@ class KelasController extends Controller
             'id_jurusan'   => $kelas->id_jurusan,
             'id_guru_wali' => $kelas->id_guru_wali,
             'wali_kelas'   => $kelas->wali_kelas ?: (optional($kelas->waliKelasGuru)->nama_guru ?? 'Belum Ditentukan'),
-            'jumlah_siswa' => $kelas->jumlah_siswa ?? 0,
+            'jumlah_siswa' => $enrolledCount . '/' . $pagu,
+            'pagu'         => $pagu,
+            'siswa'        => $siswaList,
         ]);
     }
 

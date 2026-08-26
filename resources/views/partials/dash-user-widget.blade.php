@@ -102,14 +102,14 @@
 </div>
 
 <!-- Pure Image Lightbox / Full View Avatar Modal Popup -->
-<div class="modal-overlay" id="profileAvatarModal" style="display: none; z-index: 99999; background-color: rgba(1, 1, 1, 0.41); backdrop-filter: blur(8px);">
-    <div style="position: relative; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; align-items: center; justify-content: center; animation: zoomIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);">
+<div class="modal-overlay" id="profileAvatarModal" style="display: none; align-items: center !important; justify-content: center !important; z-index: 99999; background-color: rgba(1, 1, 1, 0.41); backdrop-filter: blur(8px);">
+    <div style="position: relative; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; align-items: center; justify-content: center; animation: zoomIn 0.2s cubic-bezier(0.16, 1, 0.3, 1); margin: auto;">
         <button type="button" id="closeProfileAvatarModal" style="position: absolute; top: -46px; right: 0; background: rgba(255, 255, 255, 0.2); color: #ffffff; border: none; font-size: 1.4rem; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); transition: background 0.2s ease;" title="Tutup (Esc)">&times;</button>
         
         @if($profileUser->avatar_url)
-            <img src="{{ $profileUser->avatar_url }}" alt="{{ $profileUser->name }}" id="fullViewAvatarImg" style="max-width: 85vw; max-height: 80vh; width: 400px; height: 400px; border-radius: 24px; object-fit: cover; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); border: 2px solid rgba(255, 255, 255, 0.2);">
+            <img src="{{ $profileUser->avatar_url }}" alt="{{ $profileUser->name }}" id="fullViewAvatarImg" style="max-width: 85vw; max-height: 75vh; width: 400px; height: 400px; border-radius: 24px; object-fit: cover; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); border: 2px solid rgba(255, 255, 255, 0.2);">
         @else
-            <div id="fullViewAvatarImg" class="dash-user-avatar-initial" style="width: 280px; height: 280px; border-radius: 24px; font-size: 6rem; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1e2538, #3b82f6); color: #ffffff; border: 2px solid rgba(255, 255, 255, 0.2); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); font-weight: 800;">
+            <div id="fullViewAvatarImg" class="dash-user-avatar-initial" style="width: 280px; height: 280px; max-width: 85vw; max-height: 75vh; border-radius: 24px; font-size: 6rem; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1e2538, #3b82f6); color: #ffffff; border: 2px solid rgba(255, 255, 255, 0.2); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); font-weight: 800;">
                 {{ $profileUser->avatar_initial }}
             </div>
         @endif

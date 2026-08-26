@@ -18,127 +18,7 @@
 
     <div class="dash-layout">
 
-        <!-- ===================================================================
-             Left Sidebar Navigation
-             =================================================================== -->
-        <aside class="dash-sidebar">
-            @include('partials.dash-brand')
-
-            <ul class="dash-menu">
-                <!-- Dashboard Item -->
-                <li class="dash-menu-item {{ request()->is('dashboard') ? 'active' : '' }}">
-                    <a href="{{ route('dashboard') }}" class="dash-menu-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                            <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
-                            <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
-                            <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
-                            <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
-                        </svg>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-
-                <!-- Master Data Category (Expanded) -->
-                <li class="dash-menu-category">
-                    <button type="button" class="dash-category-btn" onclick="toggleSubmenu('masterDataSub')">
-                        <div class="dash-category-title">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M4 6h16M4 12h16M4 18h16"></path>
-                            </svg>
-                            <span>Master Data</span>
-                        </div>
-                        <svg class="dash-category-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </button>
-                    <ul class="dash-sub-menu" id="masterDataSub" style="display: flex;">
-                        <li>
-                            <a href="{{ route('users.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="12" cy="7" r="4"></circle>
-                                </svg>
-                                <span>Pengguna</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('siswa.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
-                                    <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
-                                </svg>
-                                <span>Siswa</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('guru.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="9" cy="7" r="4"></circle>
-                                </svg>
-                                <span>Guru</span>
-                            </a>
-                        </li>
-                        <!-- Kelas Active Sub Link -->
-                        <li>
-                            <a href="{{ route('kelas.index') }}" class="dash-sub-link" style="background-color: var(--dash-navy); color: #ffffff; font-weight: 700;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #ffffff;">
-                                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                                    <path d="M3 9h18M9 21V9"></path>
-                                </svg>
-                                <span>Kelas</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('mapel.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                                </svg>
-                                <span>Mapel</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <!-- Akademik Category -->
-                <li class="dash-menu-category">
-                    <button type="button" class="dash-category-btn" onclick="toggleSubmenu('akademikSub')">
-                        <div class="dash-category-title">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                            </svg>
-                            <span>Akademik</span>
-                        </div>
-                        <svg class="dash-category-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </button>
-                    <ul class="dash-sub-menu" id="akademikSub">
-                        <li>
-                            <a href="{{ route('jadwal.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"></circle>
-                                    <polyline points="12 6 12 12 16 14"></polyline>
-                                </svg>
-                                <span>Jadwal Pelajaran</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('jurnal.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                                    <rect x="8" y="2" width="8" height="4" rx="1"></rect>
-                                </svg>
-                                <span>Jurnal Mengajar</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-
-            @include('partials.dash-sidebar-footer')
-        </aside>
+        @include('partials.dash-sidebar')
 
         <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
@@ -299,6 +179,48 @@
             </div>
 
             <!-- ---------------------------------------------------------------
+                 Inline Detail Panel: Daftar Siswa Per Kelas (Tanpa Pop-up Overlay)
+                 --------------------------------------------------------------- -->
+            <div id="inlineDetailPanel" style="display: none; margin-bottom: 24px; background: #ffffff; border: 1px solid var(--dash-border-subtle); border-radius: 18px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.03);">
+                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 14px; margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 40px; height: 40px; border-radius: 12px; background: #e0f2fe; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="22" height="22" fill="none" stroke="#0284c7" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 id="inline_nama_kelas" style="font-size: 1.15rem; font-weight: 800; color: #1e2538; margin: 0;">Detail Kelas</h3>
+                            <small id="inline_sub_info" style="color: #64748b; font-weight: 600;">Memuat info kelas...</small>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span id="inline_siswa_badge" style="font-size: 0.8rem; background: #e0f2fe; color: #0369a1; padding: 5px 14px; border-radius: 20px; font-weight: 700;">0 Siswa</span>
+                        <button type="button" onclick="closeInlineDetailPanel()" style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; width: 32px; height: 32px; font-size: 1.2rem; cursor: pointer; color: #475569; display: flex; align-items: center; justify-content: center;" title="Tutup Detail Kelas">&times;</button>
+                    </div>
+                </div>
+
+                <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                        <thead>
+                            <tr style="background: var(--dash-navy); color: #ffffff;">
+                                <th style="padding: 11px 16px; text-align: left; width: 60px; font-weight: 700; border-top-left-radius: 10px;">No</th>
+                                <th style="padding: 11px 16px; text-align: left; width: 140px; font-weight: 700;">NISN</th>
+                                <th style="padding: 11px 16px; text-align: left; font-weight: 700;">Nama Siswa</th>
+                                <th style="padding: 11px 16px; text-align: center; width: 120px; font-weight: 700; border-top-right-radius: 10px;">Jenis Kelamin</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inline_siswa_list_body">
+                            <tr><td colspan="4" style="text-align: center; padding: 20px; color: #94a3b8;">Memuat data siswa...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ---------------------------------------------------------------
                  Collapsible Inline Form Panel: Tambah Kelas Baru (Hide / Unhide)
                  --------------------------------------------------------------- -->
             <div class="collapsible-form-panel" id="formTambahKelasPanel" style="display: none;">
@@ -367,8 +289,8 @@
                     </div>
 
                     <div class="form-field-group" style="margin-bottom: 0;">
-                        <label for="create_jumlah_siswa">Jumlah Siswa</label>
-                        <input type="number" name="jumlah_siswa" id="create_jumlah_siswa" class="form-field-input" placeholder="Contoh: 36" min="0" value="36">
+                        <label for="create_jumlah_siswa">Pagu Kelas (Kapasitas Maksimal)</label>
+                        <input type="number" name="jumlah_siswa" id="create_jumlah_siswa" class="form-field-input" placeholder="Contoh: 36" min="1" value="36">
                     </div>
 
                     <div>
@@ -388,7 +310,7 @@
                                 <th style="width: 5%;">No</th>
                                 <th style="width: 30%;">Kelas</th>
                                 <th style="width: 30%;">Wali Kelas</th>
-                                <th style="width: 15%;">Jumlah Siswa</th>
+                                <th style="width: 15%;">Siswa / Pagu</th>
                                 <th style="width: 20%; text-align: center;">Aksi</th>
                             </tr>
                         </thead>
@@ -400,23 +322,25 @@
                                         <div style="display: flex; align-items: center; gap: 12px;">
                                             <span class="jurusan-code-badge">{{ optional($k->jurusan)->kode_jurusan ?? '-' }}</span>
                                             <div>
-                                                <div style="font-weight: 800; font-size: 1.05rem; color: #1e2538;">{{ $k->tingkat }} {{ optional($k->jurusan)->kode_jurusan ?? '' }} {{ $k->rombel }}</div>
-                                                <small style="color: #64748b; font-weight: 600;">{{ optional($k->jurusan)->nama_jurusan ?? '-' }}</small>
+                                                <a href="javascript:void(0)" onclick="openViewModal({{ $k->id_kelas }})" style="font-weight: 800; font-size: 1.05rem; color: #1e2538; text-decoration: none; cursor: pointer;" onmouseover="this.style.color='var(--dash-navy)'; this.style.textDecoration='underline'" onmouseout="this.style.color='#1e2538'; this.style.textDecoration='none'" title="Klik untuk lihat daftar siswa kelas ini">
+                                                    {{ $k->tingkat }} {{ optional($k->jurusan)->kode_jurusan ?? '' }} {{ $k->rombel }}
+                                                </a>
+                                                <div><small style="color: #64748b; font-weight: 600;">{{ optional($k->jurusan)->nama_jurusan ?? '-' }}</small></div>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
                                         <div style="font-weight: 700; color: #1e2538;">
                                             @if($k->waliKelasGuru && $k->waliKelasGuru->trashed())
-                                                <span class="badge-warning-deleted" title="Wali kelas ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>
+                                                <span class="badge-warning-deleted" title="Wali kelas ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="16" x2="12.01" y2="17"></line></svg> -</span>
                                             @else
                                                 {{ $k->wali_kelas ?: (optional($k->waliKelasGuru)->nama_guru ?? 'Belum Ada Wali Kelas') }}
                                             @endif
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge-status-aktif" style="background-color: #f1f5f9; color: #334155; border-color: #cbd5e1;">
-                                            {{ $k->jumlah_siswa ?? 0 }} Siswa
+                                        <span class="badge-status-aktif" style="background-color: #f1f5f9; color: #334155; border-color: #cbd5e1; font-weight: 700;" title="Jumlah Siswa Terdaftar / Pagu Maksimal">
+                                            {{ $k->siswa_count ?? $k->siswa()->count() }}/{{ $k->jumlah_siswa ?? 36 }} Siswa
                                         </span>
                                     </td>
                                     <td>
@@ -707,8 +631,8 @@
                 </div>
 
                 <div class="form-field-group">
-                    <label for="edit_jumlah_siswa">Jumlah Siswa</label>
-                    <input type="number" name="jumlah_siswa" id="edit_jumlah_siswa" class="form-field-input" min="0">
+                    <label for="edit_jumlah_siswa">Pagu Kelas (Kapasitas Maksimal)</label>
+                    <input type="number" name="jumlah_siswa" id="edit_jumlah_siswa" class="form-field-input" min="1" placeholder="Default: 36">
                 </div>
 
                 <div class="modal-actions-footer">
@@ -719,40 +643,7 @@
         </div>
     </div>
 
-    <!-- ===================================================================
-         View Kelas Modal Popup
-         =================================================================== -->
-    <div class="modal-overlay" id="viewModal" style="display: none;">
-        <div class="modal-content-card">
-            <div class="modal-header-bar">
-                <h3 class="modal-title-text">Detail Data Kelas</h3>
-                <button type="button" class="btn-close-modal" onclick="closeViewModal()">&times;</button>
-            </div>
 
-            <div class="modal-form-grid">
-                <div class="form-field-group">
-                    <label>Nama Rombongan Belajar:</label>
-                    <div id="view_nama_kelas" style="font-weight: 800; font-size: 1.1rem; color: #1e2538;">-</div>
-                </div>
-                <div class="form-field-group">
-                    <label>Jurusan / Keahlian:</label>
-                    <div id="view_nama_jurusan" style="font-weight: 700; color: var(--dash-navy);">-</div>
-                </div>
-                <div class="form-field-group">
-                    <label>Wali Kelas:</label>
-                    <div id="view_wali_kelas" style="font-weight: 700; color: #1e2538;">-</div>
-                </div>
-                <div class="form-field-group">
-                    <label>Jumlah Terdaftar Siswa:</label>
-                    <div id="view_jumlah_siswa" style="font-weight: 700; color: #059669;">-</div>
-                </div>
-            </div>
-
-            <div class="modal-actions-footer">
-                <button type="button" class="btn-modal-cancel" onclick="closeViewModal()" style="width: 100%;">Tutup</button>
-            </div>
-        </div>
-    </div>
 
     <!-- Toggle & Modal Scripts -->
     <script>
@@ -939,19 +830,45 @@
         }
 
         function openViewModal(id) {
+            const panel = document.getElementById('inlineDetailPanel');
+            panel.style.display = 'block';
+
+            document.getElementById('inline_nama_kelas').innerText = 'Memuat Data Kelas...';
+            document.getElementById('inline_sub_info').innerText = 'Harap tunggu...';
+            document.getElementById('inline_siswa_list_body').innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #64748b;">Memuat data siswa...</td></tr>';
+
+            panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
             fetch('/kelas/' + id)
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById('view_nama_kelas').innerText = data.nama_kelas;
-                    document.getElementById('view_nama_jurusan').innerText = data.kode_jurusan + ' - ' + data.nama_jurusan;
-                    document.getElementById('view_wali_kelas').innerText = data.wali_kelas;
-                    document.getElementById('view_jumlah_siswa').innerText = data.jumlah_siswa + ' Siswa';
-                    document.getElementById('viewModal').style.display = 'flex';
+                    document.getElementById('inline_nama_kelas').innerText = 'Daftar Siswa - ' + data.nama_kelas;
+                    document.getElementById('inline_sub_info').innerText = 'Jurusan: ' + data.kode_jurusan + ' • Wali Kelas: ' + data.wali_kelas + ' • Status Pagu: ' + data.jumlah_siswa;
+                    document.getElementById('inline_siswa_badge').innerText = (data.siswa ? data.siswa.length : 0) + '/' + data.pagu + ' Siswa';
+
+                    const tbody = document.getElementById('inline_siswa_list_body');
+                    tbody.innerHTML = '';
+                    if (data.siswa && data.siswa.length > 0) {
+                        data.siswa.forEach((s, idx) => {
+                            const tr = document.createElement('tr');
+                            tr.style.borderBottom = '1px solid #e2e8f0';
+                            tr.style.backgroundColor = (idx % 2 === 0) ? '#ffffff' : '#f8fafc';
+                            tr.innerHTML = `
+                                <td style="padding: 10px 16px; font-weight: 700; color: #475569;">${idx + 1}</td>
+                                <td style="padding: 10px 16px; color: #334155; font-weight: 600;">${s.nisn}</td>
+                                <td style="padding: 10px 16px; font-weight: 700; color: #1e2538;">${s.nama_siswa}</td>
+                                <td style="padding: 10px 16px; text-align: center; color: #334155; font-weight: 600;">${s.jenis_kelamin}</td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 24px; color: #94a3b8; font-weight: 600;">Belum ada siswa terdaftar di kelas ini.</td></tr>';
+                    }
                 });
         }
 
-        function closeViewModal() {
-            document.getElementById('viewModal').style.display = 'none';
+        function closeInlineDetailPanel() {
+            document.getElementById('inlineDetailPanel').style.display = 'none';
         }
         /* ---- Real-time Client-side Search (No Refresh) ---- */
         (function() {

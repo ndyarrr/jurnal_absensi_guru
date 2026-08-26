@@ -19,135 +19,7 @@
 
     <div class="dash-layout">
 
-        <!-- ===================================================================
-             Left Sidebar Navigation (Fixed / Sticky Position)
-             =================================================================== -->
-        <aside class="dash-sidebar">
-            @include('partials.dash-brand')
-
-            <ul class="dash-menu">
-                <!-- Dashboard Item -->
-                <li class="dash-menu-item {{ request()->is('dashboard') ? 'active' : '' }}">
-                    <a href="{{ route('dashboard') }}" class="dash-menu-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                            <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
-                            <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
-                            <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
-                            <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
-                        </svg>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-
-                <!-- Master Data Category -->
-                <li class="dash-menu-category">
-                    <button type="button" class="dash-category-btn" onclick="toggleSubmenu('masterDataSub')">
-                        <div class="dash-category-title">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M4 6h16M4 12h16M4 18h16"></path>
-                            </svg>
-                            <span>Master Data</span>
-                        </div>
-                        <svg class="dash-category-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </button>
-                    <ul class="dash-sub-menu" id="masterDataSub">
-                        <li>
-                            <a href="{{ route('users.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="12" cy="7" r="4"></circle>
-                                </svg>
-                                <span>Pengguna</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('siswa.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
-                                    <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
-                                </svg>
-                                <span>Siswa</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('guru.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="9" cy="7" r="4"></circle>
-                                </svg>
-                                <span>Guru</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('kelas.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                                    <path d="M3 9h18M9 21V9"></path>
-                                </svg>
-                                <span>Kelas</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('mapel.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                                </svg>
-                                <span>Mapel</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('ruangan.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                                </svg>
-                                <span>Ruangan</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <!-- Akademik Category -->
-                <li class="dash-menu-category">
-                    <button type="button" class="dash-category-btn" onclick="toggleSubmenu('akademikSub')">
-                        <div class="dash-category-title">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                            </svg>
-                            <span>Akademik</span>
-                        </div>
-                        <svg class="dash-category-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </button>
-                    <ul class="dash-sub-menu" id="akademikSub" style="display: flex;">
-                        <li>
-                            <a href="{{ route('jadwal.index') }}" class="dash-sub-link" style="background-color: var(--dash-navy); color: #ffffff; font-weight: 700;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #ffffff;">
-                                    <circle cx="12" cy="12" r="10"></circle>
-                                    <polyline points="12 6 12 12 16 14"></polyline>
-                                </svg>
-                                <span>Jadwal Pelajaran</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('jurnal.index') }}" class="dash-sub-link">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                                    <rect x="8" y="2" width="8" height="4" rx="1"></rect>
-                                </svg>
-                                <span>Jurnal Mengajar</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-
-            @include('partials.dash-sidebar-footer')
-        </aside>
+        @include('partials.dash-sidebar')
 
         <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
@@ -532,94 +404,95 @@
 
                         <div style="overflow-x: auto;">
                             <table class="matrix-grid-table" style="width: 100%; border-collapse: separate; border-spacing: 8px;">
+                                @php
+                                    // === BUILD UNIFIED COLUMN LIST (JAM SLOTS) ===
+                                    $slotsSK = $jamPelajarans->where('hari_kategori', 'Senin-Kamis')->sortBy('jam_mulai');
+                                    $slotsJM = $jamPelajarans->where('hari_kategori', 'Jumat')->sortBy('jam_mulai');
+
+                                    $matrixColumns = collect();
+
+                                    // 1) KBM slots: group by jam_ke (>0), match SK & JM by jam_ke in strict sequential order
+                                    $allJamKe = $jamPelajarans->where('jam_ke', '>', 0)->pluck('jam_ke')->unique()->sort();
+                                    $lastKbmTime = '00:00:00';
+                                    foreach ($allJamKe as $jk) {
+                                        $sk = $slotsSK->where('jam_ke', $jk)->first();
+                                        $jm = $slotsJM->where('jam_ke', $jk)->first();
+
+                                        if ($sk && $sk->jam_mulai) {
+                                            $sortTime = $sk->jam_mulai;
+                                        } elseif ($jm && $jm->jam_mulai) {
+                                            $sortTime = ($jm->jam_mulai > $lastKbmTime) 
+                                                ? $jm->jam_mulai 
+                                                : \Carbon\Carbon::parse($lastKbmTime)->addSecond()->format('H:i:s');
+                                        } else {
+                                            $sortTime = \Carbon\Carbon::parse($lastKbmTime)->addMinute()->format('H:i:s');
+                                        }
+
+                                        if ($sortTime > $lastKbmTime) {
+                                            $lastKbmTime = $sortTime;
+                                        }
+
+                                        $matrixColumns->push([
+                                            'jam_ke' => $jk, 'sk' => $sk, 'jm' => $jm, 
+                                            'time' => $sortTime, 'is_break' => false,
+                                            'label' => 'Jam ' . $jk
+                                        ]);
+                                    }
+
+                                    // 2) Break/Istirahat slots: jam_ke=0, pair SK & JM by position
+                                    $breaksSK = $slotsSK->where('jam_ke', 0)->values();
+                                    $breaksJM = $slotsJM->where('jam_ke', 0)->values();
+                                    $maxBreaks = max($breaksSK->count(), $breaksJM->count());
+                                    for ($bi = 0; $bi < $maxBreaks; $bi++) {
+                                        $bsk = $breaksSK->get($bi);
+                                        $bjm = $breaksJM->get($bi);
+                                        $sortTime = $bsk ? $bsk->jam_mulai : ($bjm ? $bjm->jam_mulai : '99:99');
+                                        $matrixColumns->push([
+                                            'jam_ke' => 0, 'sk' => $bsk, 'jm' => $bjm,
+                                            'time' => $sortTime, 'is_break' => true,
+                                            'label' => ($bsk ? $bsk->keterangan : ($bjm ? $bjm->keterangan : null)) ?? 'Istirahat'
+                                        ]);
+                                    }
+
+                                    // Sort all columns by time
+                                    $matrixColumns = $matrixColumns->sortBy('time')->values();
+                                @endphp
+
                                 <thead>
                                     <tr>
-                                        <th style="width: 130px; background: #334155; color: #fff; border-radius: 10px; padding: 10px; font-weight: 800; font-size: 0.85rem;">Jam \ Hari</th>
-                                        @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'] as $hName)
-                                            <th style="background: #334155; color: #fff; border-radius: 10px; padding: 10px; font-weight: 800; font-size: 0.85rem;">{{ $hName }}</th>
+                                        <th style="width: 110px; min-width: 110px; background: #334155; color: #fff; border-radius: 10px; padding: 10px; font-weight: 800; font-size: 0.85rem; text-align: center;">Hari \ Jam</th>
+                                        @foreach($matrixColumns as $col)
+                                            @php
+                                                $slotSK = $col['sk'];
+                                                $slotJM = $col['jm'];
+                                                $isBreakCol = $col['is_break'];
+                                                $skRange = $slotSK ? (\Carbon\Carbon::parse($slotSK->jam_mulai)->format('H.i') . '-' . \Carbon\Carbon::parse($slotSK->jam_selesai)->format('H.i')) : '-';
+                                                $jmRange = $slotJM ? (\Carbon\Carbon::parse($slotJM->jam_mulai)->format('H.i') . '-' . \Carbon\Carbon::parse($slotJM->jam_selesai)->format('H.i')) : '-';
+                                            @endphp
+                                            <th style="min-width: 150px; background: {{ $isBreakCol ? '#78350f' : '#334155' }}; color: #fff; border-radius: 10px; padding: 10px; font-weight: 800; font-size: 0.85rem; text-align: center;">
+                                                <div>{{ $col['label'] }}</div>
+                                                <div style="font-size: 0.68rem; opacity: 0.85; font-weight: 600; margin-top: 2px;">S-K: {{ $skRange }}</div>
+                                                <div style="font-size: 0.68rem; color: #7dd3fc; font-weight: 700;">Jmt: {{ $jmRange }}</div>
+                                            </th>
                                         @endforeach
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @php
-                                        // === BUILD UNIFIED ROW LIST ===
-                                        $slotsSK = $jamPelajarans->where('hari_kategori', 'Senin-Kamis')->sortBy('jam_mulai');
-                                        $slotsJM = $jamPelajarans->where('hari_kategori', 'Jumat')->sortBy('jam_mulai');
-
-                                        $matrixRows = collect();
-
-                                        // 1) KBM rows: group by jam_ke (>0), match SK & JM by jam_ke in strict sequential order
-                                        $allJamKe = $jamPelajarans->where('jam_ke', '>', 0)->pluck('jam_ke')->unique()->sort();
-                                        $lastKbmTime = '00:00:00';
-                                        foreach ($allJamKe as $jk) {
-                                            $sk = $slotsSK->where('jam_ke', $jk)->first();
-                                            $jm = $slotsJM->where('jam_ke', $jk)->first();
-
-                                            if ($sk && $sk->jam_mulai) {
-                                                $sortTime = $sk->jam_mulai;
-                                            } elseif ($jm && $jm->jam_mulai) {
-                                                $sortTime = ($jm->jam_mulai > $lastKbmTime) 
-                                                    ? $jm->jam_mulai 
-                                                    : \Carbon\Carbon::parse($lastKbmTime)->addSecond()->format('H:i:s');
-                                            } else {
-                                                $sortTime = \Carbon\Carbon::parse($lastKbmTime)->addMinute()->format('H:i:s');
-                                            }
-
-                                            if ($sortTime > $lastKbmTime) {
-                                                $lastKbmTime = $sortTime;
-                                            }
-
-                                            $matrixRows->push([
-                                                'jam_ke' => $jk, 'sk' => $sk, 'jm' => $jm, 
-                                                'time' => $sortTime, 'is_break' => false
-                                            ]);
-                                        }
-
-                                        // 2) Break/Istirahat rows: jam_ke=0, pair SK & JM by position
-                                        $breaksSK = $slotsSK->where('jam_ke', 0)->values();
-                                        $breaksJM = $slotsJM->where('jam_ke', 0)->values();
-                                        $maxBreaks = max($breaksSK->count(), $breaksJM->count());
-                                        for ($bi = 0; $bi < $maxBreaks; $bi++) {
-                                            $bsk = $breaksSK->get($bi);
-                                            $bjm = $breaksJM->get($bi);
-                                            $sortTime = $bsk ? $bsk->jam_mulai : ($bjm ? $bjm->jam_mulai : '99:99');
-                                            $matrixRows->push([
-                                                'jam_ke' => 0, 'sk' => $bsk, 'jm' => $bjm,
-                                                'time' => $sortTime, 'is_break' => true,
-                                                'label' => ($bsk ? $bsk->keterangan : ($bjm ? $bjm->keterangan : null)) ?? 'Istirahat'
-                                            ]);
-                                        }
-
-                                        // Sort all rows by time (ensuring KBM rows remain strictly in jam_ke order while breaks sit in their correct time slots)
-                                        $matrixRows = $matrixRows->sortBy('time')->values();
-                                    @endphp
-
-                                    @foreach($matrixRows as $row)
-                                        @php
-                                            $slotSK = $row['sk'];
-                                            $slotJM = $row['jm'];
-                                            $isBreakRow = $row['is_break'];
-                                            $rowJamKe = $row['jam_ke'];
-
-                                            $skRange = $slotSK ? (\Carbon\Carbon::parse($slotSK->jam_mulai)->format('H.i') . '-' . \Carbon\Carbon::parse($slotSK->jam_selesai)->format('H.i')) : '-';
-                                            $jmRange = $slotJM ? (\Carbon\Carbon::parse($slotJM->jam_mulai)->format('H.i') . '-' . \Carbon\Carbon::parse($slotJM->jam_selesai)->format('H.i')) : '-';
-
-                                            // Row header label
-                                            $rowLabel = $isBreakRow 
-                                                ? ($row['label'] ?? 'Istirahat')
-                                                : 'Jam ' . $rowJamKe;
-                                        @endphp
+                                    @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'] as $hName)
                                         <tr>
-                                            {{-- Row header (Jam label + time ranges) --}}
-                                            <td style="background: {{ $isBreakRow ? '#fef3c7' : '#f8fafc' }}; border-radius: 10px; padding: 8px; vertical-align: middle; text-align: center; border: 1px solid {{ $isBreakRow ? '#fde68a' : '#e2e8f0' }};">
-                                                <div style="font-weight: 800; font-size: 0.85rem; color: {{ $isBreakRow ? '#92400e' : 'var(--dash-navy)' }};">{{ $rowLabel }}</div>
-                                                <div style="font-size: 0.68rem; color: #64748b; font-weight: 600;">S-K: {{ $skRange }}</div>
-                                                <div style="font-size: 0.68rem; color: #0284c7; font-weight: 700;">Jmt: {{ $jmRange }}</div>
+                                            {{-- Row Header: Nama Hari --}}
+                                            <td style="background: #1e293b; color: #ffffff; border-radius: 10px; padding: 12px 10px; vertical-align: middle; text-align: center; font-weight: 800; font-size: 0.9rem;">
+                                                {{ $hName }}
                                             </td>
 
-                                            {{-- Day columns --}}
-                                            @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'] as $hName)
+                                            {{-- Jam columns --}}
+                                            @foreach($matrixColumns as $col)
                                                 @php
+                                                    $slotSK = $col['sk'];
+                                                    $slotJM = $col['jm'];
+                                                    $isBreakRow = $col['is_break'];
+                                                    $rowJamKe = $col['jam_ke'];
+
                                                     // Pick correct slot per day
                                                     $slot = ($hName === 'Jumat') ? $slotJM : $slotSK;
 
@@ -672,7 +545,7 @@
                                                                         <span>Tertimpa</span>
                                                                     </span>
                                                                     <div style="display: flex; gap: 3px;">
-                                                                        <button type="button" class="action-btn-icon edit" title="Pindahkan / Edit Jadwal" onclick="openEditModal({{ $stuckJadwal->id_jadwal }}, '{{ $stuckJadwal->id_kelas }}', '{{ $stuckJadwal->hari }}', '{{ $stuckJadwal->jam_ke }}', '{{ $stuckJadwal->id_guru }}', '{{ $stuckJadwal->id_mapel }}', '{{ addslashes($stuckJadwal->ruangan ?? '') }}')" style="width: 22px; height: 22px; border-radius: 4px; padding: 0;">
+                                                                        <button type="button" class="action-btn-icon edit" title="Pindahkan / Edit Jadwal" onclick="openEditModal({{ $stuckJadwal->id_jadwal }}, '{{ $stuckJadwal->id_kelas }}', '{{ $stuckJadwal->hari }}', '{{ $stuckJadwal->jam_ke }}', '{{ $stuckJadwal->id_guru }}', '{{ $stuckJadwal->id_mapel }}', '{{ addslashes($stuckJadwal->ruangan ?? '') }}', '{{ $kelas->tingkat }} {{ optional($kelas->jurusan)->kode_jurusan }} {{ $kelas->rombel }}')" style="width: 22px; height: 22px; border-radius: 4px; padding: 0;">
                                                                             <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                                                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -722,19 +595,9 @@
                                                                 <div style="display: flex; align-items: center; justify-content: space-between;">
                                                                     <span style="font-size: 0.85rem; font-weight: 800; color: #1e2538;">{{ optional($jItem->mapel)->nama_mapel ?? '-' }}</span>
                                                                     <div style="display: flex; gap: 4px;">
-                                                                        <button type="button" class="action-btn-icon move" title="Pindahkan Sesi (Mobile)" onclick="openMoveModal({{ $jItem->id_jadwal }}, '{{ $jItem->id_kelas }}', '{{ $jItem->hari }}', '{{ $jItem->jam_ke }}')" style="width: 24px; height: 24px; border-radius: 6px; padding: 0; background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
+                                                                        <button type="button" class="action-btn-icon edit" title="Edit Jadwal" onclick="openEditModal({{ $jItem->id_jadwal }}, '{{ $jItem->id_kelas }}', '{{ $jItem->hari }}', '{{ $jItem->jam_ke }}', '{{ $jItem->id_guru }}', '{{ $jItem->id_mapel }}', '{{ addslashes($jItem->ruangan ?? '') }}', '{{ $kelas->tingkat }} {{ optional($kelas->jurusan)->kode_jurusan }} {{ $kelas->rombel }}')" style="width: 24px; height: 24px; border-radius: 6px; padding: 0;">
                                                                             <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                                                <polyline points="5 9 2 12 5 15"></polyline>
-                                                                                <polyline points="9 5 12 2 15 5"></polyline>
-                                                                                <polyline points="15 19 12 22 9 19"></polyline>
-                                                                                <polyline points="19 9 22 12 19 15"></polyline>
-                                                                                <line x1="2" y1="12" x2="22" y2="12"></line>
-                                                                                <line x1="12" y1="2" x2="12" y2="22"></line>
-                                                                            </svg>
-                                                                        </button>
-                                                                        <button type="button" class="action-btn-icon edit" title="Edit Jadwal" onclick="openEditModal({{ $jItem->id_jadwal }}, '{{ $jItem->id_kelas }}', '{{ $jItem->hari }}', '{{ $jItem->jam_ke }}', '{{ $jItem->id_guru }}', '{{ $jItem->id_mapel }}', '{{ addslashes($jItem->ruangan ?? '') }}')" style="width: 24px; height: 24px; border-radius: 6px; padding: 0;">
-                                                                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                                                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                                                                             </svg>
                                                                         </button>
@@ -783,7 +646,7 @@
                         <line x1="8" y1="2" x2="8" y2="6"></line>
                         <line x1="3" y1="10" x2="21" y2="10"></line>
                     </svg>
-                    <span>Jadwal Hari ini ({{ $todayDayName }})</span>
+                    <span id="timelineHeaderTitle">{{ $activeDayTitle ?? 'Semua Jadwal Pelajaran' }}</span>
                 </div>
 
                 <!-- Main Split Body -->
@@ -800,55 +663,92 @@
                                 @endphp
 
                                 @foreach($todayJadwal as $idx => $tItem)
-                                    @php
-                                        $cIndex = $idx % count($borderColors);
-                                        $timeStr = '07.30 - 08.15';
-                                        if ($tItem->jamPelajaran) {
-                                            $timeStr = \Carbon\Carbon::parse($tItem->jamPelajaran->jam_mulai)->format('H.i') . ' - ' . \Carbon\Carbon::parse($tItem->jamPelajaran->jam_selesai)->format('H.i');
-                                        }
-                                        $isTMapelDel = !$tItem->mapel || $tItem->mapel->trashed();
-                                        $isTKelasDel = !$tItem->kelas || $tItem->kelas->trashed();
-                                        $isTGuruDel  = !$tItem->guru || $tItem->guru->trashed();
-                                    @endphp
-                                    <div class="timeline-item">
-                                        <div class="timeline-dot"></div>
-                                        <div class="timeline-time-str">{{ $timeStr }}</div>
-                                        
-                                        <div class="timeline-card-box {{ $borderColors[$cIndex] }}">
-                                            <div class="timeline-card-title">
-                                                @if($isTMapelDel)
-                                                    <span class="badge-warning-deleted" title="Mata pelajaran ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>
-                                                @else
-                                                    {{ $tItem->mapel->nama_mapel }}
-                                                @endif
-                                            </div>
-                                            <div class="timeline-card-meta">
-                                                <span>
-                                                    Kelas: 
-                                                    @if($isTKelasDel)
-                                                        <span class="badge-warning-deleted" title="Kelas ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>
-                                                    @else
-                                                        {{ $tItem->kelas->tingkat }} {{ optional($tItem->kelas->jurusan)->kode_jurusan }} {{ $tItem->kelas->rombel }}
-                                                    @endif
-                                                </span>
-                                                <span>
-                                                    Guru: 
-                                                    @if($isTGuruDel)
-                                                        <span class="badge-warning-deleted" title="Guru ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>
-                                                    @else
-                                                        {{ $tItem->guru->nama_guru }}
-                                                    @endif
-                                                </span>
-                                            </div>
-                                            <div class="timeline-card-room {{ $roomColors[$cIndex] }}">
-                                                {{ $tItem->ruangan ?: '-' }}
+                                    @if(is_array($tItem) && !empty($tItem['is_istirahat']))
+                                        <div class="timeline-item">
+                                            <div class="timeline-dot" style="background: #f59e0b; border-color: #fbbf24;"></div>
+                                            <div class="timeline-time-str">{{ $tItem['waktu'] }}</div>
+                                            <div class="timeline-card-box" style="border-left: 4px solid #f59e0b; background: #fffbeb;">
+                                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                                                    <span style="font-size: 0.75rem; font-weight: 800; background: #f59e0b; color: #ffffff; padding: 2px 10px; border-radius: 6px;">
+                                                        ☕ ISTIRAHAT
+                                                    </span>
+                                                    <span style="font-size: 0.72rem; font-weight: 800; background: #fef3c7; color: #b45309; padding: 2px 8px; border-radius: 6px;">
+                                                        {{ $tItem['hari'] }}
+                                                    </span>
+                                                </div>
+                                                <div class="timeline-card-title" style="font-size: 1rem; font-weight: 800; color: #92400e; margin-bottom: 4px;">
+                                                    {{ $tItem['keterangan'] ?? 'Waktu Istirahat' }}
+                                                </div>
+                                                <div class="timeline-card-meta" style="font-size: 0.8rem; color: #b45309; font-weight: 600;">
+                                                    Selamat beristirahat! Semua kegiatan KBM dijeda sementara.
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    @else
+                                        @php
+                                            $cIndex = $idx % count($borderColors);
+                                            $jamObj = $tItem->jamPelajaran;
+                                            if (!$jamObj && $tItem->jam_ke) {
+                                                $kat = ($tItem->hari === 'Jumat') ? 'Jumat' : 'Senin-Kamis';
+                                                $jamObj = $jamPelajarans->where('hari_kategori', $kat)->where('jam_ke', $tItem->jam_ke)->first();
+                                            }
+                                            $timeStr = '-';
+                                            if ($jamObj) {
+                                                $timeStr = \Carbon\Carbon::parse($jamObj->jam_mulai)->format('H.i') . ' - ' . \Carbon\Carbon::parse($jamObj->jam_selesai)->format('H.i');
+                                            }
+                                            $isTMapelDel = !$tItem->mapel || $tItem->mapel->trashed();
+                                            $isTKelasDel = !$tItem->kelas || $tItem->kelas->trashed();
+                                            $isTGuruDel  = !$tItem->guru || $tItem->guru->trashed();
+                                        @endphp
+                                        <div class="timeline-item">
+                                            <div class="timeline-dot"></div>
+                                            <div class="timeline-time-str">{{ $timeStr }}</div>
+                                            
+                                            <div class="timeline-card-box {{ $borderColors[$cIndex] }}">
+                                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                                                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                        <span style="font-size: 0.72rem; font-weight: 800; background: #334155; color: #ffffff; padding: 2px 8px; border-radius: 6px;">{{ $tItem->hari }}</span>
+                                                        <span style="font-size: 0.7rem; font-weight: 800; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 6px;">Jam Ke-{{ $tItem->jam_ke }}</span>
+                                                        <span style="font-size: 0.72rem; font-weight: 800; background: #e0f2fe; color: #0284c7; padding: 2px 8px; border-radius: 6px;">
+                                                            @if($isTKelasDel)
+                                                                <span class="badge-warning-deleted" title="Kelas ini telah dihapus">-</span>
+                                                            @else
+                                                                {{ $tItem->kelas->tingkat }} {{ optional($tItem->kelas->jurusan)->kode_jurusan }} {{ $tItem->kelas->rombel }}
+                                                            @endif
+                                                        </span>
+                                                    </div>
+                                                    @if($tItem->ruangan)
+                                                        <span class="timeline-card-room {{ $roomColors[$cIndex] }}" style="position: static; font-size: 0.75rem; background: #f8fafc; padding: 2px 6px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                                                            {{ $tItem->ruangan }}
+                                                        </span>
+                                                    @endif
+                                                </div>
+
+                                                <div class="timeline-card-title" style="font-size: 0.95rem; font-weight: 800; color: #1e293b; margin-bottom: 4px;">
+                                                    @if($isTMapelDel)
+                                                        <span class="badge-warning-deleted" title="Mata pelajaran ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>
+                                                    @else
+                                                        {{ $tItem->mapel->nama_mapel }}
+                                                    @endif
+                                                </div>
+
+                                                <div class="timeline-card-meta" style="font-size: 0.8rem; color: #64748b; font-weight: 600;">
+                                                    <span>
+                                                        Guru: 
+                                                        @if($isTGuruDel)
+                                                            <span class="badge-warning-deleted" title="Guru ini telah dihapus"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> -</span>
+                                                        @else
+                                                            {{ $tItem->guru->nama_guru }}
+                                                        @endif
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
                                 @endforeach
                             </div>
                         @else
-                            <!-- Real-time Empty State when today has no schedule -->
+                            <!-- Real-time Empty State: no active class right now -->
                             <div class="timeline-empty-box">
                                 <svg width="48" height="48" fill="none" stroke="#94a3b8" stroke-width="1.8" viewBox="0 0 24 24">
                                     <circle cx="12" cy="12" r="10"></circle>
@@ -859,8 +759,8 @@
                                         <div style="font-weight: 800; font-size: 1rem; color: #334155; margin-bottom: 4px;">Hari Libur Akhir Pekan</div>
                                         <small style="color: #64748b; font-weight: 600;">Hari ini ({{ $todayDayName }}) tidak ada kegiatan belajar mengajar.</small>
                                     @else
-                                        <div style="font-weight: 800; font-size: 1rem; color: #334155; margin-bottom: 4px;">Tidak Ada Jadwal Hari Ini</div>
-                                        <small style="color: #64748b; font-weight: 600;">Hari ini ({{ $todayDayName }}) belum ada jadwal pelajaran berlangsung.</small>
+                                        <div style="font-weight: 800; font-size: 1rem; color: #334155; margin-bottom: 4px;">Tidak Ada Pelajaran Berlangsung</div>
+                                        <small style="color: #64748b; font-weight: 600;">Saat ini ({{ \Carbon\Carbon::now('Asia/Jakarta')->format('H:i') }}) tidak ada jadwal yang aktif.</small>
                                     @endif
                                 </div>
                             </div>
@@ -997,7 +897,7 @@
                                                     </button>
 
                                                     <!-- Edit Action -->
-                                                    <button type="button" class="action-btn-icon edit" title="Edit Jadwal" onclick="openEditModal({{ $j->id_jadwal }}, '{{ $j->id_kelas }}', '{{ $j->hari }}', '{{ $j->jam_ke }}', '{{ $j->id_guru }}', '{{ $j->id_mapel }}', '{{ addslashes($j->ruangan ?? '') }}')">
+                                                    <button type="button" class="action-btn-icon edit" title="Edit Jadwal" onclick="openEditModal({{ $j->id_jadwal }}, '{{ $j->id_kelas }}', '{{ $j->hari }}', '{{ $j->jam_ke }}', '{{ $j->id_guru }}', '{{ $j->id_mapel }}', '{{ addslashes($j->ruangan ?? '') }}', '{{ $j->kelas ? ($j->kelas->tingkat . ' ' . optional($j->kelas->jurusan)->kode_jurusan . ' ' . $j->kelas->rombel) : '' }}')"  >
                                                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -1144,34 +1044,32 @@
 
             <div id="editModalAlert"></div>
 
+            {{-- Info baris kelas/hari/jam yang terkunci (tidak bisa diubah) --}}
+            <div style="background: #f1ebd9; border: 1px solid #e2d9c5; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+                <svg width="16" height="16" fill="none" stroke="#92400e" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink: 0;">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <div style="font-size: 0.82rem; color: #92400e; font-weight: 700;">
+                    Kelas &amp; Slot Waktu Terkunci — hanya Mapel, Guru, dan Ruangan yang bisa diubah
+                </div>
+            </div>
+
+            {{-- Readonly locked info --}}
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px;">
+                    <div style="font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;">Kelas</div>
+                    <div id="edit_info_kelas" style="font-weight: 800; font-size: 0.92rem; color: #1e2538;">-</div>
+                </div>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px;">
+                    <div style="font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;">Hari &amp; Jam</div>
+                    <div id="edit_info_hari_jam" style="font-weight: 800; font-size: 0.92rem; color: #1e2538;">-</div>
+                </div>
+            </div>
+
             <form id="editJadwalForm" class="modal-form-grid">
                 @csrf
                 <input type="hidden" id="edit_id_jadwal" name="id_jadwal">
-
-                <div class="form-field-group">
-                    <label for="edit_id_kelas">Kelas</label>
-                    <select name="id_kelas" id="edit_id_kelas" class="form-field-input" required>
-                        @foreach($kelases as $k)
-                            <option value="{{ $k->id_kelas }}">{{ $k->tingkat }} {{ optional($k->jurusan)->kode_jurusan }} {{ $k->rombel }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="form-field-group">
-                    <label for="edit_hari">Hari</label>
-                    <select name="hari" id="edit_hari" class="form-field-input" required>
-                        @foreach($hariList as $h)
-                            <option value="{{ $h }}">{{ $h }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="form-field-group">
-                    <label for="edit_jam_ke">Jam Pelajaran</label>
-                    <select name="jam_ke" id="edit_jam_ke" class="form-field-input" required>
-                        <option value="">-- Pilih Jam Pelajaran --</option>
-                    </select>
-                </div>
 
                 <div class="form-field-group">
                     <label for="edit_id_mapel">Mata Pelajaran</label>
@@ -1201,9 +1099,6 @@
                             @foreach($ruangans as $r)
                                 <div class="ss-option" data-value="{{ $r->nama_ruangan }}" onclick="pickRuangan('edit', '{{ addslashes($r->nama_ruangan) }}', '{{ addslashes($r->nama_ruangan) }}')">
                                     <strong>{{ $r->nama_ruangan }}</strong>
-                                    @if($r->keterangan)
-                                        <small style="color: #64748b; margin-left: 6px;">({{ $r->keterangan }})</small>
-                                    @endif
                                 </div>
                             @endforeach
                         </div>
@@ -1258,8 +1153,8 @@
     </div>
 
     <!-- Quick Move Schedule Modal (Mobile & Fast Action) -->
-    <div class="modal-backdrop" id="quickMoveModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
-        <div class="modal-card" style="background: #fff; border-radius: 18px; max-width: 420px; width: 90%; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+    <div class="modal-backdrop" id="quickMoveModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; overflow-y: auto; padding: 16px;">
+        <div class="modal-card" style="background: #fff; border-radius: 18px; max-width: 420px; width: 90%; max-height: calc(100vh - 32px); overflow-y: auto; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); margin: auto;">
             <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -1768,12 +1663,15 @@
             document.getElementById('createModal').style.display = 'none';
         }
 
-        function openEditModal(id, idKelas, hari, jamKe, idGuru, idMapel, ruangan) {
+        function openEditModal(id, idKelas, hari, jamKe, idGuru, idMapel, ruangan, namaKelas) {
             document.getElementById('editModalAlert').innerHTML = '';
             document.getElementById('edit_id_jadwal').value = id;
-            document.getElementById('edit_id_kelas').value = idKelas;
-            document.getElementById('edit_hari').value = hari;
-            populateJamOptions('edit_hari', 'edit_jam_ke', jamKe);
+
+            // Populate read-only info labels (locked - cannot be changed)
+            document.getElementById('edit_info_kelas').innerText = namaKelas || ('Kelas ID: ' + idKelas);
+            document.getElementById('edit_info_hari_jam').innerText = hari + ' | Jam Ke-' + jamKe;
+
+            // Populate editable fields only
             document.getElementById('edit_id_guru').value = idGuru;
             document.getElementById('edit_id_mapel').value = idMapel;
             document.getElementById('edit_ruangan').value = ruangan || '';
@@ -1843,7 +1741,7 @@
             })
             .then(res => res.json())
             .then(data => {
-                document.getElementById('view_hari_jam').innerText = data.hari + ' • Jam Ke-' + data.jam_ke + ' (' + data.waktu + ')';
+                document.getElementById('view_hari_jam').innerText = data.hari + ' | Jam Ke-' + data.jam_ke + ' (' + data.waktu + ')';
                 document.getElementById('view_nama_kelas').innerText = data.nama_kelas;
                 document.getElementById('view_nama_mapel').innerText = data.nama_mapel;
                 document.getElementById('view_nama_guru').innerText = data.nama_guru;
@@ -1875,7 +1773,51 @@
                 })
                 .then(async res => {
                     const data = await res.json();
-                    if (!res.ok) {
+                    if (res.status === 409 || data.confirm_overwrite) {
+                        const confirmMsg = data.message || 'Di jam ini sudah ada jadwal. Apakah kamu ingin benar-benar merubahnya dengan ini?';
+                        if (alertBox) {
+                            alertBox.innerHTML = `
+                                <div style="background-color: #fff7ed; border: 1px solid #fdba74; color: #9a3412; padding: 14px; border-radius: 12px; font-size: 0.875rem; margin-bottom: 14px; text-align: left;">
+                                    <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 6px; font-size: 0.9rem;">
+                                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                        <span>Konfirmasi Penggantian Jadwal</span>
+                                    </div>
+                                    <div style="margin-bottom: 12px; font-weight: 600; line-height: 1.4;">
+                                        ${confirmMsg}
+                                    </div>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button type="button" id="btnConfirmForceReplace" style="background-color: #ea580c; color: #ffffff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.825rem; font-family: inherit;">Ya, Ganti Jadwal</button>
+                                        <button type="button" onclick="document.getElementById('createModalAlert').innerHTML='';" style="background-color: #ffffff; color: #475569; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.825rem; font-family: inherit;">Batal</button>
+                                    </div>
+                                </div>
+                            `;
+
+                            document.getElementById('btnConfirmForceReplace').onclick = function() {
+                                formData.append('force_replace', '1');
+                                fetch('/jadwal', {
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'application/json',
+                                        'X-CSRF-TOKEN': csrfToken
+                                    }
+                                })
+                                .then(async res2 => {
+                                    const data2 = await res2.json();
+                                    if (!res2.ok) {
+                                        const errMsg = data2.error || (data2.errors ? Object.values(data2.errors).flat().join('<br>') : 'Gagal menyimpan jadwal.');
+                                        alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> <span>${errMsg}</span></div>`;
+                                    } else {
+                                        alertBox.innerHTML = '';
+                                        closeCreateModal();
+                                        showToast(data2.success || 'Jadwal pelajaran berhasil ditambahkan.');
+                                        setTimeout(() => window.location.reload(), 400);
+                                    }
+                                });
+                            };
+                        }
+                    } else if (!res.ok) {
                         const errMsg = data.error || (data.errors ? Object.values(data.errors).flat().join('<br>') : 'Gagal menyimpan jadwal.');
                         if (alertBox) alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> <span>${errMsg}</span></div>`;
                     } else {
@@ -1963,6 +1905,91 @@
             })
             .then(res => res.json())
             .then(resData => {
+                // Update timeline header title dynamically
+                const titleEl = document.getElementById('timelineHeaderTitle');
+                if (titleEl && resData.active_day_title) {
+                    titleEl.innerText = resData.active_day_title;
+                }
+
+                const timelineCol = document.querySelector('.jadwal-timeline-column');
+                if (timelineCol && resData.timeline) {
+                    if (resData.timeline.length > 0) {
+                        const borderColors = ['border-red', 'border-amber', 'border-green', 'border-cyan', 'border-purple'];
+                        const roomColors   = ['room-red', 'room-amber', 'room-green', 'room-cyan', 'room-purple'];
+
+                        let itemsHtml = '';
+                        resData.timeline.forEach((t, idx) => {
+                            if (t.is_istirahat) {
+                                itemsHtml += `
+                                    <div class="timeline-item">
+                                        <div class="timeline-dot" style="background: #f59e0b; border-color: #fbbf24;"></div>
+                                        <div class="timeline-time-str">${t.waktu}</div>
+                                        <div class="timeline-card-box" style="border-left: 4px solid #f59e0b; background: #fffbeb; padding: 14px; border-radius: 10px;">
+                                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                                                <span style="font-size: 0.75rem; font-weight: 800; background: #f59e0b; color: #ffffff; padding: 2px 10px; border-radius: 6px;">
+                                                    ☕ ISTIRAHAT
+                                                </span>
+                                                <span style="font-size: 0.72rem; font-weight: 800; background: #fef3c7; color: #b45309; padding: 2px 8px; border-radius: 6px;">
+                                                    ${t.hari}
+                                                </span>
+                                            </div>
+                                            <div class="timeline-card-title" style="font-size: 1rem; font-weight: 800; color: #92400e; margin-bottom: 4px;">
+                                                ${t.keterangan || 'Waktu Istirahat'}
+                                            </div>
+                                            <div class="timeline-card-meta" style="font-size: 0.8rem; color: #b45309; font-weight: 600;">
+                                                Selamat beristirahat! Semua kegiatan KBM dijeda sementara.
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            } else {
+                                const cIndex = idx % borderColors.length;
+                                itemsHtml += `
+                                    <div class="timeline-item">
+                                        <div class="timeline-dot"></div>
+                                        <div class="timeline-time-str">${t.waktu}</div>
+                                        
+                                        <div class="timeline-card-box ${borderColors[cIndex]}">
+                                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                                                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                    <span style="font-size: 0.72rem; font-weight: 800; background: #334155; color: #ffffff; padding: 2px 8px; border-radius: 6px;">${t.hari}</span>
+                                                    <span style="font-size: 0.7rem; font-weight: 800; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 6px;">Jam Ke-${t.jam_ke}</span>
+                                                    <span style="font-size: 0.72rem; font-weight: 800; background: #e0f2fe; color: #0284c7; padding: 2px 8px; border-radius: 6px;">
+                                                        ${t.is_kelas_deleted ? '<span class="badge-warning-deleted" title="Kelas ini telah dihapus">-</span>' : t.nama_kelas}
+                                                    </span>
+                                                </div>
+                                                ${t.ruangan && t.ruangan !== '-' ? `<span class="timeline-card-room ${roomColors[cIndex]}" style="position: static; font-size: 0.75rem; background: #f8fafc; padding: 2px 6px; border-radius: 6px; border: 1px solid #cbd5e1;">${t.ruangan}</span>` : ''}
+                                            </div>
+
+                                            <div class="timeline-card-title" style="font-size: 0.95rem; font-weight: 800; color: #1e293b; margin-bottom: 4px;">
+                                                ${t.is_mapel_deleted ? '<span class="badge-warning-deleted" title="Mata pelajaran ini telah dihapus">-</span>' : t.nama_mapel}
+                                            </div>
+
+                                            <div class="timeline-card-meta" style="font-size: 0.8rem; color: #64748b; font-weight: 600;">
+                                                <span>Guru: ${t.is_guru_deleted ? '<span class="badge-warning-deleted" title="Guru ini telah dihapus">-</span>' : t.nama_guru}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        });
+                        timelineCol.innerHTML = `<div class="timeline-container"><div class="timeline-line"></div>${itemsHtml}</div>`;
+                    } else {
+                        timelineCol.innerHTML = `
+                            <div class="timeline-empty-box">
+                                <svg width="48" height="48" fill="none" stroke="#94a3b8" stroke-width="1.8" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                <div>
+                                    <div style="font-weight: 800; font-size: 1rem; color: #334155; margin-bottom: 4px;">Tidak Ada Pelajaran Berlangsung</div>
+                                    <small style="color: #64748b; font-weight: 600;">Saat ini tidak ada jadwal pelajaran yang aktif.</small>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+
                 const tbody = document.querySelector('.jadwal-table tbody');
                 if (!tbody) return;
 
@@ -2045,6 +2072,15 @@
                 setTimeout(() => el.remove(), 500);
             });
         }, 3000);
+
+        /* ---- Auto-refresh timeline column every 5 minutes ---- */
+        setInterval(function() {
+            // Only refresh if List View tab is active
+            const listCard = document.getElementById('listViewCard');
+            if (listCard && listCard.style.display !== 'none') {
+                reloadJadwalTable();
+            }
+        }, 5 * 60 * 1000); // every 5 minutes
     </script>
     <script src="/js/ajax-pagination.js"></script>
     <script src="/js/sidebar-toggle.js"></script>

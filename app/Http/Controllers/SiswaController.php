@@ -45,10 +45,11 @@ class SiswaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nisn'       => 'required|digits:10|unique:siswa,nisn',
-            'nama_siswa' => 'required|string|max:100',
-            'no_telepon' => 'nullable|string|max:20',
-            'id_kelas'   => 'required|exists:kelas,id_kelas',
+            'nisn'          => 'required|digits:10|unique:siswa,nisn',
+            'nama_siswa'    => 'required|string|max:100',
+            'jenis_kelamin' => 'nullable|in:L,P',
+            'no_telepon'    => 'nullable|string|max:20',
+            'id_kelas'      => 'required|exists:kelas,id_kelas',
         ], [
             'nisn.required'       => 'NISN wajib diisi.',
             'nisn.digits'         => 'NISN harus berisi tepat 10 digit angka.',
@@ -69,14 +70,16 @@ class SiswaController extends Controller
     {
         $siswa->load('kelas.jurusan');
         return response()->json([
-            'id_siswa'   => $siswa->id_siswa,
-            'nisn'       => $siswa->nisn,
-            'nama_siswa' => $siswa->nama_siswa,
-            'no_telepon' => $siswa->no_telepon,
-            'kelas_str'  => optional($siswa->kelas)->tingkat
+            'id_siswa'      => $siswa->id_siswa,
+            'nisn'          => $siswa->nisn,
+            'nama_siswa'    => $siswa->nama_siswa,
+            'jenis_kelamin' => $siswa->jenis_kelamin ?? '-',
+            'jk_label'      => $siswa->jenis_kelamin === 'L' ? 'Laki-laki (L)' : ($siswa->jenis_kelamin === 'P' ? 'Perempuan (P)' : '-'),
+            'no_telepon'    => $siswa->no_telepon,
+            'kelas_str'     => optional($siswa->kelas)->tingkat
                             . ' ' . optional(optional($siswa->kelas)->jurusan)->kode_jurusan
                             . ' ' . optional($siswa->kelas)->rombel,
-            'id_kelas'   => $siswa->id_kelas,
+            'id_kelas'      => $siswa->id_kelas,
         ]);
     }
 
@@ -86,10 +89,11 @@ class SiswaController extends Controller
     public function update(Request $request, Siswa $siswa)
     {
         $validated = $request->validate([
-            'nisn'       => 'required|digits:10|unique:siswa,nisn,' . $siswa->id_siswa . ',id_siswa',
-            'nama_siswa' => 'required|string|max:100',
-            'no_telepon' => 'nullable|string|max:20',
-            'id_kelas'   => 'required|exists:kelas,id_kelas',
+            'nisn'          => 'required|digits:10|unique:siswa,nisn,' . $siswa->id_siswa . ',id_siswa',
+            'nama_siswa'    => 'required|string|max:100',
+            'jenis_kelamin' => 'nullable|in:L,P',
+            'no_telepon'    => 'nullable|string|max:20',
+            'id_kelas'      => 'required|exists:kelas,id_kelas',
         ], [
             'nisn.required' => 'NISN wajib diisi.',
             'nisn.digits'   => 'NISN harus berisi tepat 10 digit angka.',
@@ -133,9 +137,18 @@ class SiswaController extends Controller
                 );
             }
 
+            $jkText = '-';
+            if ($s->jenis_kelamin === 'L') {
+                $jkText = 'Laki-laki (L)';
+            } elseif ($s->jenis_kelamin === 'P') {
+                $jkText = 'Perempuan (P)';
+            }
+
             return [
                 $s->nisn,
                 $s->nama_siswa,
+                $jkText,
+                $s->no_telepon ?? '-',
                 $kelasStr,
                 'Aktif',
             ];
@@ -146,6 +159,8 @@ class SiswaController extends Controller
         return CsvExporter::download($filename, [
             'NISN',
             'Nama Siswa',
+            'Jenis Kelamin',
+            'No. Telepon',
             'Kelas',
             'Status',
         ], $rows);
@@ -161,6 +176,10 @@ class SiswaController extends Controller
                 $q->where('nisn', 'like', "%{$search}%")
                   ->orWhere('nama_siswa', 'like', "%{$search}%");
             });
+        }
+
+        if ($request->filled('jenis_kelamin')) {
+            $query->where('jenis_kelamin', $request->input('jenis_kelamin'));
         }
 
         if ($request->filled('tingkat')) {

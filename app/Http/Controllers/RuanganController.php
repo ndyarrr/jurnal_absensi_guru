@@ -9,12 +9,25 @@ class RuanganController extends Controller
 {
     public function index(Request $request)
     {
+        if (Ruangan::count() === 0) {
+            $defaultRuangan = [
+                ['nama_ruangan' => 'R. 57'],
+                ['nama_ruangan' => 'R. 58'],
+                ['nama_ruangan' => 'R. 59'],
+                ['nama_ruangan' => 'Lab. RPL 1'],
+                ['nama_ruangan' => 'Lab. RPL 2'],
+                ['nama_ruangan' => 'Aula Utama'],
+            ];
+            foreach ($defaultRuangan as $r) {
+                Ruangan::firstOrCreate(['nama_ruangan' => $r['nama_ruangan']], $r);
+            }
+        }
+
         $query = Ruangan::query();
 
         if ($request->filled('search')) {
             $search = $request->input('search');
-            $query->where('nama_ruangan', 'like', "%{$search}%")
-                  ->orWhere('keterangan', 'like', "%{$search}%");
+            $query->where('nama_ruangan', 'like', "%{$search}%");
         }
 
         $ruangan = $query->orderBy('nama_ruangan')->paginate(15);
