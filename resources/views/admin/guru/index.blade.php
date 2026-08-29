@@ -285,9 +285,10 @@
 
                 <div class="form-field-group">
                     <label>Mata Pelajaran Diampu</label>
-                    <div style="max-height: 140px; overflow-y: auto; border: 1px solid var(--dash-cream-border); border-radius: 12px; padding: 10px; background: #ffffff;">
+                    <input type="text" id="create_mapel_search" class="form-field-input" placeholder="Cari mapel..." style="margin-bottom: 8px;" oninput="filterMapelCheckboxList(this, 'createMapelList')">
+                    <div id="createMapelList" style="max-height: 140px; overflow-y: auto; border: 1px solid var(--dash-cream-border); border-radius: 12px; padding: 10px; background: #ffffff;">
                         @foreach($mapelList as $m)
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.85rem; color: #1e2538; padding: 4px 0; cursor: pointer;">
+                            <label class="mapel-cb-label" style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.85rem; color: #1e2538; padding: 4px 0; cursor: pointer;">
                                 <input type="checkbox" name="mapel[]" value="{{ $m->id_mapel }}">
                                 <span>{{ $m->nama_mapel }}</span>
                             </label>
@@ -334,9 +335,10 @@
 
                 <div class="form-field-group">
                     <label>Mata Pelajaran Diampu</label>
-                    <div style="max-height: 140px; overflow-y: auto; border: 1px solid var(--dash-cream-border); border-radius: 12px; padding: 10px; background: #ffffff;">
+                    <input type="text" id="edit_mapel_search" class="form-field-input" placeholder="Cari mapel..." style="margin-bottom: 8px;" oninput="filterMapelCheckboxList(this, 'editMapelList')">
+                    <div id="editMapelList" style="max-height: 140px; overflow-y: auto; border: 1px solid var(--dash-cream-border); border-radius: 12px; padding: 10px; background: #ffffff;">
                         @foreach($mapelList as $m)
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.85rem; color: #1e2538; padding: 4px 0; cursor: pointer;">
+                            <label class="mapel-cb-label" style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.85rem; color: #1e2538; padding: 4px 0; cursor: pointer;">
                                 <input type="checkbox" name="mapel[]" class="edit-mapel-cb" value="{{ $m->id_mapel }}">
                                 <span>{{ $m->nama_mapel }}</span>
                             </label>
@@ -420,9 +422,24 @@
             window.location.href = '{{ route('guru.export-csv') }}' + (params.toString() ? '?' + params.toString() : '');
         }
 
+        function filterMapelCheckboxList(inputEl, containerId) {
+            const q = inputEl.value.toLowerCase().trim();
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            container.querySelectorAll('.mapel-cb-label').forEach(function(label) {
+                const text = label.textContent.toLowerCase();
+                label.style.display = (q === '' || text.includes(q)) ? 'flex' : 'none';
+            });
+        }
+
         function openCreateModal() {
             const cbs = document.querySelectorAll('#createModal input[name="mapel[]"]');
             cbs.forEach(cb => { cb.checked = false; });
+
+            const searchEl = document.getElementById('create_mapel_search');
+            if (searchEl) { searchEl.value = ''; filterMapelCheckboxList(searchEl, 'createMapelList'); }
+
             document.getElementById('createModal').style.display = 'flex';
         }
 
@@ -436,10 +453,12 @@
             document.getElementById('edit_nama_guru').value = nama;
             document.getElementById('edit_no_hp').value = noHp;
 
+            const searchEl = document.getElementById('edit_mapel_search');
+            if (searchEl) { searchEl.value = ''; filterMapelCheckboxList(searchEl, 'editMapelList'); }
+
             const cbs = document.querySelectorAll('.edit-mapel-cb');
             cbs.forEach(cb => { cb.checked = false; });
 
-            // Fetch checked mapels for edit modal safely
             fetch('/guru/' + id)
                 .then(response => response.json())
                 .then(data => {
