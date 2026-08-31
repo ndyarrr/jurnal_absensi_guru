@@ -11,6 +11,7 @@ use App\Models\Siswa;
 use App\Models\DetailKetidakhadiran;
 use App\Models\JurnalMengajar;
 use App\Models\PermohonanIzin;
+use App\Models\SuratDispensasi;
 
 class WaliKelasController extends Controller
 {
@@ -41,12 +42,7 @@ class WaliKelasController extends Controller
 
         $siswaIds = $siswaList->pluck('id_siswa')->toArray();
 
-        // Purge any accidental permohonan_izin with future start dates (> todayStr)
-        PermohonanIzin::whereIn('id_siswa', $siswaIds)
-            ->where('tanggal_mulai', '>', $todayStr)
-            ->delete();
-
-        // Seed permohonan_izin in August 2026 if empty
+        // Seed sample permohonan_izin only if empty
         $permohonanCount = PermohonanIzin::whereIn('id_siswa', $siswaIds)->count();
         if ($permohonanCount === 0 && count($siswaList) > 0) {
             $sampleTemplates = [
@@ -76,20 +72,6 @@ class WaliKelasController extends Controller
                     }
                 }
             }
-        } else {
-            // Synchronize leave date (tanggal_mulai & tanggal_selesai) to match submission date (created_at)
-            PermohonanIzin::whereIn('id_siswa', $siswaIds)
-                ->get()
-                ->each(function($p) use ($todayStr) {
-                    if ($p->created_at) {
-                        $cDateStr = Carbon::parse($p->created_at)->toDateString();
-                        if ($cDateStr <= $todayStr) {
-                            $p->tanggal_mulai = $cDateStr;
-                            $p->tanggal_selesai = $cDateStr;
-                            $p->save();
-                        }
-                    }
-                });
         }
     }
 
@@ -101,15 +83,19 @@ class WaliKelasController extends Controller
         $user = auth()->user();
         $guru = $user->guru;
 
-        // Find assigned class for this Wali Kelas
-        $kelas = null;
-        if ($guru) {
-            $kelas = Kelas::with(['jurusan', 'siswa'])->where('id_guru_wali', $guru->id_guru)->first();
+        // Hard block: User must have a linked Guru profile
+        if (!$guru) {
+            return redirect()->route('role.dashboard')
+                ->with('error', 'Akun Anda belum ditautkan ke profil Guru. Hubungi Admin untuk menautkan profil guru Anda terlebih dahulu.');
         }
 
-        // Fallback to first class if not directly mapped yet
+        // Find assigned class for this Wali Kelas
+        $kelas = Kelas::with(['jurusan', 'siswa'])->where('id_guru_wali', $guru->id_guru)->first();
+
+        // Block if not assigned as wali kelas
         if (!$kelas) {
-            $kelas = Kelas::with(['jurusan', 'siswa'])->first();
+            return redirect()->route('role.dashboard')
+                ->with('error', 'Anda belum ditugaskan sebagai Wali Kelas. Hubungi Admin untuk menetapkan kelas perwalian Anda.');
         }
 
         $this->ensureDataExist($kelas);
@@ -120,6 +106,7 @@ class WaliKelasController extends Controller
         // Date formatting
         Carbon::setLocale('id');
         $todayFormatted = Carbon::now('Asia/Jakarta')->translatedFormat('l, d F Y');
+        $todayStr = Carbon::now('Asia/Jakarta')->toDateString();
 
         // Query students in this class
         $siswaQuery = Siswa::query();
@@ -136,27 +123,63 @@ class WaliKelasController extends Controller
         $totalSiswa = $siswaList->count();
         $siswaIds = $siswaList->pluck('id_siswa')->toArray();
 
-        // Calculate REAL attendance stats from DetailKetidakhadiran
-        $sakitCount = 0;
-        $izinCount  = 0;
-        $alpaCount  = 0;
+        // Calculate REAL attendance stats for TODAY from DetailKetidakhadiran, PermohonanIzin, and SuratDispensasi
+        $sakitStudentIds = [];
+        $izinStudentIds  = [];
+        $alpaStudentIds  = [];
 
         if (!empty($siswaIds)) {
-            $ketidakhadiran = DetailKetidakhadiran::whereIn('id_siswa', $siswaIds)->get();
-            foreach ($ketidakhadiran as $dk) {
-                $st = strtolower($dk->status);
-                if (in_array($st, ['sakit'])) {
-                    $sakitCount++;
-                } elseif (in_array($st, ['izin', 'ijin'])) {
-                    $izinCount++;
-                } elseif (in_array($st, ['alpa', 'tanpa keterangan'])) {
-                    $alpaCount++;
+            // 1. Check DetailKetidakhadiran
+            $jurnalsToday = JurnalMengajar::whereDate('tanggal', $todayStr)->pluck('id_jurnal');
+            if ($jurnalsToday->isNotEmpty()) {
+                $ketidakhadiran = DetailKetidakhadiran::whereIn('id_siswa', $siswaIds)
+                    ->whereIn('id_jurnal', $jurnalsToday)
+                    ->get();
+                foreach ($ketidakhadiran as $dk) {
+                    $st = strtolower($dk->status);
+                    if (in_array($st, ['sakit'])) {
+                        $sakitStudentIds[] = $dk->id_siswa;
+                    } elseif (in_array($st, ['izin', 'ijin', 'dispensasi'])) {
+                        $izinStudentIds[] = $dk->id_siswa;
+                    } elseif (in_array($st, ['alpa', 'tanpa keterangan'])) {
+                        $alpaStudentIds[] = $dk->id_siswa;
+                    }
                 }
             }
+
+            // 2. Check PermohonanIzin active today
+            $permohonanToday = PermohonanIzin::whereIn('id_siswa', $siswaIds)
+                ->where('tanggal_mulai', '<=', $todayStr)
+                ->where('tanggal_selesai', '>=', $todayStr)
+                ->get();
+
+            foreach ($permohonanToday as $perm) {
+                $st = strtolower($perm->jenis_izin);
+                if (in_array($st, ['sakit'])) {
+                    $sakitStudentIds[] = $perm->id_siswa;
+                } elseif (in_array($st, ['izin', 'ijin', 'dispensasi'])) {
+                    $izinStudentIds[] = $perm->id_siswa;
+                } elseif (in_array($st, ['alpa', 'tanpa keterangan'])) {
+                    $alpaStudentIds[] = $perm->id_siswa;
+                }
+            }
+
+            // 3. Check SuratDispensasi active today
+            $dispenToday = SuratDispensasi::whereIn('id_siswa', $siswaIds)
+                ->where('tanggal_mulai', '<=', $todayStr)
+                ->where('tanggal_selesai', '>=', $todayStr)
+                ->pluck('id_siswa')
+                ->toArray();
+
+            $izinStudentIds = array_merge($izinStudentIds, $dispenToday);
         }
 
-        $totalAbsent = $sakitCount + $izinCount + $alpaCount;
-        $hadirCount = max(0, $totalSiswa - $totalAbsent);
+        $sakitCount = count(array_unique($sakitStudentIds));
+        $izinCount  = count(array_unique($izinStudentIds));
+        $alpaCount  = count(array_unique($alpaStudentIds));
+
+        $distinctAbsentSiswa = count(array_unique(array_merge($sakitStudentIds, $izinStudentIds, $alpaStudentIds)));
+        $hadirCount = max(0, $totalSiswa - $distinctAbsentSiswa);
         $persentaseHadir = $totalSiswa > 0 ? round(($hadirCount / $totalSiswa) * 100, 2) : 100;
 
         // REAL Weekly percentage chart data (Last 4 weeks)
@@ -217,14 +240,18 @@ class WaliKelasController extends Controller
         $user = auth()->user();
         $guru = $user->guru;
 
-        // Find assigned class for this Wali Kelas
-        $kelas = null;
-        if ($guru) {
-            $kelas = Kelas::with(['jurusan', 'siswa'])->where('id_guru_wali', $guru->id_guru)->first();
+        // Hard block: User must have a linked Guru profile
+        if (!$guru) {
+            return redirect()->route('role.dashboard')
+                ->with('error', 'Akun Anda belum ditautkan ke profil Guru. Hubungi Admin untuk menautkan profil guru Anda terlebih dahulu.');
         }
 
+        // Find assigned class for this Wali Kelas
+        $kelas = Kelas::with(['jurusan', 'siswa'])->where('id_guru_wali', $guru->id_guru)->first();
+
         if (!$kelas) {
-            $kelas = Kelas::with(['jurusan', 'siswa'])->first();
+            return redirect()->route('role.dashboard')
+                ->with('error', 'Anda belum ditugaskan sebagai Wali Kelas. Hubungi Admin untuk menetapkan kelas perwalian Anda.');
         }
 
         $this->ensureDataExist($kelas);
@@ -255,19 +282,23 @@ class WaliKelasController extends Controller
         foreach ($siswaList as $siswa) {
             $absentRecords = DetailKetidakhadiran::where('id_siswa', $siswa->id_siswa)->get();
             $permohonanRecords = PermohonanIzin::where('id_siswa', $siswa->id_siswa)->get();
+            $dispenRecords = SuratDispensasi::where('id_siswa', $siswa->id_siswa)->get();
 
             $sakit = 0; $izin = 0; $alpa = 0;
             foreach ($absentRecords as $rec) {
                 $st = strtolower($rec->status);
                 if ($st === 'sakit') $sakit++;
-                elseif (in_array($st, ['izin', 'ijin'])) $izin++;
+                elseif (in_array($st, ['izin', 'ijin', 'dispensasi'])) $izin++;
                 elseif (in_array($st, ['alpa', 'tanpa keterangan'])) $alpa++;
             }
             foreach ($permohonanRecords as $perm) {
                 $st = strtolower($perm->jenis_izin);
                 if ($st === 'sakit') $sakit++;
-                elseif (in_array($st, ['izin', 'ijin'])) $izin++;
+                elseif (in_array($st, ['izin', 'ijin', 'dispensasi'])) $izin++;
                 elseif (in_array($st, ['alpa', 'tanpa keterangan'])) $alpa++;
+            }
+            foreach ($dispenRecords as $disp) {
+                $izin++;
             }
 
             $totalAbsent = $sakit + $izin + $alpa;
@@ -304,6 +335,7 @@ class WaliKelasController extends Controller
         }
 
         $totalSiswa = $siswaList->count();
+        $paguSiswa  = $kelas ? (int) $kelas->jumlah_siswa : 0;
 
         return view('wali_kelas.perwalian', compact(
             'user',
@@ -312,7 +344,8 @@ class WaliKelasController extends Controller
             'namaKelas',
             'namaWali',
             'siswaList',
-            'totalSiswa'
+            'totalSiswa',
+            'paguSiswa'
         ));
     }
 
@@ -324,19 +357,23 @@ class WaliKelasController extends Controller
         $user = auth()->user();
         $guru = $user->guru;
 
-        $kelas = null;
-        if ($guru) {
-            $kelas = Kelas::with(['jurusan', 'siswa'])->where('id_guru_wali', $guru->id_guru)->first();
+        // Hard block: User must have a linked Guru profile
+        if (!$guru) {
+            return redirect()->route('role.dashboard')
+                ->with('error', 'Akun Anda belum ditautkan ke profil Guru. Hubungi Admin untuk menautkan profil guru Anda terlebih dahulu.');
         }
 
+        $kelas = Kelas::with(['jurusan', 'siswa'])->where('id_guru_wali', $guru->id_guru)->first();
+
         if (!$kelas) {
-            $kelas = Kelas::with(['jurusan', 'siswa'])->first();
+            return redirect()->route('role.dashboard')
+                ->with('error', 'Anda belum ditugaskan sebagai Wali Kelas. Hubungi Admin untuk menetapkan kelas perwalian Anda.');
         }
 
         $this->ensureDataExist($kelas);
 
-        $namaKelas = $kelas ? ($kelas->tingkat . ' ' . optional($kelas->jurusan)->kode_jurusan . ' ' . $kelas->rombel) : 'XI RPL 1';
-        $namaWali  = $guru ? $guru->nama_guru : ($user->name ?? 'Aily Cantika, S.Pd');
+        $namaKelas = $kelas->tingkat . ' ' . optional($kelas->jurusan)->kode_jurusan . ' ' . $kelas->rombel;
+        $namaWali  = $guru->nama_guru;
 
         // Month and Year selection (Default current month/year)
         $month = (int) $request->input('month', Carbon::now('Asia/Jakarta')->month);
@@ -386,7 +423,7 @@ class WaliKelasController extends Controller
         $totalJurnalMonth = $jurnalEntries->count();
         $jurnalIdsMonth = $jurnalEntries->pluck('id_jurnal')->toArray();
 
-        // Absent records in month from DetailKetidakhadiran and PermohonanIzin
+        // Absent records in month from DetailKetidakhadiran, PermohonanIzin, and SuratDispensasi
         $absentRecordsMonth = collect([]);
         if (!empty($siswaIds) && !empty($jurnalIdsMonth)) {
             $absentRecordsMonth = DetailKetidakhadiran::with(['siswa', 'jurnal.jadwal.mapel'])
@@ -404,19 +441,31 @@ class WaliKelasController extends Controller
                 ->get();
         }
 
+        $dispenRecordsMonth = collect([]);
+        if (!empty($siswaIds)) {
+            $dispenRecordsMonth = SuratDispensasi::with('siswa')
+                ->whereIn('id_siswa', $siswaIds)
+                ->where('tanggal_mulai', '<=', $endDate->toDateString())
+                ->where('tanggal_selesai', '>=', $startDate->toDateString())
+                ->get();
+        }
+
         // Top 4 Stat Cards
         $totalSakit = 0; $totalIzin = 0; $totalAlpa = 0;
         foreach ($absentRecordsMonth as $rec) {
             $st = strtolower($rec->status);
             if (in_array($st, ['sakit'])) $totalSakit++;
-            elseif (in_array($st, ['izin', 'ijin'])) $totalIzin++;
+            elseif (in_array($st, ['izin', 'ijin', 'dispensasi'])) $totalIzin++;
             elseif (in_array($st, ['alpa', 'tanpa keterangan'])) $totalAlpa++;
         }
         foreach ($permohonanRecordsMonth as $perm) {
             $st = strtolower($perm->jenis_izin);
             if (in_array($st, ['sakit'])) $totalSakit++;
-            elseif (in_array($st, ['izin', 'ijin'])) $totalIzin++;
+            elseif (in_array($st, ['izin', 'ijin', 'dispensasi'])) $totalIzin++;
             elseif (in_array($st, ['alpa', 'tanpa keterangan'])) $totalAlpa++;
+        }
+        foreach ($dispenRecordsMonth as $disp) {
+            $totalIzin++;
         }
 
         $alpaFromDetail = $absentRecordsMonth->whereIn('status', ['Alpa', 'alpa', 'Tanpa Keterangan'])->pluck('id_siswa')->toArray();
@@ -452,6 +501,11 @@ class WaliKelasController extends Controller
                 return $p->tanggal_mulai <= $currentDateStr && $p->tanggal_selesai >= $currentDateStr;
             });
 
+            // 3. SuratDispensasi active on this day
+            $dayDispenAbsentRecs = $dispenRecordsMonth->filter(function($d) use ($currentDateStr) {
+                return $d->tanggal_mulai <= $currentDateStr && $d->tanggal_selesai >= $currentDateStr;
+            });
+
             $absentDetailsDay = [];
             $processedSiswaIds = [];
 
@@ -475,8 +529,22 @@ class WaliKelasController extends Controller
                         'nama_siswa' => optional($perm->siswa)->nama_siswa ?? 'Siswa',
                         'nisn'       => optional($perm->siswa)->nisn ?? '-',
                         'status'     => ucfirst($perm->jenis_izin ?? 'Izin'),
-                        'mapel'      => 'Surat Izin / Sakit',
-                        'catatan'    => $perm->alasan ?? 'Pengajuan Surat'
+                        'mapel'      => 'Surat Izin / Sakit (Guru Piket)',
+                        'catatan'    => $perm->alasan ?? 'Pengajuan Surat Piket'
+                    ];
+                }
+            }
+
+            foreach ($dayDispenAbsentRecs as $disp) {
+                $sId = $disp->id_siswa;
+                if (!in_array($sId, $processedSiswaIds)) {
+                    $processedSiswaIds[] = $sId;
+                    $absentDetailsDay[] = [
+                        'nama_siswa' => optional($disp->siswa)->nama_siswa ?? 'Siswa',
+                        'nisn'       => optional($disp->siswa)->nisn ?? '-',
+                        'status'     => 'Dispensasi',
+                        'mapel'      => 'Dispensasi Kegiatan (Guru Piket)',
+                        'catatan'    => $disp->nama_kegiatan ?? 'Kegiatan Sekolah'
                     ];
                 }
             }
@@ -518,19 +586,23 @@ class WaliKelasController extends Controller
         foreach ($siswaList as $siswa) {
             $studentAbsents = $absentRecordsMonth->where('id_siswa', $siswa->id_siswa);
             $studentPermohonan = $permohonanRecordsMonth->where('id_siswa', $siswa->id_siswa);
+            $studentDispen = $dispenRecordsMonth->where('id_siswa', $siswa->id_siswa);
 
             $sakit = 0; $izin = 0; $alpa = 0;
             foreach ($studentAbsents as $rec) {
                 $st = strtolower($rec->status);
                 if ($st === 'sakit') $sakit++;
-                elseif (in_array($st, ['izin', 'ijin'])) $izin++;
+                elseif (in_array($st, ['izin', 'ijin', 'dispensasi'])) $izin++;
                 elseif (in_array($st, ['alpa', 'tanpa keterangan'])) $alpa++;
             }
             foreach ($studentPermohonan as $perm) {
                 $st = strtolower($perm->jenis_izin);
                 if ($st === 'sakit') $sakit++;
-                elseif (in_array($st, ['izin', 'ijin'])) $izin++;
+                elseif (in_array($st, ['izin', 'ijin', 'dispensasi'])) $izin++;
                 elseif (in_array($st, ['alpa', 'tanpa keterangan'])) $alpa++;
+            }
+            foreach ($studentDispen as $disp) {
+                $izin++;
             }
 
             $totalAbsent = $sakit + $izin + $alpa;
@@ -590,213 +662,69 @@ class WaliKelasController extends Controller
     }
 
     /**
-     * Export Rekap Kehadiran per siswa as CSV.
-     */
-    public function exportRekapCsv(Request $request)
-    {
-        $user = auth()->user();
-        $guru = $user->guru;
-
-        $kelas = null;
-        if ($guru) {
-            $kelas = Kelas::with(['jurusan'])->where('id_guru_wali', $guru->id_guru)->first();
-        }
-        if (!$kelas) {
-            $kelas = Kelas::with(['jurusan'])->first();
-        }
-
-        $this->ensureDataExist($kelas);
-
-        $month = (int) $request->input('month', Carbon::now('Asia/Jakarta')->month);
-        $year  = (int) $request->input('year', Carbon::now('Asia/Jakarta')->year);
-        $dateObj = Carbon::create($year, $month, 1, 0, 0, 0, 'Asia/Jakarta');
-
-        $siswaList = Siswa::where('id_kelas', optional($kelas)->id_kelas)->orderBy('nama_siswa')->get();
-
-        $startDate = $dateObj->copy()->startOfMonth();
-        $endDate   = $dateObj->copy()->endOfMonth();
-
-        $jurnalEntries = JurnalMengajar::whereBetween('tanggal', [$startDate->toDateString(), $endDate->toDateString()])
-            ->whereHas('jadwal', function($q) use ($kelas) {
-                if ($kelas) $q->where('id_kelas', $kelas->id_kelas);
-            })->get();
-        $totalJurnal = max($jurnalEntries->count(), 1);
-
-        $filename = 'Rekap_Kehadiran_' . str_replace(' ', '_', optional($kelas)->tingkat . '_' . optional($kelas)->rombel) . '_' . $dateObj->format('Y_m') . '.csv';
-
-        $headers = [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ];
-
-        $callback = function () use ($siswaList, $jurnalEntries, $startDate, $endDate, $totalJurnal) {
-            $file = fopen('php://output', 'w');
-            fputs($file, "\xEF\xBB\xBF");
-
-            fputcsv($file, ['No', 'NISN', 'Nama Siswa', 'No. Telepon', 'Hadir', 'Sakit', 'Izin', 'Alpa', 'Kehadiran (%)', 'Status']);
-
-            foreach ($siswaList as $idx => $s) {
-                $studentAbsents = DetailKetidakhadiran::where('id_siswa', $s->id_siswa)
-                    ->whereIn('id_jurnal', $jurnalEntries->pluck('id_jurnal'))
-                    ->get();
-                $studentPermohonan = PermohonanIzin::where('id_siswa', $s->id_siswa)
-                    ->where('tanggal_mulai', '<=', $endDate->toDateString())
-                    ->where('tanggal_selesai', '>=', $startDate->toDateString())
-                    ->get();
-
-                $sakit = 0; $izin = 0; $alpa = 0;
-                foreach ($studentAbsents as $rec) {
-                    $st = strtolower($rec->status);
-                    if ($st === 'sakit') $sakit++;
-                    elseif (in_array($st, ['izin', 'ijin'])) $izin++;
-                    elseif (in_array($st, ['alpa', 'tanpa keterangan'])) $alpa++;
-                }
-                foreach ($studentPermohonan as $perm) {
-                    $st = strtolower($perm->jenis_izin);
-                    if ($st === 'sakit') $sakit++;
-                    elseif (in_array($st, ['izin', 'ijin'])) $izin++;
-                    elseif (in_array($st, ['alpa', 'tanpa keterangan'])) $alpa++;
-                }
-
-                $totalAbsent = $sakit + $izin + $alpa;
-                $hadir = max(0, $totalJurnal - $totalAbsent);
-                $pct = round(($hadir / $totalJurnal) * 100);
-
-                $statusLabel = ($alpa >= 2 || $pct < 70) ? 'Perlu tindak lanjut' : (($alpa == 1 || $pct < 85) ? 'Perlu pantau' : 'Baik');
-
-                fputcsv($file, [
-                    $idx + 1,
-                    $s->nisn ?? '-',
-                    $s->nama_siswa,
-                    $s->no_telepon ?? '-',
-                    $hadir,
-                    $sakit,
-                    $izin,
-                    $alpa,
-                    $pct . '%',
-                    $statusLabel
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
-    }
-
-    /**
      * Display Surat Izin & Sakit page for Wali Kelas using 100% REAL database records for the assigned class.
      */
     public function suratIzin(Request $request)
     {
         $user = auth()->user();
-        $guru = $user ? $user->guru : null;
+        $guru = $user->guru;
 
-        $kelas = null;
-        if ($guru) {
-            $kelas = Kelas::with(['jurusan', 'siswa'])->where('id_guru_wali', $guru->id_guru)->first();
+        // Hard block: User must have a linked Guru profile
+        if (!$guru) {
+            return redirect()->route('role.dashboard')
+                ->with('error', 'Akun Anda belum ditautkan ke profil Guru. Hubungi Admin untuk menautkan profil guru Anda terlebih dahulu.');
         }
 
-        if (!$kelas) {
-            $kelas = Kelas::with(['jurusan', 'siswa'])->first();
-        }
+        $kelas = Kelas::with(['jurusan', 'siswa'])->where('id_guru_wali', $guru->id_guru)->first();
 
         if (!$kelas) {
-            $kelas = Kelas::firstOrCreate(
-                ['tingkat' => 'XI', 'rombel' => 1],
-                ['wali_kelas' => 'Aily Cantika, S.Pd', 'jumlah_siswa' => 32]
-            );
+            return redirect()->route('role.dashboard')
+                ->with('error', 'Anda belum ditugaskan sebagai Wali Kelas. Hubungi Admin untuk menetapkan kelas perwalian Anda.');
         }
 
         $this->ensureDataExist($kelas);
 
-        $namaKelas = $kelas ? ($kelas->tingkat . ' ' . optional($kelas->jurusan)->kode_jurusan . ' ' . $kelas->rombel) : 'XI RPL 1';
-        $namaWali  = $guru ? $guru->nama_guru : ($user->name ?? 'Aily Cantika, S.Pd');
+        $namaKelas = $kelas->tingkat . ' ' . optional($kelas->jurusan)->kode_jurusan . ' ' . $kelas->rombel;
+        $namaWali  = $guru->nama_guru;
 
         // Fetch ACTUAL students belonging to THIS class
         $siswaList = Siswa::where('id_kelas', $kelas->id_kelas)->orderBy('nama_siswa')->get();
-
-        if ($siswaList->isEmpty()) {
-            $defaultNames = [
-                'Azzura Atasya', 'Felix Fernandez', 'Megan Fernita',
-                'Bella Sutanto', 'Canva Narendra', 'Ilona Lovita'
-            ];
-            foreach ($defaultNames as $idx => $name) {
-                Siswa::create([
-                    'nisn' => '0056789' . str_pad($kelas->id_kelas, 2, '0', STR_PAD_LEFT) . str_pad($idx + 1, 2, '0', STR_PAD_LEFT),
-                    'nama_siswa' => $name,
-                    'id_kelas' => $kelas->id_kelas
-                ]);
-            }
-            $siswaList = Siswa::where('id_kelas', $kelas->id_kelas)->orderBy('nama_siswa')->get();
-        }
-
         $siswaIds = $siswaList->pluck('id_siswa')->toArray();
 
-        // Seed permohonan_izin for the ACTUAL students of this class if empty
-        $permohonanCount = PermohonanIzin::whereIn('id_siswa', $siswaIds)->count();
-        if ($permohonanCount === 0 && count($siswaList) > 0) {
-            $sampleTemplates = [
-                ['jenis' => 'Sakit', 'mulai' => '2026-08-25', 'selesai' => '2026-08-26', 'alasan' => 'Demam tinggi dan butuh istirahat', 'bukti' => 'surat_orang_tua.pdf', 'status' => 'pending', 'created' => '2026-08-25 07:05:00'],
-                ['jenis' => 'Alpa',  'mulai' => '2026-08-24', 'selesai' => '2026-08-24', 'alasan' => 'Tanpa keterangan', 'bukti' => null, 'status' => 'pending', 'created' => '2026-08-24 08:00:00'],
-                ['jenis' => 'Sakit', 'mulai' => '2026-08-15', 'selesai' => '2026-08-15', 'alasan' => 'Pemeriksaan dokter RSUD', 'bukti' => 'surat_dokter.pdf', 'status' => 'approved_piket', 'created' => '2026-08-15 06:55:00'],
-                ['jenis' => 'Izin',  'mulai' => '2026-08-15', 'selesai' => '2026-08-15', 'alasan' => 'Acara keluarga', 'bukti' => 'surat_orang_tua.pdf', 'status' => 'approved_waka', 'created' => '2026-08-15 06:30:00'],
-                ['jenis' => 'Sakit', 'mulai' => '2026-08-08', 'selesai' => '2026-08-08', 'alasan' => 'Sakit Flu & Batuk', 'bukti' => 'surat_dokter.pdf', 'status' => 'approved_piket', 'created' => '2026-08-08 07:10:00'],
-                ['jenis' => 'Izin',  'mulai' => '2026-08-03', 'selesai' => '2026-08-03', 'alasan' => 'Kepentingan keluarga', 'bukti' => 'surat_orang_tua.pdf', 'status' => 'approved_piket', 'created' => '2026-08-02 20:10:00'],
-            ];
-
-            foreach ($siswaList as $idx => $s) {
-                if ($idx < count($sampleTemplates)) {
-                    $tpl = $sampleTemplates[$idx];
-                    PermohonanIzin::create([
-                        'tipe_pemohon' => 'siswa',
-                        'id_siswa' => $s->id_siswa,
-                        'jenis_izin' => $tpl['jenis'],
-                        'tanggal_mulai' => $tpl['mulai'],
-                        'tanggal_selesai' => $tpl['selesai'],
-                        'alasan' => $tpl['alasan'],
-                        'bukti_surat' => $tpl['bukti'],
-                        'status' => $tpl['status'],
-                        'created_at' => $tpl['created'],
-                    ]);
-                }
-            }
-        } else {
-            // Update existing July 2026 dates to August 2026 so they match current month's recap
-            PermohonanIzin::whereIn('id_siswa', $siswaIds)
-                ->where('tanggal_mulai', 'like', '2026-07-%')
-                ->get()
-                ->each(function($p) {
-                    $p->tanggal_mulai = str_replace('2026-07-', '2026-08-', $p->tanggal_mulai);
-                    $p->tanggal_selesai = str_replace('2026-07-', '2026-08-', $p->tanggal_selesai);
-                    $p->save();
-                });
-        }
-
-        // Query database table PermohonanIzin directly for the actual students of this class
-        $query = PermohonanIzin::with('siswa')->whereIn('id_siswa', $siswaIds);
-
+        // 1. Fetch PermohonanIzin
+        $permQuery = PermohonanIzin::with('siswa')->whereIn('id_siswa', $siswaIds);
         if ($request->filled('search')) {
             $search = $request->input('search');
-            $query->whereHas('siswa', function($q) use ($search) {
+            $permQuery->whereHas('siswa', function($q) use ($search) {
                 $q->where('nama_siswa', 'like', "%{$search}%");
             });
         }
-
         if ($request->filled('jenis')) {
-            $query->where('jenis_izin', 'like', "%" . $request->input('jenis') . "%");
+            $permQuery->where('jenis_izin', 'like', "%" . $request->input('jenis') . "%");
+        }
+        $permohonanItems = $permQuery->orderBy('id_permohonan', 'desc')->get();
+
+        // 2. Fetch SuratDispensasi
+        $dispenQuery = SuratDispensasi::with('siswa')->whereIn('id_siswa', $siswaIds);
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $dispenQuery->where(function($q) use ($search) {
+                $q->where('nama_kegiatan', 'like', "%{$search}%")
+                  ->orWhereHas('siswa', function($sq) use ($search) {
+                      $sq->where('nama_siswa', 'like', "%{$search}%");
+                  });
+            });
+        }
+        if ($request->filled('jenis') && strtolower($request->input('jenis')) !== 'dispensasi') {
+            $dispenItems = collect([]);
+        } else {
+            $dispenItems = $dispenQuery->orderBy('id_dispen', 'desc')->get();
         }
 
-        if ($request->filled('status')) {
-            $st = strtolower($request->input('status'));
-            if ($st === 'menunggu') {
-                $query->whereIn('status', ['pending']);
-            } elseif ($st === 'terverifikasi') {
-                $query->whereIn('status', ['approved_piket', 'approved_waka', 'approved_waka_sdm', 'approved_kepsek']);
-            }
-        }
+        // Combine into unified list for Wali Kelas
+        $mergedList = collect([]);
 
-        $submissions = $query->latest('id_permohonan')->get()->map(function($p) {
+        foreach ($permohonanItems as $p) {
             $stMap = in_array($p->status, ['pending']) ? 'Menunggu' : 'Terverifikasi';
 
             $tglMulaiStr = Carbon::parse($p->tanggal_mulai)->translatedFormat('d');
@@ -810,33 +738,71 @@ class WaliKelasController extends Controller
             $words = explode(' ', optional($p->siswa)->nama_siswa ?? 'Siswa');
             $inits = count($words) >= 2 ? mb_substr($words[0], 0, 1) . mb_substr($words[1], 0, 1) : mb_substr($words[0], 0, 2);
 
-            $lampiranText = '-Belum ada';
+            $lampiranText = 'Surat Piket Digital';
             if ($p->bukti_surat) {
                 if (str_contains(strtolower($p->bukti_surat), 'dokter')) {
                     $lampiranText = 'Surat dokter';
                 } elseif (str_contains(strtolower($p->bukti_surat), 'orang_tua') || str_contains(strtolower($p->bukti_surat), 'orangtua')) {
                     $lampiranText = 'Surat orang tua';
                 } else {
-                    $lampiranText = 'Surat lampiran';
+                    $lampiranText = 'Foto/Scan surat piket';
                 }
             }
 
-            return [
-                'id' => $p->id_permohonan,
+            $mergedList->push([
+                'id' => 'p_' . $p->id_permohonan,
                 'nama_siswa' => optional($p->siswa)->nama_siswa ?? 'Siswa',
                 'initials' => strtoupper($inits),
                 'jenis' => ucfirst($p->jenis_izin ?? 'Izin'),
                 'tanggal_absen' => $tglAbsen,
                 'diajukan' => $p->created_at ? Carbon::parse($p->created_at)->translatedFormat('d M, H:i') : '-',
                 'lampiran' => $lampiranText,
-                'status' => $stMap
-            ];
-        })->toArray();
+                'status' => $stMap,
+                'created_at' => $p->created_at ?? $p->tanggal_mulai,
+            ]);
+        }
+
+        foreach ($dispenItems as $d) {
+            $tglMulaiStr = Carbon::parse($d->tanggal_mulai)->translatedFormat('d');
+            $tglSelesaiStr = Carbon::parse($d->tanggal_selesai)->translatedFormat('d M Y');
+            $tglMulaiFull = Carbon::parse($d->tanggal_mulai)->translatedFormat('d M Y');
+
+            $tglAbsen = ($d->tanggal_mulai === $d->tanggal_selesai)
+                ? $tglMulaiFull
+                : ($tglMulaiStr . '-' . $tglSelesaiStr);
+
+            $words = explode(' ', optional($d->siswa)->nama_siswa ?? 'Siswa');
+            $inits = count($words) >= 2 ? mb_substr($words[0], 0, 1) . mb_substr($words[1], 0, 1) : mb_substr($words[0], 0, 2);
+
+            $mergedList->push([
+                'id' => 'd_' . $d->id_dispen,
+                'nama_siswa' => optional($d->siswa)->nama_siswa ?? 'Siswa',
+                'initials' => strtoupper($inits),
+                'jenis' => 'Dispensasi',
+                'tanggal_absen' => $tglAbsen,
+                'diajukan' => $d->created_at ? Carbon::parse($d->created_at)->translatedFormat('d M, H:i') : '-',
+                'lampiran' => 'Dispensasi Piket (' . $d->nama_kegiatan . ')',
+                'status' => 'Terverifikasi',
+                'created_at' => $d->created_at ?? $d->tanggal_mulai,
+            ]);
+        }
+
+        // Apply status filter if selected (Menunggu / Terverifikasi)
+        if ($request->filled('status')) {
+            $reqSt = $request->input('status');
+            $mergedList = $mergedList->filter(function($item) use ($reqSt) {
+                return strtolower($item['status']) === strtolower($reqSt);
+            });
+        }
+
+        $submissions = $mergedList->sortByDesc('created_at')->values()->toArray();
 
         // Calculate REAL counts directly from database queries for this class
         $allPermohonan = PermohonanIzin::whereIn('id_siswa', $siswaIds)->get();
+        $allDispen = SuratDispensasi::whereIn('id_siswa', $siswaIds)->get();
+
         $menungguCount = $allPermohonan->whereIn('status', ['pending'])->count();
-        $terverifikasiCount = $allPermohonan->whereIn('status', ['approved_piket', 'approved_waka', 'approved_waka_sdm', 'approved_kepsek'])->count();
+        $terverifikasiCount = $allPermohonan->whereIn('status', ['approved_piket', 'approved_waka', 'approved_waka_sdm', 'approved_kepsek'])->count() + $allDispen->count();
         $tanpaKeteranganCount = $allPermohonan->filter(fn($p) => strtolower($p->jenis_izin) === 'alpa')->count();
 
         return view('wali_kelas.surat_izin', compact(

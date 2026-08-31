@@ -49,7 +49,15 @@ class GuruController extends Controller
 
         $guru->mapel()->sync($request->input('mapel', []));
 
-        return redirect()->route('guru.index')->with('success', 'Data guru berhasil ditambahkan');
+        // Auto-create User login account for this new Guru (Username = nama_guru, Password = nuptk)
+        \App\Models\User::create([
+            'name'     => $guru->nama_guru,
+            'password' => \Illuminate\Support\Facades\Hash::make($validated['nuptk']),
+            'role'     => 'guru_mengajar',
+            'id_guru'  => $guru->id_guru,
+        ]);
+
+        return redirect()->route('guru.index')->with('success', "Data guru & akun login pengguna ({$guru->nama_guru}) berhasil ditambahkan! Password default: {$validated['nuptk']}");
     }
 
     /**
@@ -103,6 +111,13 @@ class GuruController extends Controller
 
         $guru->mapel()->sync($request->input('mapel', []));
 
+        // Sync associated User name
+        if ($guru->user) {
+            $guru->user->update([
+                'name' => $validated['nama_guru'],
+            ]);
+        }
+
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data guru berhasil diperbarui']);
         }
@@ -115,8 +130,11 @@ class GuruController extends Controller
      */
     public function destroy(Guru $guru)
     {
+        if ($guru->user) {
+            $guru->user->delete();
+        }
         $guru->delete();
-        return redirect()->route('guru.index')->with('success', 'Data guru berhasil dihapus');
+        return redirect()->route('guru.index')->with('success', 'Data guru & akun penggunanya berhasil dihapus');
     }
 
     /**

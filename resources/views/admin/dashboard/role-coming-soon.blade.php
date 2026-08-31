@@ -177,6 +177,17 @@
             </form>
         </div>
 
+        @if(session('error'))
+        <div style="width: 100%; background: #fee2e2; border: 1px solid #fca5a5; border-radius: 10px; padding: 12px 16px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.2" style="flex-shrink:0; margin-top:1px;">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span style="font-size: 0.85rem; color: #b91c1c; font-weight: 600; line-height: 1.5;">{{ session('error') }}</span>
+        </div>
+        @endif
+
         <!-- Role Icon -->
         <div class="icon-circle">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

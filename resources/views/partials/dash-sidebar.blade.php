@@ -1,7 +1,7 @@
 @php
     $currentRoute = Route::currentRouteName();
     $isMasterData = in_array($currentRoute, ['users.index', 'siswa.index', 'guru.index', 'kelas.index', 'mapel.index', 'ruangan.index']) || request()->is('users*', 'siswa*', 'guru*', 'kelas*', 'mapel*', 'ruangan*');
-    $isAkademik = in_array($currentRoute, ['jam.index', 'jadwal.index', 'jurnal.index']) || request()->is('jam*', 'jadwal*', 'jurnal*');
+    $isAkademik = in_array($currentRoute, ['jam.index', 'jadwal.index', 'jadwal-piket.index', 'jurnal.index']) || request()->is('jam*', 'jadwal*', 'jadwal-piket*', 'jurnal*');
 @endphp
 
 <!-- Sidebar Navigation -->
@@ -124,6 +124,16 @@
                             <line x1="3" y1="10" x2="21" y2="10"></line>
                         </svg>
                         <span>Jadwal Pelajaran</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('jadwal-piket.index') }}" class="dash-sub-link" @if(request()->routeIs('jadwal-piket.*')) style="background-color: var(--dash-navy); color: #ffffff; font-weight: 700;" @endif>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="{{ request()->routeIs('jadwal-piket.*') ? 'color: #ffffff;' : '' }} width: 18px; height: 18px; flex-shrink: 0;">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="8.5" cy="7" r="4"></circle>
+                            <polyline points="17 11 19 13 23 9"></polyline>
+                        </svg>
+                        <span>Jadwal Guru Piket</span>
                     </a>
                 </li>
                 <li>

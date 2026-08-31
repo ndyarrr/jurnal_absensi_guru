@@ -82,13 +82,15 @@ class UserController extends Controller
             ? 'admin,super_admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_sdm,satpam'
             : 'admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_sdm,satpam';
 
+        $nonGuruRoles = ['admin', 'super_admin', 'satpam', 'kepala_sekolah', 'waka', 'waka_sdm'];
+        $isNonGuruRole = in_array($request->input('role'), $nonGuruRoles, true);
+
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
             'role'     => 'required|in:' . $rolesAllowed,
             'id_guru'  => [
-                'nullable',
+                $isNonGuruRole ? 'nullable' : 'required',
                 'integer',
                 'exists:guru,id_guru',
                 Rule::unique('users', 'id_guru')->whereNotNull('id_guru'),
@@ -96,10 +98,9 @@ class UserController extends Controller
             'avatar'   => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ], [
             'name.required'     => 'Nama pengguna wajib diisi.',
-            'email.required'    => 'Email wajib diisi.',
-            'email.unique'      => 'Email sudah terdaftar.',
             'password.min'      => 'Password minimal 6 karakter.',
             'role.in'           => 'Role tidak valid atau Anda tidak memiliki akses membuat Super Admin.',
+            'id_guru.required'  => 'Relasi Profil Guru wajib dipilih untuk role ini.',
             'id_guru.unique'    => 'Guru ini sudah memiliki akun pengguna.',
             'avatar.image'      => 'File harus berupa gambar.',
             'avatar.mimes'      => 'Format gambar harus JPG, PNG, atau WebP.',
@@ -109,7 +110,7 @@ class UserController extends Controller
         $validated['password'] = Hash::make($validated['password']);
 
         // Admin & Satpam do not require guru profile mapping
-        if (in_array($validated['role'], ['admin', 'super_admin', 'satpam'], true)) {
+        if ($isNonGuruRole) {
             $validated['id_guru'] = null;
         }
 
@@ -175,24 +176,27 @@ class UserController extends Controller
             ? 'admin,super_admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_sdm,satpam'
             : 'admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_sdm,satpam';
 
+        $nonGuruRoles = ['admin', 'super_admin', 'satpam', 'kepala_sekolah', 'waka', 'waka_sdm'];
+        $isNonGuruRole = in_array($request->input('role'), $nonGuruRoles, true);
+
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
-            'email'    => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:6',
             'role'     => 'required|in:' . $rolesAllowed,
             'id_guru'  => [
-                'nullable',
+                $isNonGuruRole ? 'nullable' : 'required',
                 'integer',
                 'exists:guru,id_guru',
                 Rule::unique('users', 'id_guru')->ignore($user->id)->whereNotNull('id_guru'),
             ],
             'avatar'   => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ], [
-            'role.in'        => 'Role tidak valid atau Anda tidak memiliki akses memilih Super Admin.',
-            'id_guru.unique' => 'Guru ini sudah memiliki akun pengguna lain.',
-            'avatar.image'   => 'File harus berupa gambar.',
-            'avatar.mimes'   => 'Format gambar harus JPG, PNG, atau WebP.',
-            'avatar.max'     => 'Ukuran foto maksimal 2MB.',
+            'role.in'          => 'Role tidak valid atau Anda tidak memiliki akses memilih Super Admin.',
+            'id_guru.required' => 'Relasi Profil Guru wajib dipilih untuk role ini.',
+            'id_guru.unique'   => 'Guru ini sudah memiliki akun pengguna lain.',
+            'avatar.image'     => 'File harus berupa gambar.',
+            'avatar.mimes'     => 'Format gambar harus JPG, PNG, atau WebP.',
+            'avatar.max'       => 'Ukuran foto maksimal 2MB.',
         ]);
 
         if (!empty($validated['password'])) {
@@ -201,7 +205,7 @@ class UserController extends Controller
             unset($validated['password']);
         }
 
-        if (in_array($validated['role'], ['admin', 'super_admin', 'satpam'], true)) {
+        if ($isNonGuruRole) {
             $validated['id_guru'] = null;
         }
 

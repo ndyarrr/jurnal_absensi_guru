@@ -77,6 +77,20 @@
                 </div>
             @endif
 
+            @if($errors->any())
+                <div class="flash-alert" style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 18px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; display: flex; align-items: flex-start; gap: 10px;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink: 0; margin-top: 2px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <strong style="font-weight: 700;">Gagal Menyimpan Data Pengguna:</strong>
+                        <ul style="margin: 0; padding-left: 18px; font-size: 0.85rem; font-weight: 500;">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            @endif
+
             <!-- ---------------------------------------------------------------
                  Top 4 Summary Cards Grid (Matching Mockup)
                  --------------------------------------------------------------- -->
@@ -237,19 +251,12 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="role-badge-cell">
-                                            <span>{{ $user->role_label }}</span>
-                                            @if($user->role === 'super_admin')
-                                                <span class="badge-tag-super">Super</span>
-                                            @elseif($user->role === 'admin')
-                                                <span class="badge-tag-super" style="background: #e0f2fe; color: #0284c7;">Biasa</span>
-                                            @elseif($user->role === 'guru_mengajar')
-                                                <span class="badge-tag-guru">Mapel</span>
-                                            @elseif($user->role === 'wali_kelas')
-                                                <span class="badge-tag-wali">Wali</span>
-                                            @elseif($user->role === 'guru_piket')
-                                                <span class="badge-tag-piket">Piket</span>
-                                            @endif
+                                        <div class="role-badge-cell" style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center;">
+                                            @foreach($user->role_badges as $b)
+                                                <span style="font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: 12px; white-space: nowrap; {{ $b['style'] }}">
+                                                    {{ $b['label'] }}
+                                                </span>
+                                            @endforeach
                                         </div>
                                     </td>
                                     <td style="color: #475569; font-weight: 600;">
@@ -339,7 +346,7 @@
                 <button type="button" class="btn-close-modal" onclick="closeCreateModal()">&times;</button>
             </div>
 
-            <form action="{{ route('users.store') }}" method="POST" enctype="multipart/form-data" class="modal-form-grid">
+            <form action="{{ route('users.store') }}" method="POST" enctype="multipart/form-data" class="modal-form-grid" onsubmit="return validateUserForm('create')">
                 @csrf
                 <div class="form-field-group">
                     <label for="create_avatar">Foto Profil (Opsional)</label>
@@ -352,10 +359,7 @@
                     <input type="text" name="name" id="create_name" class="form-field-input" placeholder="Masukkan nama pengguna" required>
                 </div>
 
-                <div class="form-field-group">
-                    <label for="create_email">Email</label>
-                    <input type="email" name="email" id="create_email" class="form-field-input" placeholder="contoh@gmail.com" required>
-                </div>
+
 
                 <div class="form-field-group">
                     <label for="create_password">Password</label>
@@ -379,14 +383,13 @@
                     </select>
                 </div>
 
-                <!-- Relasi Profil Guru (Hidden by default for Admin/Kepsek/Waka/Satpam) -->
+                <!-- Relasi Profil Guru (Wajib untuk role non-admin) -->
                 <div class="form-field-group" id="create_guru_group" style="display: none;">
-                    <label>Relasi Profil Guru</label>
+                    <label>Relasi Profil Guru <span style="color: #dc2626;">*</span> <small style="color:#64748b; font-weight:400;">(wajib diisi)</small></label>
                     <input type="hidden" name="id_guru" id="create_id_guru" value="">
                     <div class="searchable-select" id="create_guru_ss">
                         <input type="text" class="form-field-input ss-input" id="create_guru_input" placeholder="Ketik nama guru atau NUPTK..." autocomplete="off" onclick="openDropdown('create')" onkeyup="filterDropdown('create')">
                         <div class="ss-dropdown" id="create_guru_dropdown">
-                            <div class="ss-option" data-value="" onclick="pickGuru('create','','-- Hapus Relasi --')">-- Hapus Relasi --</div>
                             @foreach($guruList as $g)
                                 <div class="ss-option" data-value="{{ $g->id_guru }}" onclick="pickGuru('create','{{ $g->id_guru }}','{{ addslashes($g->nama_guru) }} ({{ $g->nuptk }})')">
                                     <strong>{{ $g->nama_guru }}</strong>
@@ -415,7 +418,7 @@
                 <button type="button" class="btn-close-modal" onclick="closeEditModal()">&times;</button>
             </div>
 
-            <form id="editForm" method="POST" enctype="multipart/form-data" class="modal-form-grid">
+            <form id="editForm" method="POST" enctype="multipart/form-data" class="modal-form-grid" onsubmit="return validateUserForm('edit')">
                 @csrf
                 @method('PUT')
 
@@ -437,10 +440,7 @@
                     <input type="text" name="name" id="edit_name" class="form-field-input" required>
                 </div>
 
-                <div class="form-field-group">
-                    <label for="edit_email">Email</label>
-                    <input type="email" name="email" id="edit_email" class="form-field-input" required>
-                </div>
+
 
                 <div class="form-field-group">
                     <label for="edit_password">Password Baru (Kosongkan jika tidak diubah)</label>
@@ -464,14 +464,13 @@
                     </select>
                 </div>
 
-                <!-- Relasi Profil Guru (Hidden for non-teacher roles) -->
+                <!-- Relasi Profil Guru (Wajib untuk role non-admin) -->
                 <div class="form-field-group" id="edit_guru_group" style="display: none;">
-                    <label>Relasi Profil Guru</label>
+                    <label>Relasi Profil Guru <span style="color: #dc2626;">*</span> <small style="color:#64748b; font-weight:400;">(wajib diisi)</small></label>
                     <input type="hidden" name="id_guru" id="edit_id_guru" value="">
                     <div class="searchable-select" id="edit_guru_ss">
                         <input type="text" class="form-field-input ss-input" id="edit_guru_input" placeholder="Ketik nama guru atau NUPTK..." autocomplete="off" onclick="openDropdown('edit')" onkeyup="filterDropdown('edit')">
                         <div class="ss-dropdown" id="edit_guru_dropdown">
-                            <div class="ss-option" data-value="" onclick="pickGuru('edit','','-- Hapus Relasi --')">-- Hapus Relasi --</div>
                             @foreach($guruList as $g)
                                 <div class="ss-option" data-value="{{ $g->id_guru }}" onclick="pickGuru('edit','{{ $g->id_guru }}','{{ addslashes($g->nama_guru) }} ({{ $g->nuptk }})')">
                                     <strong>{{ $g->nama_guru }}</strong>
@@ -509,10 +508,7 @@
                     <label>Nama Pengguna:</label>
                     <div id="view_name" style="font-weight: 700; font-size: 1rem; color: #1e2538;">-</div>
                 </div>
-                <div class="form-field-group">
-                    <label>Email:</label>
-                    <div id="view_email" style="font-weight: 600; color: #334155;">-</div>
-                </div>
+
                 <div class="form-field-group">
                     <label>Password Akun:</label>
                     <div style="display: flex; align-items: center; justify-content: space-between; background-color: #f7f3eb; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--dash-cream-border);">
@@ -560,6 +556,18 @@
 
         const TEACHER_ROLES = ['guru_mengajar', 'wali_kelas', 'guru_piket'];
 
+        function validateUserForm(prefix) {
+            const roleVal = document.getElementById(prefix + '_role').value;
+            const idGuruVal = document.getElementById(prefix + '_id_guru').value;
+
+            if (TEACHER_ROLES.includes(roleVal) && (!idGuruVal || idGuruVal.trim() === '')) {
+                alert('Relasi Profil Guru wajib dipilih untuk role ini! Silakan klik dan pilih nama guru dari daftar dropdown.');
+                document.getElementById(prefix + '_guru_input').focus();
+                return false;
+            }
+            return true;
+        }
+
         /* ---- Role change: show/hide guru field ---- */
         function handleRoleChange(prefix) {
             const roleVal = document.getElementById(prefix + '_role').value;
@@ -598,7 +606,14 @@
 
         /* ---- Searchable Select: filter items ---- */
         function filterDropdown(prefix) {
-            const query = document.getElementById(prefix + '_guru_input').value.toLowerCase();
+            const inputVal = document.getElementById(prefix + '_guru_input').value;
+            const query = inputVal.toLowerCase();
+
+            // Clear hidden id_guru if text input is emptied
+            if (!inputVal.trim()) {
+                document.getElementById(prefix + '_id_guru').value = '';
+            }
+
             const dd = document.getElementById(prefix + '_guru_dropdown');
             const items = dd.querySelectorAll('.ss-option');
             let visibleCount = 0;
@@ -662,7 +677,6 @@
         function openEditModal(id, name, email, role, idGuru, avatarUrl, avatarInitial) {
             document.getElementById('editForm').action = '/users/' + id;
             document.getElementById('edit_name').value = name;
-            document.getElementById('edit_email').value = email;
             document.getElementById('edit_role').value = role;
             document.getElementById('edit_id_guru').value = idGuru || '';
 

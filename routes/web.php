@@ -7,6 +7,7 @@ use App\Http\Controllers\KelasController;
 use App\Http\Controllers\MapelController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\JadwalPelajaranController;
+use App\Http\Controllers\JadwalPiketController;
 use App\Http\Controllers\JurnalMengajarController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
@@ -24,6 +25,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Authenticated Routes
 Route::middleware(['auth'])->group(function () {
 
+    // Profile Settings Route for all authenticated users
+    Route::put('/profil', [ProfileController::class, 'update'])->name('profil.update');
+
     // Dedicated coming-soon dashboard for non-admin roles
     Route::get('/role-dashboard', [DashboardController::class, 'roleDashboard'])->name('role.dashboard');
     Route::get('/wali-kelas/dashboard', [\App\Http\Controllers\WaliKelasController::class, 'dashboard'])->name('wali-kelas.dashboard');
@@ -32,12 +36,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/wali-kelas/surat-izin', [\App\Http\Controllers\WaliKelasController::class, 'suratIzin'])->name('wali-kelas.surat-izin');
     Route::get('/wali-kelas/rekap-kehadiran/export/csv', [\App\Http\Controllers\WaliKelasController::class, 'exportRekapCsv'])->name('wali-kelas.rekap-kehadiran.export-csv');
 
+    // Dedicated Routes for Guru Piket
+    Route::get('/guru-piket/dashboard', [\App\Http\Controllers\GuruPiketController::class, 'dashboard'])->name('guru-piket.dashboard');
+    Route::get('/guru-piket/input-surat', [\App\Http\Controllers\GuruPiketController::class, 'inputSuratIzin'])->name('guru-piket.input-surat');
+    Route::post('/guru-piket/input-surat', [\App\Http\Controllers\GuruPiketController::class, 'storeSuratIzin'])->name('guru-piket.store-surat');
+    Route::get('/guru-piket/input-dispensasi', [\App\Http\Controllers\GuruPiketController::class, 'inputDispensasi'])->name('guru-piket.input-dispensasi');
+    Route::post('/guru-piket/input-dispensasi', [\App\Http\Controllers\GuruPiketController::class, 'storeDispensasi'])->name('guru-piket.store-dispensasi');
+    Route::get('/guru-piket/digital-surat', [\App\Http\Controllers\GuruPiketController::class, 'digitalisasiSurat'])->name('guru-piket.digital-surat');
+    Route::get('/guru-piket/export/csv', [\App\Http\Controllers\GuruPiketController::class, 'exportCsv'])->name('guru-piket.export-csv');
+
     // Admin Only Protected Routes
     Route::middleware([EnsureUserIsAdmin::class])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/dashboard/export/csv', [DashboardController::class, 'exportCsv'])->name('dashboard.export-csv');
         Route::get('/panduan-admin', [PanduanAdminController::class, 'index'])->name('panduan.index');
-        Route::put('/profil', [ProfileController::class, 'update'])->name('profil.update');
 
         Route::get('/guru/export/csv', [GuruController::class, 'exportCsv'])->name('guru.export-csv');
         Route::resource('guru', GuruController::class);
@@ -50,6 +62,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/jadwal/export/csv', [JadwalPelajaranController::class, 'exportCsv'])->name('jadwal.export-csv');
         Route::get('/jadwal/export/pdf', [JadwalPelajaranController::class, 'exportPdf'])->name('jadwal.export-pdf');
         Route::resource('jadwal', JadwalPelajaranController::class);
+        Route::resource('jadwal-piket', JadwalPiketController::class);
         Route::post('/jadwal/{jadwal}/move', [JadwalPelajaranController::class, 'move'])->name('jadwal.move');
         Route::get('/jurnal/export/csv', [JurnalMengajarController::class, 'exportCsv'])->name('jurnal.export-csv');
         Route::resource('jurnal', JurnalMengajarController::class);

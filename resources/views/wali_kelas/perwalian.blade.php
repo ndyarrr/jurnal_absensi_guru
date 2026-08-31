@@ -485,26 +485,20 @@
                     </div>
                 </div>
 
-                <!-- Top Right Profile Badge -->
-                <div class="wk-user-badge">
-                    @if(auth()->user()->avatar_url)
-                        <img src="{{ auth()->user()->avatar_url }}" alt="Foto" class="wk-user-avatar-circle" style="object-fit: cover;">
-                    @else
-                        <div class="wk-user-avatar-circle">
-                            {{ strtoupper(mb_substr($namaWali, 0, 2)) }}
-                        </div>
-                    @endif
-                    <div>
-                        <div class="wk-user-info-name">{{ $namaWali }}</div>
-                        <div class="wk-user-info-role">Wali kelas {{ $namaKelas }}</div>
-                    </div>
-                </div>
+                <!-- Top Right Profile Badge & Settings Widget -->
+                @include('partials.dash-user-widget')
             </div>
         </header>
 
         <!-- Controls Row Below Header (Counter Tag & Table Filters) -->
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
-            <div class="wk-tagline" style="margin-bottom: 0;">{{ $totalSiswa }} SISWA</div>
+            <div class="wk-tagline" style="margin-bottom: 0;">
+                {{ $totalSiswa }} SISWA
+                @if($paguSiswa > 0)
+                    <span style="opacity: 0.45; font-weight: 600; margin: 0 6px;">·</span>
+                    PAGU {{ $paguSiswa }}
+                @endif
+            </div>
 
             <!-- Search & Filter Controls -->
             <form method="GET" action="{{ route('wali-kelas.perwalian') }}" class="wk-table-filters">

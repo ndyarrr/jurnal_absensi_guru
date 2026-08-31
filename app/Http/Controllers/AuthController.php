@@ -40,16 +40,50 @@ class AuthController extends Controller
             ])->onlyInput('username', 'role');
         }
 
-        // Validasi role jika dipilih
-        if ($request->filled('role') && $user->role !== $request->input('role')) {
-            return back()->withErrors([
-                'username' => 'Role yang dipilih tidak sesuai dengan akun ini.',
-            ])->onlyInput('username', 'role');
+        // Validasi role jika dipilih pada form login
+        if ($request->filled('role')) {
+            $selectedRole = $request->input('role');
+            $isValidRole = false;
+
+            // 1. Direct primary role match or Admin bypass
+            if ($user->role === $selectedRole || $user->isAdmin()) {
+                $isValidRole = true;
+            } else {
+                // Resolve id_guru for checking active assignments
+                $idGuru = $user->id_guru ?: optional($user->guru)->id_guru;
+                if (!$idGuru && !empty($user->name)) {
+                    $matched = \App\Models\Guru::where('nama_guru', $user->name)->first();
+                    if ($matched) {
+                        $idGuru = $matched->id_guru;
+                    }
+                }
+
+                if ($selectedRole === 'guru_piket') {
+                    // Only allowed IF teacher is currently assigned in JadwalPiket table
+                    if ($idGuru && \Illuminate\Support\Facades\Schema::hasTable('jadwal_piket')) {
+                        $isValidRole = \App\Models\JadwalPiket::where('id_guru', $idGuru)->exists();
+                    }
+                } elseif ($selectedRole === 'wali_kelas') {
+                    // Only allowed IF teacher is currently assigned as Wali Kelas in Kelas table
+                    if ($idGuru) {
+                        $isValidRole = \App\Models\Kelas::where('id_guru_wali', $idGuru)->exists();
+                    }
+                } elseif ($selectedRole === 'guru_mengajar') {
+                    // Any teacher can log in as Guru Mengajar
+                    $isValidRole = ($idGuru || $user->isGuruMengajar() || $user->isWaliKelas() || $user->isGuruPiket());
+                }
+            }
+
+            if (! $isValidRole) {
+                return back()->withErrors([
+                    'username' => 'Role yang dipilih tidak sesuai dengan penugasan akun Anda saat ini.',
+                ])->onlyInput('username', 'role');
+            }
         }
 
-        // Auth::attempt tetap menggunakan email di balik layar
+        // Auth::attempt langsung menggunakan username (kolom name)
         $credentials = [
-            'email'    => $user->email,
+            'name'     => $user->name,
             'password' => $request->input('password'),
         ];
 
@@ -62,6 +96,13 @@ class AuthController extends Controller
             if ($authUser->isAdmin()) {
                 return redirect()->intended(route('dashboard'))
                     ->with('success', 'Selamat datang, ' . $authUser->name . '!');
+            }
+
+            $selectedRole = $request->input('role');
+            if ($selectedRole === 'guru_piket') {
+                return redirect()->intended(route('guru-piket.dashboard'));
+            } elseif ($selectedRole === 'wali_kelas') {
+                return redirect()->intended(route('wali-kelas.dashboard'));
             }
 
             return redirect()->intended(route('role.dashboard'));

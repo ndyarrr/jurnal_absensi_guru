@@ -388,7 +388,7 @@
                 @foreach($kelases as $kelas)
                     <div class="kelas-matrix-block" id="matrix-kelas-block-{{ $kelas->id_kelas }}" style="margin-bottom: 24px; background: #ffffff; border: 1px solid var(--dash-border-subtle); border-radius: 18px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.02);">
                         <!-- Class Header Banner -->
-                        <div style="background: linear-gradient(135deg, var(--dash-navy), #3b82f6); color: #ffffff; border-radius: 12px; padding: 12px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="background: #3a6cbd; color: #ffffff; border-radius: 4px; padding: 12px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <rect x="3" y="3" width="18" height="18" rx="2"></rect>
@@ -460,7 +460,7 @@
 
                                 <thead>
                                     <tr>
-                                        <th style="width: 110px; min-width: 110px; background: #334155; color: #fff; border-radius: 10px; padding: 10px; font-weight: 800; font-size: 0.85rem; text-align: center;">Hari \ Jam</th>
+                                        <th style="width: 110px; min-width: 110px; background: #334155; color: #fff; border-radius: 5px; padding: 10px; font-weight: 800; font-size: 0.85rem; text-align: center;">Hari \ Jam</th>
                                         @foreach($matrixColumns as $col)
                                             @php
                                                 $slotSK = $col['sk'];

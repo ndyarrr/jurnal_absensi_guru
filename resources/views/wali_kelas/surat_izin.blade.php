@@ -517,19 +517,8 @@
                     </div>
                 </div>
 
-                <div class="wk-user-badge">
-                    @if(auth()->user() && auth()->user()->avatar_url)
-                        <img src="{{ auth()->user()->avatar_url }}" alt="Foto" class="wk-user-avatar-circle" style="object-fit: cover;">
-                    @else
-                        <div class="wk-user-avatar-circle">
-                            {{ strtoupper(mb_substr($namaWali, 0, 2)) }}
-                        </div>
-                    @endif
-                    <div>
-                        <div class="wk-user-info-name">{{ $namaWali }}</div>
-                        <div class="wk-user-info-role">Wali kelas {{ $namaKelas }}</div>
-                    </div>
-                </div>
+                <!-- Top Right Profile Badge & Settings Widget -->
+                @include('partials.dash-user-widget')
             </div>
         </header>
 

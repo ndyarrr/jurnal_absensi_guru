@@ -16,7 +16,6 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name',
-        'email',
         'password',
         'role',
         'id_guru',
@@ -25,6 +24,7 @@ class User extends Authenticatable
 
     protected $appends = [
         'role_label',
+        'role_badges',
         'avatar_url',
         'avatar_initial',
     ];
@@ -37,7 +37,6 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
@@ -128,6 +127,82 @@ class User extends Authenticatable
             'satpam' => 'Satpam',
             default => 'Guru Mengajar',
         };
+    }
+
+    /**
+     * Dynamic Multi-Role Badges (Akun Utama + Wali Kelas + Penugasan Piket).
+     */
+    public function getRoleBadgesAttribute(): array
+    {
+        $badges = [];
+
+        // 1. Primary Role Badge
+        $primaryLabel = match ($this->role) {
+            'super_admin' => 'Admin Super',
+            'admin' => 'Admin',
+            'guru_mengajar' => 'Guru Mapel',
+            'wali_kelas' => 'Wali Kelas',
+            'guru_piket' => 'Guru Piket',
+            'kepala_sekolah' => 'Kepsek',
+            'waka' => 'Waka',
+            'waka_sdm' => 'Waka SDM',
+            'satpam' => 'Satpam',
+            default => 'Guru Mapel',
+        };
+
+        $primaryStyle = match ($this->role) {
+            'super_admin' => 'background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;',
+            'admin' => 'background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd;',
+            'guru_mengajar' => 'background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe;',
+            'wali_kelas' => 'background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;',
+            'guru_piket' => 'background: #faf5ff; color: #9333ea; border: 1px solid #e9d5ff;',
+            default => 'background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;',
+        };
+
+        $badges[] = [
+            'label' => $primaryLabel,
+            'style' => $primaryStyle,
+            'is_primary' => true,
+        ];
+
+        // 2. Check dynamic teacher roles (Wali Kelas assignment & Piket Duty assignment)
+        $idGuru = $this->id_guru ?: optional($this->guru)->id_guru;
+        if (!$idGuru && !empty($this->name)) {
+            $matched = \App\Models\Guru::where('nama_guru', $this->name)->first();
+            if ($matched) {
+                $idGuru = $matched->id_guru;
+            }
+        }
+
+        if ($idGuru) {
+            // Check if assigned as Wali Kelas to a class
+            if ($this->role !== 'wali_kelas') {
+                $kelasWali = \App\Models\Kelas::where('id_guru_wali', $idGuru)->first();
+                if ($kelasWali) {
+                    $kelasName = $kelasWali->tingkat . ' ' . optional($kelasWali->jurusan)->kode_jurusan . ' ' . $kelasWali->rombel;
+                    $badges[] = [
+                        'label' => 'Wali (' . $kelasName . ')',
+                        'style' => 'background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;',
+                        'is_primary' => false,
+                    ];
+                }
+            }
+
+            // Check if assigned to Jadwal Piket
+            if ($this->role !== 'guru_piket' && \Illuminate\Support\Facades\Schema::hasTable('jadwal_piket')) {
+                $piketHari = \App\Models\JadwalPiket::where('id_guru', $idGuru)->pluck('hari')->toArray();
+                if (!empty($piketHari)) {
+                    $hariStr = implode(', ', $piketHari);
+                    $badges[] = [
+                        'label' => 'Piket (' . $hariStr . ')',
+                        'style' => 'background: #faf5ff; color: #9333ea; border: 1px solid #e9d5ff;',
+                        'is_primary' => false,
+                    ];
+                }
+            }
+        }
+
+        return $badges;
     }
 
     public function getAvatarUrlAttribute(): ?string

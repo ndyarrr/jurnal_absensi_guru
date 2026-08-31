@@ -27,9 +27,11 @@
             <div class="dash-profile-alert success">{{ session('profile_success') }}</div>
         @endif
 
-        @if($errors->has('name') || $errors->has('avatar'))
+        @if(session('profile_error'))
+            <div class="dash-profile-alert error">{{ session('profile_error') }}</div>
+        @elseif($errors->has('current_password') || $errors->has('new_password'))
             <div class="dash-profile-alert error">
-                {{ $errors->first('name') ?: $errors->first('avatar') }}
+                {{ $errors->first('current_password') ?: $errors->first('new_password') }}
             </div>
         @endif
 
@@ -81,12 +83,46 @@
                 <input type="text" name="name" id="profile_name" class="form-field-input" value="{{ old('name', $profileUser->name) }}" required maxlength="255" autocomplete="name">
             </div>
 
-            <div class="dash-profile-readonly">
-                <span>{{ $profileUser->email }}</span>
-                <small>{{ $profileUser->role_label }}</small>
+            @if(!method_exists($profileUser, 'isAdmin') || !$profileUser->isAdmin())
+            <div class="form-field-group" style="margin-top: 8px;">
+                <label for="profile_no_hp">No. Handphone / WhatsApp</label>
+                <input type="text" name="no_hp" id="profile_no_hp" class="form-field-input" value="{{ old('no_hp', optional($profileUser->guru)->no_hp) }}" placeholder="Contoh: 08123456789" maxlength="30">
+            </div>
+            @endif
+
+            <!-- Collapsible Change Password Section -->
+            <details class="dash-change-password-wrap" style="margin-top: 10px; border-top: 1px dashed #e2e8f0; padding-top: 8px;" @if($errors->has('current_password') || $errors->has('new_password')) open @endif>
+                <summary style="font-size: 0.8rem; font-weight: 800; color: #2563eb; cursor: pointer; user-select: none; padding: 4px 0; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: #2563eb; flex-shrink: 0;">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <span>Ganti Password (Opsional)</span>
+                </summary>
+                
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+                    <div class="form-field-group">
+                        <label for="profile_current_password" style="font-size: 0.75rem;">Password Lama</label>
+                        <input type="password" name="current_password" id="profile_current_password" class="form-field-input" placeholder="Masukkan password saat ini" style="font-size: 0.825rem; padding: 6px 10px;">
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="profile_new_password" style="font-size: 0.75rem;">Password Baru</label>
+                        <input type="password" name="new_password" id="profile_new_password" class="form-field-input" placeholder="Minimal 6 karakter" style="font-size: 0.825rem; padding: 6px 10px;">
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="profile_new_password_confirmation" style="font-size: 0.75rem;">Konfirmasi Password Baru</label>
+                        <input type="password" name="new_password_confirmation" id="profile_new_password_confirmation" class="form-field-input" placeholder="Ulangi password baru" style="font-size: 0.825rem; padding: 6px 10px;">
+                    </div>
+                </div>
+            </details>
+
+            <div class="dash-profile-readonly" style="margin-top: 10px;">
+                <small style="font-weight: 700; color: #475569;">Role: {{ $profileUser->role_label }}</small>
             </div>
 
-            <button type="submit" class="btn-modal-submit dash-profile-save">Simpan Profil</button>
+            <button type="submit" class="btn-modal-submit dash-profile-save">Simpan Profil & Password</button>
         </form>
 
         <form action="{{ route('logout') }}" method="POST" class="dash-profile-logout-form">
