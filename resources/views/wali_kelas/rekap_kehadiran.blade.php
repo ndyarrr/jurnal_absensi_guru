@@ -356,6 +356,7 @@
         .wk-day-box {
             aspect-ratio: 1;
             border-radius: 12px;
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -374,14 +375,15 @@
         }
 
         .wk-day-box.is-today {
-            box-shadow: 0 0 0 3px #2563eb, 0 6px 16px rgba(37, 99, 235, 0.35);
+            border: 3px solid #2563eb;
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
             z-index: 2;
         }
 
         .wk-today-badge {
             position: absolute;
-            top: -6px;
-            right: -6px;
+            top: 5px;
+            right: 5px;
             background: #2563eb;
             color: #ffffff;
             font-size: 0.55rem;
@@ -647,7 +649,7 @@
                 grid-template-columns: repeat(2, 1fr);
             }
             .wk-heatmap-grid {
-                grid-template-columns: repeat(8, 1fr);
+                grid-template-columns: repeat(7, 1fr);
             }
         }
 
@@ -664,7 +666,7 @@
                 transform: translateX(0);
             }
             .wk-heatmap-grid {
-                grid-template-columns: repeat(6, 1fr);
+                grid-template-columns: repeat(7, 1fr);
             }
         }
     </style>

@@ -140,6 +140,7 @@ class UserController extends Controller
             'role_label'  => $user->role_label,
             'id_guru'     => $user->id_guru,
             'nama_guru'   => optional($user->guru)->nama_guru ?? '-',
+            'nuptk'       => optional($user->guru)->nuptk ?? '',
             'created_at'  => $user->created_at ? $user->created_at->format('d-m-Y H:i') : '-',
             'avatar_url'  => $user->avatar_url,
             'avatar_initial' => $user->avatar_initial,

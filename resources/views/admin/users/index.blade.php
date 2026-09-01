@@ -247,7 +247,7 @@
                                                     <line x1="1" y1="1" x2="23" y2="23"></line>
                                                 </svg>
                                             </button>
-                                            <span id="table_pwd_{{ $user->id }}" class="pwd-dots" style="letter-spacing: 2px;">••••••••••••</span>
+                                            <span id="table_pwd_{{ $user->id }}" class="pwd-dots" data-nuptk="{{ $user->guru->nuptk ?? '' }}" style="letter-spacing: 2px;">••••••••••••</span>
                                         </div>
                                     </td>
                                     <td>
@@ -512,7 +512,7 @@
                 <div class="form-field-group">
                     <label>Password Akun:</label>
                     <div style="display: flex; align-items: center; justify-content: space-between; background-color: #f7f3eb; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--dash-cream-border);">
-                        <span id="view_password" style="font-family: monospace; font-size: 1rem; font-weight: 700; color: #1e2538; letter-spacing: 2px;">••••••••••••</span>
+                        <span id="view_password" data-nuptk="" style="font-family: monospace; font-size: 1rem; font-weight: 700; color: #1e2538; letter-spacing: 2px;">••••••••••••</span>
                         <button type="button" id="btn_toggle_view_pwd" onclick="toggleViewPassword()" style="background: none; border: none; cursor: pointer; padding: 4px; color: #64748b; display: flex; align-items: center;" title="Tampilkan / Sembunyikan Password">
                             <svg id="icon_eye_open" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <circle cx="12" cy="12" r="3"></circle>
@@ -730,7 +730,7 @@
                 eyeOpen.style.display = 'block';
                 eyeClosed.style.display = 'none';
             } else {
-                pwdEl.innerText = 'password';
+                pwdEl.innerText = pwdEl.getAttribute('data-nuptk') || 'password';
                 pwdEl.style.letterSpacing = 'normal';
                 pwdEl.setAttribute('data-shown', 'true');
                 eyeOpen.style.display = 'none';
@@ -747,7 +747,7 @@
             const eyeClosed = document.getElementById('icon_eye_closed');
 
             if (isPasswordVisible) {
-                pwdEl.innerText = 'password';
+                pwdEl.innerText = pwdEl.getAttribute('data-nuptk') || 'password';
                 pwdEl.style.letterSpacing = 'normal';
                 eyeOpen.style.display = 'none';
                 eyeClosed.style.display = 'block';
@@ -774,6 +774,9 @@
                     document.getElementById('view_role').innerText = data.role_label;
                     document.getElementById('view_guru').innerText = data.nama_guru;
                     document.getElementById('view_created_at').innerText = data.created_at;
+                    document.getElementById('view_password').setAttribute('data-nuptk', data.nuptk || '');
+                    document.getElementById('view_password').innerText = '••••••••••••';
+                    document.getElementById('view_password').style.letterSpacing = '2px';
 
                     const avatarImg = document.getElementById('view_avatar_img');
                     const avatarInitial = document.getElementById('view_avatar_initial');

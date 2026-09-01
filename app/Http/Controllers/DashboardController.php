@@ -183,10 +183,6 @@ class DashboardController extends Controller
             return true;
         }
 
-        if ($user->role === 'guru_piket') {
-            return true;
-        }
-
         $dayMap = [
             'Monday'    => 'Senin',
             'Tuesday'   => 'Selasa',

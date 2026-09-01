@@ -204,11 +204,6 @@ class GuruPiketController extends Controller
             return true;
         }
 
-        // 2. Dedicated Guru Piket account role is allowed
-        if ($user->role === 'guru_piket') {
-            return true;
-        }
-
         $dayMap = [
             'Monday'    => 'Senin',
             'Tuesday'   => 'Selasa',

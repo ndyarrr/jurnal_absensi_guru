@@ -161,9 +161,9 @@
                 }
                 .matrix-cell-slot {
                     background-color: #f8fafc;
-                    border: 2px dashed #cbd5e1;
-                    border-radius: 14px;
-                    padding: 8px;
+                    border: 2px solid #cbd5e1;
+                    border-radius: 5px;
+                    /* padding: 2px; */
                     vertical-align: top;
                     height: 115px;
                     min-width: 155px;
@@ -177,9 +177,11 @@
                 .matrix-drag-box {
                     background: #ffffff;
                     border: 1.5px solid #cbd5e1;
-                    border-left: 4px solid var(--dash-navy);
-                    border-radius: 12px;
+                    border-radius: 5px;
                     padding: 8px 10px;
+                    width: 100%;
+                    height: 100%;
+                    box-sizing: border-box;
                     cursor: grab;
                     user-select: none;
                     -webkit-user-select: none;
@@ -204,7 +206,7 @@
                     font-size: 0.75rem;
                     font-weight: 700;
                     cursor: pointer;
-                    border-radius: 10px;
+                    border-radius: 5px;
                     border: 1px dashed #cbd5e1;
                     margin-top: 4px;
                     transition: all 0.2s ease;
@@ -388,7 +390,7 @@
                 @foreach($kelases as $kelas)
                     <div class="kelas-matrix-block" id="matrix-kelas-block-{{ $kelas->id_kelas }}" style="margin-bottom: 24px; background: #ffffff; border: 1px solid var(--dash-border-subtle); border-radius: 18px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.02);">
                         <!-- Class Header Banner -->
-                        <div style="background: #3a6cbd; color: #ffffff; border-radius: 4px; padding: 12px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="background: #325285; color: #ffffff; border-radius: 4px; padding: 12px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <rect x="3" y="3" width="18" height="18" rx="2"></rect>
@@ -469,7 +471,7 @@
                                                 $skRange = $slotSK ? (\Carbon\Carbon::parse($slotSK->jam_mulai)->format('H.i') . '-' . \Carbon\Carbon::parse($slotSK->jam_selesai)->format('H.i')) : '-';
                                                 $jmRange = $slotJM ? (\Carbon\Carbon::parse($slotJM->jam_mulai)->format('H.i') . '-' . \Carbon\Carbon::parse($slotJM->jam_selesai)->format('H.i')) : '-';
                                             @endphp
-                                            <th style="min-width: 150px; background: {{ $isBreakCol ? '#78350f' : '#334155' }}; color: #fff; border-radius: 10px; padding: 10px; font-weight: 800; font-size: 0.85rem; text-align: center;">
+                                            <th style="min-width: 150px; background: {{ $isBreakCol ? '#78350f' : '#334155' }}; color: #fff; border-radius: 5px; padding: 10px; font-weight: 800; font-size: 0.85rem; text-align: center;">
                                                 <div>{{ $col['label'] }}</div>
                                                 <div style="font-size: 0.68rem; opacity: 0.85; font-weight: 600; margin-top: 2px;">S-K: {{ $skRange }}</div>
                                                 <div style="font-size: 0.68rem; color: #7dd3fc; font-weight: 700;">Jmt: {{ $jmRange }}</div>
@@ -481,7 +483,7 @@
                                     @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'] as $hName)
                                         <tr>
                                             {{-- Row Header: Nama Hari --}}
-                                            <td style="background: #1e293b; color: #ffffff; border-radius: 10px; padding: 12px 10px; vertical-align: middle; text-align: center; font-weight: 800; font-size: 0.9rem;">
+                                            <td style="background: #1e293b; color: #ffffff; border-radius: 5px; padding: 12px 10px; vertical-align: middle; text-align: center; font-weight: 800; font-size: 0.9rem;">
                                                 {{ $hName }}
                                             </td>
 
@@ -518,13 +520,13 @@
 
                                                 @if($noSlot)
                                                     {{-- No slot for this day --}}
-                                                    <td style="background: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 6px; text-align: center; vertical-align: middle;">
+                                                    <td style="background: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 5px; padding: 6px; text-align: center; vertical-align: middle;">
                                                         <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 600;">—</div>
                                                     </td>
                                                 @elseif($isNonKbm)
                                                     @if($stuckJadwal)
                                                         {{-- Non-KBM cell WITH stuck schedule warning --}}
-                                                        <td style="background: #fff7ed; border: 1.5px dashed #f97316; border-radius: 10px; padding: 6px; text-align: center; vertical-align: middle; position: relative;">
+                                                        <td style="background: #fff7ed; border: 1.5px dashed #f97316; border-radius: 5px; padding: 6px; text-align: center; vertical-align: middle; position: relative;">
                                                             <div style="font-size: 0.76rem; font-weight: 800; color: #9a3412; display: flex; align-items: center; justify-content: center; gap: 4px;">
                                                                 <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
                                                                 <span>{{ $slot->keterangan ?? ($isBreakRow ? 'Istirahat' : 'Non-KBM') }}</span>
@@ -536,7 +538,7 @@
                                                                  id="drag-jadwal-{{ $stuckJadwal->id_jadwal }}"
                                                                  draggable="true" 
                                                                  ondragstart="onDragStartJadwal(event, {{ $stuckJadwal->id_jadwal }})"
-                                                                 style="background-color: #fef2f2; border: 1px solid #fca5a5; border-left: 4px solid #dc2626; text-align: left; cursor: grab;"
+                                                                 style="background-color: #fef2f2; border: 1px solid #fca5a5; text-align: left; cursor: grab;"
                                                                  title="Geser (drag & drop) untuk memindahkan ke slot KBM kosong">
                                                                 
                                                                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
@@ -566,7 +568,7 @@
                                                         </td>
                                                     @else
                                                         {{-- Standard Non-KBM cell --}}
-                                                        <td style="background: #fef3c7; border: 1px dashed #fcd34d; border-radius: 10px; padding: 6px; text-align: center; vertical-align: middle;">
+                                                        <td style="background: #fef3c7; border: 1px dashed #fcd34d; border-radius: 5px; padding: 6px; text-align: center; vertical-align: middle;">
                                                             <div style="font-size: 0.78rem; font-weight: 800; color: #92400e; display: flex; align-items: center; justify-content: center; gap: 4px;">
                                                                 <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
                                                                 <span>{{ $slot->keterangan ?? ($isBreakRow ? 'Istirahat' : 'Non-KBM') }}</span>
@@ -590,7 +592,7 @@
                                                                  id="drag-jadwal-{{ $jItem->id_jadwal }}"
                                                                  draggable="true" 
                                                                  ondragstart="onDragStartJadwal(event, {{ $jItem->id_jadwal }})"
-                                                                 style="background-color: #e0f2fe; border-left-color: #0284c7;">
+                                                                 style="background-color: #e0f2fe;">
                                                                 
                                                                 <div style="display: flex; align-items: center; justify-content: space-between;">
                                                                     <span style="font-size: 0.85rem; font-weight: 800; color: #1e2538;">{{ optional($jItem->mapel)->nama_mapel ?? '-' }}</span>
@@ -1044,17 +1046,7 @@
 
             <div id="editModalAlert"></div>
 
-            {{-- Info baris kelas/hari/jam yang terkunci (tidak bisa diubah) --}}
-            <div style="background: #f1ebd9; border: 1px solid #e2d9c5; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-                <svg width="16" height="16" fill="none" stroke="#92400e" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink: 0;">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-                <div style="font-size: 0.82rem; color: #92400e; font-weight: 700;">
-                    Kelas &amp; Slot Waktu Terkunci — hanya Mapel, Guru, dan Ruangan yang bisa diubah
-                </div>
-            </div>
-
+            
             {{-- Readonly locked info --}}
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px;">

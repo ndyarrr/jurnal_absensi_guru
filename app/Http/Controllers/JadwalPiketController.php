@@ -101,8 +101,39 @@ class JadwalPiketController extends Controller
             'keterangan' => $request->keterangan ?? ('Petugas Piket Hari ' . $request->hari),
         ]);
 
+        $this->syncUserAccountForPiket($guru);
+
         return redirect()->route('jadwal-piket.index')
             ->with('success', "Berhasil menambahkan {$guru->nama_guru} sebagai Petugas Piket hari {$request->hari}.");
+    }
+
+    /**
+     * Sinkronkan akun pengguna agar guru yang ditugaskan piket punya akun login
+     * berlabel "Guru Piket". Jika guru sudah ber-role guru_mengajar, biarkan
+     * agar tetap tampil label "Guru Mapel" + badge piket.
+     */
+    private function syncUserAccountForPiket($guru)
+    {
+        $user = \App\Models\User::where('id_guru', $guru->id_guru)->first();
+
+        // Belum punya akun -> buat akun khusus Guru Piket
+        if (!$user) {
+            \App\Models\User::create([
+                'name'     => $guru->nama_guru,
+                'password' => \Illuminate\Support\Facades\Hash::make($guru->nuptk ?? ('guru' . $guru->id_guru)),
+                'role'     => 'guru_piket',
+                'id_guru'  => $guru->id_guru,
+            ]);
+            return;
+        }
+
+        // Akun sudah ada tapi belum guru mengajar -> jadikan Guru Piket,
+        // kecuali role pimpinan agar tidak tertimpa.
+        if ($user->role !== 'guru_mengajar'
+            && !in_array($user->role, ['admin', 'super_admin', 'kepala_sekolah', 'waka', 'waka_sdm'], true)
+            && $user->role !== 'guru_piket') {
+            $user->update(['role' => 'guru_piket']);
+        }
     }
 
     /**

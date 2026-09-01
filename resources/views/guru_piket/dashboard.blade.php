@@ -562,7 +562,7 @@
                                     </td>
                                     <td>
                                         <button type="button" onclick="showDispenModal('{{ $dispen->nomor_surat }}', '{{ optional($dispen->siswa)->nama_siswa ?? 'Siswa' }}', '{{ optional($dispen->siswa)->nisn ?? '-' }}', '{{ trim($namaKelas) ?: '-' }}', '{{ addslashes($dispen->nama_kegiatan) }}', '{{ addslashes($dispen->lokasi_kegiatan ?? 'Lingkungan Sekolah') }}', '{{ $dispen->tanggal_mulai }}', '{{ $dispen->jam_mulai }} - {{ $dispen->jam_selesai }}', '{{ addslashes($dispen->alasan_dispensasi ?? '-') }}', '{{ $dispen->barcode_token }}')" style="background: #fce7f3; border: 1px solid #f472b6; color: #be185d; padding: 5px 10px; border-radius: 8px; font-weight: 800; font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
-                                            <i class="fa-solid fa-envelope-open-text" style="color: #ec4899;"></i> Surat Pink
+                                             <i class="fa-solid fa-envelope-open-text" style="color: #ec4899;"></i> Surat
                                         </button>
                                     </td>
                                 </tr>
@@ -623,98 +623,131 @@
 
     </main>
 
-    <!-- Modal UI Surat Dispensasi Digital (Persegi Panjang Berwarna Merah Muda / Pink) -->
+    <!-- Modal Surat Dispensasi Digital — Tampilan Surat Resmi -->
     <div id="dispenModal" style="display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); align-items: center; justify-content: center;" onclick="closeDispenModal()">
-        <div onclick="event.stopPropagation()" style="max-width: 680px; width: 92%; padding: 0; border-radius: 24px; overflow: hidden; background-color: #fff0f5; border: 2px solid #f472b6; box-shadow: 0 25px 50px -12px rgba(236, 72, 153, 0.25); position: relative;">
-            
-            <!-- Header Surat Pink Header -->
-            <div style="background: linear-gradient(135deg, #ec4899, #be185d); color: #ffffff; padding: 24px 28px; position: relative;">
-                <button type="button" onclick="closeDispenModal()" style="position: absolute; top: 18px; right: 20px; background: rgba(255,255,255,0.2); border: none; color: #ffffff; width: 32px; height: 32px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">&times;</button>
-                
-                <div style="display: flex; align-items: center; gap: 16px;">
-                    <div style="width: 50px; height: 50px; background: #ffffff; border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #be185d; font-size: 1.6rem; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
-                        <i class="fa-solid fa-graduation-cap"></i>
+        <div onclick="event.stopPropagation()" style="
+            max-width: 720px; width: 95%; max-height: 90vh; overflow-y: auto;
+            background: #ffffff; border-radius: 8px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+            position: relative;
+            font-family: 'Times New Roman', Times, serif;
+        ">
+            <!-- Tombol Tutup -->
+            <button type="button" onclick="closeDispenModal()" style="
+                position: absolute; top: 12px; right: 14px; z-index: 10;
+                background: #f1f5f9; border: none; width: 30px; height: 30px;
+                border-radius: 50%; font-size: 1.1rem; cursor: pointer;
+                color: #475569; display: flex; align-items: center; justify-content: center;
+                font-family: sans-serif;
+            ">&times;</button>
+
+            <!-- Isi Surat yang Bisa Dicetak -->
+            <div id="printableDispenArea" style="padding: 40px 50px; color: #111111;">
+
+                <!-- KOP SURAT -->
+                <div style="text-align: center; border-bottom: 3px double #000; padding-bottom: 12px; margin-bottom: 20px;">
+                    <div style="font-size: 1rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em;">PEMERINTAH DAERAH</div>
+                    <div style="font-size: 1.4rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.07em; margin: 2px 0;">SMK NEGERI 1</div>
+                    <div style="font-size: 0.85rem;">Jl. Pendidikan No. 1, Kota — Kode Pos 00000</div>
+                    <div style="font-size: 0.8rem;">Telepon: (021) 0000-0000 &nbsp;|&nbsp; Website: www.smkn1.sch.id</div>
+                </div>
+
+                <!-- JUDUL SURAT -->
+                <div style="text-align: center; margin-bottom: 16px;">
+                    <div style="font-size: 1.1rem; font-weight: bold; text-transform: uppercase; text-decoration: underline;">SURAT DISPENSASI SISWA</div>
+                    <div style="font-size: 0.9rem;" id="dp_no_surat_formal">Nomor: —</div>
+                </div>
+
+                <!-- PEMBUKA -->
+                <p style="text-align: justify; margin-bottom: 14px; font-size: 0.95rem; line-height: 1.8;">
+                    Yang bertanda tangan di bawah ini, Petugas Piket SMK Negeri 1, dengan ini memberikan
+                    <strong>izin dispensasi</strong> kepada siswa yang namanya tercantum di bawah ini untuk meninggalkan
+                    lingkungan sekolah guna mengikuti kegiatan sebagaimana dimaksud:
+                </p>
+
+                <!-- DATA SISWA -->
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.92rem; margin-bottom: 16px;">
+                    <tr>
+                        <td style="padding: 4px 0; width: 38%; vertical-align: top;">Nama Siswa</td>
+                        <td style="padding: 4px 0; width: 4%; vertical-align: top;">:</td>
+                        <td style="padding: 4px 0; font-weight: bold;" id="dp_nama_siswa">—</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 0; vertical-align: top;">NISN</td>
+                        <td style="padding: 4px 0; vertical-align: top;">:</td>
+                        <td style="padding: 4px 0;" id="dp_nisn">—</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 0; vertical-align: top;">Kelas / Jurusan</td>
+                        <td style="padding: 4px 0; vertical-align: top;">:</td>
+                        <td style="padding: 4px 0; font-weight: bold;" id="dp_kelas">—</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 0; vertical-align: top;">Kegiatan</td>
+                        <td style="padding: 4px 0; vertical-align: top;">:</td>
+                        <td style="padding: 4px 0; font-weight: bold;" id="dp_kegiatan">—</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 0; vertical-align: top;">Lokasi</td>
+                        <td style="padding: 4px 0; vertical-align: top;">:</td>
+                        <td style="padding: 4px 0;" id="dp_lokasi">—</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 0; vertical-align: top;">Waktu Dispensasi</td>
+                        <td style="padding: 4px 0; vertical-align: top;">:</td>
+                        <td style="padding: 4px 0; font-weight: bold;" id="dp_waktu">—</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 0; vertical-align: top;">Alasan / Keperluan</td>
+                        <td style="padding: 4px 0; vertical-align: top;">:</td>
+                        <td style="padding: 4px 0; line-height: 1.6;" id="dp_alasan">—</td>
+                    </tr>
+                </table>
+
+                <!-- PENUTUP -->
+                <p style="text-align: justify; margin-bottom: 24px; font-size: 0.95rem; line-height: 1.8;">
+                    Demikian surat dispensasi ini diberikan untuk dapat dipergunakan sebagaimana mestinya.
+                    Siswa yang bersangkutan wajib kembali ke sekolah setelah kegiatan selesai dan melaporkan diri
+                    kepada guru piket yang bertugas.
+                </p>
+
+                <!-- TANDA TANGAN -->
+                <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-top: 8px;">
+                    <!-- Kiri: Penerima -->
+                    <div style="text-align: center; width: 220px;">
+                        <div>Siswa yang bersangkutan,</div>
+                        <div style="height: 64px;"></div>
+                        <div style="border-top: 1px solid #000; padding-top: 4px; font-weight: bold;" id="dp_ttd_siswa">( __________________ )</div>
                     </div>
-                    <div>
-                        <div style="font-size: 0.75rem; font-weight: 800; letter-spacing: 0.1em; opacity: 0.9; text-transform: uppercase;">SURAT DISPENSASI SISWA (DIGITAL)</div>
-                        <h2 style="font-size: 1.35rem; font-weight: 800; margin: 2px 0 0 0;">PERIZINAN KELUAR / KEGIATAN</h2>
-                        <div style="font-size: 0.775rem; opacity: 0.85;">Jurnal & Absensi Guru Piket Sekolah</div>
+                    <!-- Kanan: Petugas -->
+                    <div style="text-align: center; width: 220px;">
+                        <div id="dp_kota_tgl" style="margin-bottom: 2px;"></div>
+                        <div>Petugas Piket,</div>
+                        <div style="height: 64px;"></div>
+                        <div style="border-top: 1px solid #000; padding-top: 4px; font-weight: bold;">( __________________ )</div>
+                        <div style="font-size: 0.8rem; color: #555;">NIP. —</div>
                     </div>
+                </div>
+
+                <!-- Catatan kecil nomor surat -->
+                <div style="margin-top: 28px; border-top: 1px solid #ccc; padding-top: 8px; font-size: 0.75rem; color: #666; display: flex; justify-content: space-between;">
+                    <span>No. Surat: <span id="dp_no_surat_footer">—</span></span>
+                    <span>Diterbitkan oleh Sistem Piket Digital Sekolah</span>
                 </div>
             </div>
 
-            <!-- Body Surat Digital Merah Muda -->
-            <div style="padding: 24px 28px; background-color: #fff0f5;" id="printableDispenArea">
-                <!-- Status Badge Banner -->
-                <div style="display: flex; align-items: center; justify-content: space-between; background-color: #fce7f3; border: 1px dashed #f472b6; padding: 12px 18px; border-radius: 14px; margin-bottom: 20px;">
-                    <div>
-                        <span style="font-size: 0.75rem; color: #9d174d; font-weight: 700; text-transform: uppercase;">NOMOR SURAT</span>
-                        <div id="dp_no_surat" style="font-weight: 800; font-size: 1rem; color: #831843;">DISPEN/2026/08/001</div>
-                    </div>
-                    <div style="background-color: #be185d; color: #ffffff; padding: 6px 14px; border-radius: 20px; font-weight: 800; font-size: 0.775rem; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(190, 24, 93, 0.3);">
-                        <i class="fa-solid fa-circle-check"></i> SAH & DISETUJUI PIKET
-                    </div>
-                </div>
-
-                <!-- Detail Content Box -->
-                <div style="background: #ffffff; border: 1px solid #fbcfe8; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(244, 114, 182, 0.08); margin-bottom: 20px;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                        <tr style="border-bottom: 1px solid #fce7f3;">
-                            <td style="padding: 8px 0; color: #9d174d; font-weight: 700; width: 35%;">Nama Siswa</td>
-                            <td style="padding: 8px 0; font-weight: 800; color: #1e2538;" id="dp_nama_siswa">-</td>
-                        </tr>
-                        <tr style="border-bottom: 1px solid #fce7f3;">
-                            <td style="padding: 8px 0; color: #9d174d; font-weight: 700;">NISN</td>
-                            <td style="padding: 8px 0; font-weight: 700; color: #475569;" id="dp_nisn">-</td>
-                        </tr>
-                        <tr style="border-bottom: 1px solid #fce7f3;">
-                            <td style="padding: 8px 0; color: #9d174d; font-weight: 700;">Kelas & Jurusan</td>
-                            <td style="padding: 8px 0; font-weight: 800; color: #831843;" id="dp_kelas">-</td>
-                        </tr>
-                        <tr style="border-bottom: 1px solid #fce7f3;">
-                            <td style="padding: 8px 0; color: #9d174d; font-weight: 700;">Nama Kegiatan</td>
-                            <td style="padding: 8px 0; font-weight: 800; color: #be185d;" id="dp_kegiatan">-</td>
-                        </tr>
-                        <tr style="border-bottom: 1px solid #fce7f3;">
-                            <td style="padding: 8px 0; color: #9d174d; font-weight: 700;">Lokasi Kegiatan</td>
-                            <td style="padding: 8px 0; font-weight: 700; color: #334155;" id="dp_lokasi">-</td>
-                        </tr>
-                        <tr style="border-bottom: 1px solid #fce7f3;">
-                            <td style="padding: 8px 0; color: #9d174d; font-weight: 700;">Masa Berlaku</td>
-                            <td style="padding: 8px 0; font-weight: 800; color: #be185d;" id="dp_waktu">-</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px 0; color: #9d174d; font-weight: 700; vertical-align: top;">Keperluan / Alasan</td>
-                            <td style="padding: 8px 0; font-weight: 600; color: #475569; line-height: 1.4;" id="dp_alasan">-</td>
-                        </tr>
-                    </table>
-                </div>
-
-                <!-- Footer Signatures & QR Code Section -->
-                <div style="display: flex; align-items: center; justify-content: space-between; background-color: #fce7f3; border: 1px solid #f9a8d4; border-radius: 16px; padding: 16px 20px; gap: 16px;">
-                    <div style="display: flex; align-items: center; gap: 14px;">
-                        <img id="dp_qrcode" src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=DISPENSI_VERIFIED" alt="QR Code" style="width: 70px; height: 70px; border-radius: 10px; border: 2px solid #ec4899; background: #ffffff; padding: 4px;">
-                        <div>
-                            <div style="font-size: 0.75rem; font-weight: 800; color: #be185d; text-transform: uppercase;">VERIFIKASI DIGITAL</div>
-                            <div style="font-size: 0.725rem; color: #9d174d; margin-top: 2px;">Terscan otomatis oleh Guru Piket & Pengajar Kelas</div>
-                        </div>
-                    </div>
-
-                    <div style="text-align: right;">
-                        <div style="font-size: 0.725rem; color: #9d174d; font-weight: 700;">Disahkan oleh:</div>
-                        <div style="font-weight: 800; color: #831843; font-size: 0.875rem; margin-top: 2px;">Petugas Piket Sekolah</div>
-                        <div style="font-size: 0.725rem; color: #be185d; font-weight: 700; margin-top: 2px;"><i class="fa-solid fa-stamp"></i> Stempel Digital Piket</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modal Action Buttons -->
-            <div style="background-color: #fce7f3; padding: 16px 28px; border-top: 1px solid #fbcfe8; display: flex; align-items: center; justify-content: space-between;">
-                <button type="button" onclick="closeDispenModal()" style="background: #ffffff; border: 1px solid #f472b6; color: #9d174d; padding: 10px 20px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer;">
-                    Tutup Surat
+            <!-- Tombol Aksi -->
+            <div style="
+                background: #f8fafc; border-top: 1px solid #e2e8f0;
+                padding: 14px 24px; display: flex; align-items: center; justify-content: space-between;
+                font-family: 'Plus Jakarta Sans', sans-serif;
+                border-radius: 0 0 8px 8px;
+            ">
+                <button type="button" onclick="closeDispenModal()" style="background: #ffffff; border: 1px solid #cbd5e1; color: #475569; padding: 8px 18px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer;">
+                    Tutup
                 </button>
-                <button type="button" onclick="window.print()" style="background: linear-gradient(135deg, #ec4899, #be185d); color: #ffffff; border: none; padding: 10px 22px; border-radius: 12px; font-weight: 800; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);">
-                    <i class="fa-solid fa-print"></i> Cetak / Simpan Surat
+                <button type="button" onclick="window.print()" style="background: #1e2538; color: #ffffff; border: none; padding: 9px 20px; border-radius: 8px; font-weight: 800; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-print"></i> Cetak Surat
                 </button>
             </div>
         </div>
@@ -722,17 +755,23 @@
 
     <script>
         function showDispenModal(noSurat, siswa, nisn, kelas, kegiatan, lokasi, tanggal, jam, alasan, token) {
-            document.getElementById('dp_no_surat').innerText = noSurat;
+            document.getElementById('dp_no_surat_formal').innerText = 'Nomor: ' + noSurat;
+            document.getElementById('dp_no_surat_footer').innerText = noSurat;
             document.getElementById('dp_nama_siswa').innerText = siswa;
+            document.getElementById('dp_ttd_siswa').innerText = '( ' + siswa + ' )';
             document.getElementById('dp_nisn').innerText = nisn;
             document.getElementById('dp_kelas').innerText = kelas;
             document.getElementById('dp_kegiatan').innerText = kegiatan;
             document.getElementById('dp_lokasi').innerText = lokasi;
             document.getElementById('dp_waktu').innerText = tanggal + ' (' + jam + ' WIB)';
             document.getElementById('dp_alasan').innerText = alasan;
-            
-            const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=' + encodeURIComponent('DISPEN:' + noSurat + '|TOKEN:' + token);
-            document.getElementById('dp_qrcode').src = qrUrl;
+
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, '0');
+            const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+            const month = monthNames[now.getMonth()];
+            const year = now.getFullYear();
+            document.getElementById('dp_kota_tgl').innerText = 'Kota, ' + day + ' ' + month + ' ' + year;
 
             document.getElementById('dispenModal').style.display = 'flex';
         }

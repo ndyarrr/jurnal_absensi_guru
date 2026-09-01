@@ -303,7 +303,7 @@
                                 </td>
                                 <td>
                                     <button type="button" onclick="showDispenModal('{{ $dispen->nomor_surat }}', '{{ optional($dispen->siswa)->nama_siswa ?? 'Siswa' }}', '{{ optional($dispen->siswa)->nisn ?? '-' }}', '{{ trim($namaKelas) ?: '-' }}', '{{ addslashes($dispen->nama_kegiatan) }}', '{{ addslashes($dispen->lokasi_kegiatan ?? 'Lingkungan Sekolah') }}', '{{ $dispen->tanggal_mulai }}', '{{ $dispen->jam_mulai }} - {{ $dispen->jam_selesai }}', '{{ addslashes($dispen->alasan_dispensasi ?? '-') }}', '{{ $dispen->barcode_token }}')" style="background: #fce7f3; border: 1px solid #f472b6; color: #be185d; padding: 6px 14px; border-radius: 10px; font-weight: 800; font-size: 0.775rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
-                                        <i class="fa-solid fa-envelope-open-text" style="color: #ec4899;"></i> Lihat Surat Pink
+                                        <i class="fa-solid fa-envelope-open-text" style="color: #ec4899;"></i> Surat
                                     </button>
                                 </td>
                             </tr>

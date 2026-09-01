@@ -110,6 +110,137 @@
             border-color: #2563eb;
             box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
         }
+        .guide-step-list {
+            color: #334155;
+            font-size: 0.875rem;
+            line-height: 1.8;
+            padding-left: 20px;
+            margin: 0 0 14px 0;
+        }
+        .guide-step-list li {
+            margin-bottom: 8px;
+        }
+        .guide-step-list strong {
+            color: #1e293b;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin: 14px 0;
+        }
+        .feature-tile {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px;
+            transition: all 0.2s ease;
+        }
+        .feature-tile:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+        }
+        .feature-tile-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+        .feature-tile-desc {
+            font-size: 0.775rem;
+            color: #64748b;
+            line-height: 1.5;
+        }
+        .faq-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 14px;
+        }
+        .faq-q {
+            font-weight: 800;
+            color: #1e293b;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+        .faq-a {
+            font-size: 0.85rem;
+            color: #475569;
+            line-height: 1.7;
+        }
+        .step-list-num {
+            list-style: none;
+            counter-reset: guide;
+            padding-left: 0;
+        }
+        .step-list-num li {
+            counter-increment: guide;
+            position: relative;
+            padding-left: 38px;
+            margin-bottom: 12px;
+        }
+        .step-list-num li::before {
+            content: counter(guide);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .mini-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 12px 0;
+            font-size: 0.82rem;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        .mini-table th {
+            background: #eff6ff;
+            color: #1e40af;
+            font-weight: 800;
+            text-align: left;
+            padding: 10px 12px;
+        }
+        .mini-table td {
+            padding: 10px 12px;
+            border-top: 1px solid #e2e8f0;
+            color: #334155;
+        }
+        .mini-table tr:nth-child(even) td {
+            background: #f8fafc;
+        }
+        .panduan-icon-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .guide-menu-note {
+            display: inline-block;
+            background: #eef2ff;
+            color: #4338ca;
+            font-weight: 700;
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
     </style>
 </head>
 <body class="dashboard-body">
@@ -132,7 +263,7 @@
                     </button>
                     <div>
                         <h1 class="dash-header-title">Panduan Lengkap Admin</h1>
-                        <p class="dash-header-subtitle">Petunjuk pengoperasian sistem Jurnal & Absensi Guru</p>
+                        <p class="dash-header-subtitle">Petunjuk lengkap penggunaan sistem Jurnal & Absensi Guru, ditulis dengan bahasa sederhana</p>
                     </div>
                 </div>
 
@@ -157,138 +288,253 @@
 
             <!-- Search Filter Bar -->
             <div style="margin-bottom: 8px;">
-                <input type="text" id="guideSearchInput" onkeyup="filterGuides()" class="search-guide-input" placeholder="Cari bantuan (contoh: jadwal, istirahat, export, guru, siswa)...">
+                <input type="text" id="guideSearchInput" onkeyup="filterGuides()" class="search-guide-input" placeholder="Cari bantuan (contoh: jadwal, guru, siswa, piket, export, istirahat)...">
             </div>
 
             <!-- Visual Workflow Overview -->
             <div class="dash-panel-card guide-topic-card">
                 <h2 class="dash-panel-title" style="margin-bottom: 8px;">Alur Kerja Setup Sistem (Urutan Wajib)</h2>
-                <p style="color: #64748b; font-size: 0.875rem;">Ikuti 4 langkah berurutan di bawah ini saat pertama kali mengonfigurasi aplikasi sekolah:</p>
-                
+                <p style="color: #64748b; font-size: 0.875rem;">Ikuti 5 langkah berurutan di bawah ini saat pertama kali mengonfigurasi aplikasi sekolah:</p>
+
                 <div class="flow-container">
                     <div class="flow-node">
                         <div class="flow-node-title">1. Master Data</div>
-                        <div class="flow-node-desc">Isi Kelas, Jurusan, Mapel, Guru, Siswa, dan Pengguna.</div>
+                        <div class="flow-node-desc">Isi Pengguna, Siswa, Guru, Kelas, Mapel, dan Ruangan.</div>
                     </div>
                     <div class="flow-node">
                         <div class="flow-node-title">2. Pengaturan Jam</div>
-                        <div class="flow-node-desc">Atur Jam Masuk, Pulang, KBM, dan Istirahat 1 & 2.</div>
+                        <div class="flow-node-desc">Atur Jam Masuk, Pulang, KBM, dan Istirahat.</div>
                     </div>
                     <div class="flow-node">
                         <div class="flow-node-title">3. Plotting Jadwal</div>
-                        <div class="flow-node-desc">Hubungkan Guru, Mapel, Kelas ke Sesi Jam Pelajaran.</div>
+                        <div class="flow-node-desc">Hubungkan Guru, Mapel, Kelas ke sesi jam pelajaran.</div>
                     </div>
                     <div class="flow-node">
-                        <div class="flow-node-title">4. Monitoring Jurnal</div>
-                        <div class="flow-node-desc">Pantau pengisian jurnal guru & ekspor rekap CSV.</div>
+                        <div class="flow-node-title">4. Jadwal Piket</div>
+                        <div class="flow-node-desc">Tentukan guru yang bertugas piket tiap hari.</div>
+                    </div>
+                    <div class="flow-node">
+                        <div class="flow-node-title">5. Monitoring Jurnal</div>
+                        <div class="flow-node-desc">Pantau jurnal guru & ekspor rekap laporan.</div>
                     </div>
                 </div>
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 18px;" id="guidesContainer">
-                
-                <!-- TOPIC 1: Pengelolaan Master Data -->
+
+                <!-- TOPIC 1: Dashboard -->
                 <div class="guide-step-card guide-topic-card">
                     <div class="step-header">
                         <span class="step-badge">1</span>
-                        <span>Pengelolaan Master Data Sekolah</span>
+                        <span>Dashboard - Ringkasan Aktivitas</span>
                     </div>
                     <p style="color: #475569; font-size: 0.9rem; line-height: 1.6; margin-bottom: 14px;">
-                        Master Data merupakan fondasi utama sistem. Semua entitas (Guru, Siswa, Kelas, Mapel) disimpan di sini sebelum dapat dipakai di jadwal pelajaran.
+                        Dashboard adalah "halaman beranda" admin. Semua angka penting sekolah ditampilkan di sini supaya Anda bisa memantau kondisi tanpa harus membuka banyak halaman.
                     </p>
-                    <ul style="color: #334155; font-size: 0.875rem; line-height: 1.8; padding-left: 20px;">
-                        <li><strong>Pengguna:</strong> Tempat mengelola akun login. Setiap Guru/Admin wajib memiliki akun pengguna aktif dengan role yang sesuai.</li>
-                        <li><strong>Siswa:</strong> Berisi data siswa per kelas. Menyediakan tombol <em>Tambah Siswa</em>, Edit, Hapus, dan <em>Unduh CSV</em>.</li>
-                        <li><strong>Guru:</strong> Berisi data profil guru, NUPTK, mapel diampu, dan nomor WhatsApp/HP.</li>
-                        <li><strong>Kelas & Jurusan:</strong> Mengatur tingkat kelas (X, XI, XII), kode jurusan (RPL, TKJ, DKV, dll), serta wali kelas.</li>
-                        <li><strong>Mata Pelajaran (Mapel):</strong> Berisi daftar mata pelajaran yang diajarkan di sekolah.</li>
+                    <ul class="guide-step-list">
+                        <li><strong>Angka Ringkasan:</strong> Di bagian atas terdapat total Pengguna, Siswa, Guru, dan Kelas yang terdaftar di sistem.</li>
+                        <li><strong>Grafik Aktivitas Jurnal:</strong> Menampilkan jumlah jurnal yang diisi guru dalam 7, 14, atau 30 hari terakhir (tinggal klik pilihan rentang waktu).</li>
+                        <li><strong>Progres Pengisian Hari Ini:</strong> Lingkaran progres menunjukkan berapa persen guru yang sudah mengisi jurnal hari ini.</li>
+                        <li><strong>Daftar Guru Belum Mengisi:</strong> Menampilkan guru yang belum mengisi jurnal hari ini agar bisa segera diingatkan.</li>
+                        <li><strong>Menyegarkan Otomatis:</strong> Data dashboard diperbarui otomatis setiap 15 detik, jadi Anda tidak perlu me-refresh halaman.</li>
+                        <li><strong>Unduh CSV:</strong> Tombol <em>Unduh CSV</em> untuk menyimpan ringkasan dashboard dalam bentuk file.</li>
                     </ul>
-
                     <div class="tip-box">
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                        <span><strong>Tips Admin:</strong> Hubungkan akun User dengan data Guru agar guru dapat login ke dashboard dan mengisi jurnal mengajar mereka sendiri.</span>
+                        <span><strong>Tips Admin:</strong> Gunakan Dashboard setiap pagi untuk melihat siapa saja guru yang belum mengisi jurnal, sehingga bisa diingatkan lebih awal.</span>
                     </div>
                 </div>
 
-                <!-- TOPIC 2: Pengaturan Jam Pelajaran & Istirahat -->
+                <!-- TOPIC 2: Master Data -->
                 <div class="guide-step-card guide-topic-card">
                     <div class="step-header">
                         <span class="step-badge">2</span>
-                        <span>Pengaturan Jam Pelajaran & Waktu Istirahat</span>
+                        <span>Master Data - Data Dasar Sekolah</span>
                     </div>
-                    <p style="color: #475569; font-size: 0.9rem; line-height: 1.6; margin-bottom: 14px;">
-                        Modul Pengaturan Jam Pelajaran digunakan untuk men-generate slot waktu jam ke-1, ke-2, ke-3, dst secara otomatis berdasarkan jam masuk dan jam pulang sekolah.
+                    <p style="color: #475569; font-size: 0.9rem; line-height: 1.6; margin-bottom: 8px;">
+                        Master Data adalah "gudang data" sekolah. Seluruh data guru, siswa, kelas, dan lainnya disimpan di sini sebelum dipakai untuk jadwal pelajaran. Menu ini ada di kategori <span class="guide-menu-note">Master Data</span> pada sidebar.
                     </p>
-                    <ul style="color: #334155; font-size: 0.875rem; line-height: 1.8; padding-left: 20px;">
-                        <li><strong>Akses Halaman:</strong> Buka menu <em>Akademik ➔ Jadwal Pelajaran</em>, lalu klik tombol biru <strong>"Kelola Jam & Waktu Pulang"</strong> di pojok kanan atas.</li>
-                        <li><strong>Tab Kategori Hari:</strong> Atur jam secara terpisah untuk <em>Senin - Kamis</em> dan <em>Jumat</em>.</li>
-                        <li><strong>Mode KBM Variatif:</strong> Mengatur jam 1–4 durasi 40 menit, dan jam 5 ke atas durasi 35 menit secara otomatis.</li>
-                        <li><strong>Mode Istirahat (Pukul vs Durasi):</strong>
-                            <ul style="margin-top: 4px; padding-left: 18px;">
-                                <li><strong>Mode Pukul:</strong> Tentukan jam mulai dan jam selesai istirahat secara pasti (contoh: `09:40 - 10:00` atau `11:45 - 13:15`). Sistem akan otomatis memotong slot KBM jika mendekati jam istirahat!</li>
-                                <li><strong>Mode Durasi:</strong> Masukkan jumlah menit istirahat dan posisinya setelah jam ke berapa.</li>
-                            </ul>
-                        </li>
-                    </ul>
 
-                    <div class="warning-box">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                        <span><strong>Catatan Penting:</strong> Fitur server kami telah dilengkapi <em>Smart Auto-Correction</em>. Pengisian jam dalam format 24 jam (`11:45`, `13:15`, `15:00`) akan diproses tanpa error walau browser menggunakan format AM/PM!</span>
+                    <div class="feature-grid">
+                        <div class="feature-tile">
+                            <div class="feature-tile-title">
+                                <span class="panduan-icon-circle" style="background:#eff6ff;color:#2563eb;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></span>
+                                Pengguna
+                            </div>
+                            <div class="feature-tile-desc">Akun untuk login (Admin, Guru, Wali Kelas, Guru Piket). Setiap pengguna wajib punya akun agar bisa masuk sistem.</div>
+                        </div>
+                        <div class="feature-tile">
+                            <div class="feature-tile-title">
+                                <span class="panduan-icon-circle" style="background:#fef3c7;color:#b45309;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg></span>
+                                Siswa
+                            </div>
+                            <div class="feature-tile-desc">Data siswa per kelas. Bisa tambah, ubah, hapus, dan unduh CSV.</div>
+                        </div>
+                        <div class="feature-tile">
+                            <div class="feature-tile-title">
+                                <span class="panduan-icon-circle" style="background:#dcfce7;color:#15803d;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg></span>
+                                Guru
+                            </div>
+                            <div class="feature-tile-desc">Profil guru (nama, NUPTK, mapel diampu, no. WhatsApp). Bisa unduh CSV.</div>
+                        </div>
+                        <div class="feature-tile">
+                            <div class="feature-tile-title">
+                                <span class="panduan-icon-circle" style="background:#fee2e2;color:#b91c1c;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18M9 21V9"></path></svg></span>
+                                Kelas
+                            </div>
+                            <div class="feature-tile-desc">Kelas (X/XI/XII, rombel, jurusan) serta penunjukan wali kelas.</div>
+                        </div>
+                        <div class="feature-tile">
+                            <div class="feature-tile-title">
+                                <span class="panduan-icon-circle" style="background:#e0f2fe;color:#0369a1;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span>
+                                Mapel
+                            </div>
+                            <div class="feature-tile-desc">Daftar mata pelajaran yang diajarkan di sekolah.</div>
+                        </div>
+                        <div class="feature-tile">
+                            <div class="feature-tile-title">
+                                <span class="panduan-icon-circle" style="background:#f3e8ff;color:#7e22ce;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></span>
+                                Ruangan
+                            </div>
+                            <div class="feature-tile-desc">Data ruangan/lab/kelas fisik yang dipakai untuk jadwal mengajar.</div>
+                        </div>
+                    </div>
+
+                    <div class="tip-box">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span><strong>Tips Admin:</strong> Hubungkan akun <em>Pengguna</em> dengan data <em>Guru</em> yang bersangkutan. Ini penting agar guru bisa login dan mengisi jurnal mengajarnya sendiri.</span>
                     </div>
                 </div>
 
-                <!-- TOPIC 3: Kelola Jadwal Pelajaran -->
+                <!-- TOPIC 3: Pengaturan Jam -->
                 <div class="guide-step-card guide-topic-card">
                     <div class="step-header">
                         <span class="step-badge">3</span>
-                        <span>Pembuatan & Plotting Jadwal Pelajaran</span>
+                        <span>Pengaturan Jam Pelajaran & Waktu Istirahat</span>
                     </div>
                     <p style="color: #475569; font-size: 0.9rem; line-height: 1.6; margin-bottom: 14px;">
-                        Jadwal Pelajaran menghubungkan Slot Jam Pelajaran dengan Guru, Mata Pelajaran, Kelas, dan Ruangan.
+                        Halaman ini berfungsi untuk mengatur kapan sekolah masuk, kapan pulang, durasi tiap jam pelajaran, dan kapan istirahat. Sistem akan otomatis membuat daftar slot jam pelajaran berdasarkan pengaturan tersebut.
                     </p>
-                    <ul style="color: #334155; font-size: 0.875rem; line-height: 1.8; padding-left: 20px;">
-                        <li><strong>Tambah Jadwal:</strong> Klik tombol <em>Tambah Jadwal</em>, pilih Hari, Jam Pelajaran, Kelas, Mapel, Guru Pengampu, dan Ruangan.</li>
-                        <li><strong>Penyaringan Data (Filter):</strong> Filter daftar jadwal berdasarkan Hari, Kelas, atau Guru Pengampu untuk mempermudah pengecekan bentrok.</li>
-                        <li><strong>Ekspor CSV:</strong> Klik tombol <em>Unduh CSV</em> untuk mengunduh rekap jadwal pelajaran per kelas/guru.</li>
-                    </ul>
+                    <ol class="guide-step-list step-list-num">
+                        <li><strong>Buka halamannya:</strong> Klik menu <em>Akademik ➔ Jam Pelajaran</em> di sidebar.</li>
+                        <li><strong>Atur jam masuk & pulang:</strong> Isi jam mulai dan jam selesai sekolah.</li>
+                        <li><strong>Atur durasi jam:</strong> Tentukan berapa menit tiap jam pelajaran (mis. 40 menit atau 35 menit). Anda juga bisa mengatur jam pelajaran yang durasinya berbeda-beda.</li>
+                        <li><strong>Atur istirahat:</strong>
+                            <ul style="margin-top: 4px; padding-left: 18px;">
+                                <li><strong>Mode Pukul:</strong> Tentukan waktu mulai dan selesai istirahat secara pasti (contoh: 09:40 - 10:00).</li>
+                                <li><strong>Mode Durasi:</strong> Masukkan jumlah menit istirahat dan posisinya setelah jam ke berapa.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Simpan:</strong> Sistem otomatis menyusun ulang slot jam berdasarkan pengaturan tersebut.</li>
+                    </ol>
+                    <div class="warning-box">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        <span><strong>Catatan Penting:</strong> Gunakan format jam 24 jam (contoh: 11:45, 13:15, 15:00). Sistem sudah dilengkapi koreksi otomatis, jadi aman walau browser Anda memakai format AM/PM.</span>
+                    </div>
                 </div>
 
-                <!-- TOPIC 4: Monitoring Jurnal Mengajar & Laporan -->
+                <!-- TOPIC 4: Jadwal Pelajaran -->
                 <div class="guide-step-card guide-topic-card">
                     <div class="step-header">
                         <span class="step-badge">4</span>
-                        <span>Monitoring Jurnal Mengajar & Ekspor Laporan</span>
+                        <span>Pembuatan & Plotting Jadwal Pelajaran</span>
                     </div>
                     <p style="color: #475569; font-size: 0.9rem; line-height: 1.6; margin-bottom: 14px;">
-                        Menu Jurnal Mengajar merekam aktivitas mengajar guru setiap harinya, termasuk materi yang disampaikan, absensi kehadiran siswa, dan catatan KBM.
+                        Jadwal Pelajaran mengatur "siapa mengajar apa, di kelas mana, jam berapa". Di menu ini Anda menghubungkan jam pelajaran dengan Guru, Mapel, Kelas, dan Ruangan.
                     </p>
-                    <ul style="color: #334155; font-size: 0.875rem; line-height: 1.8; padding-left: 20px;">
-                        <li><strong>Pantau Realtime di Dashboard:</strong> Di halaman utama Dashboard, Admin dapat melihat grafik kehadiran harian, jumlah guru yang sudah/belum mengisi jurnal hari ini secara otomatis (auto-refresh per 15 detik).</li>
-                        <li><strong>Pencarian & Filter Jurnal:</strong> Saring data jurnal berdasarkan rentang tanggal, nama guru, kelas, atau mata pelajaran.</li>
-                        <li><strong>Ekspor Rekap Laporan:</strong> Admin dapat mengunduh seluruh data rekapitulasi jurnal dalam format CSV untuk kebutuhan pelaporan bulanan / supervisi kepala sekolah.</li>
+                    <ul class="guide-step-list">
+                        <li><strong>Tambah Jadwal:</strong> Klik tombol <em>Tambah Jadwal</em>, lalu pilih Hari, Jam Pelajaran, Kelas, Mapel, Guru Pengampu, dan Ruangan.</li>
+                        <li><strong>Filter / Penyaringan:</strong> Saring daftar jadwal berdasarkan Hari, Kelas, atau Guru untuk memudahkan pengecekan bentrok.</li>
+                        <li><strong>Tampilan Matriks:</strong> Melihat jadwal dalam bentuk tabel (Hari &times; Jam) per kelas agar mudah dicek keseluruhan.</li>
+                        <li><strong>Pindahin Jadwal:</strong> Geser (drag & drop) jadwal yang sudah ada untuk memindahkannya ke jam/hari lain tanpa membuat ulang.</li>
+                        <li><strong>Unduh CSV:</strong> Simpan rekap jadwal pelajaran dalam format CSV.</li>
+                        <li><strong>Unduh PDF:</strong> Simpan jadwal pelajaran dalam bentuk PDF untuk dicetak/dibagikan.</li>
                     </ul>
+                    <div class="tip-box">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span><strong>Tips Admin:</strong> Pastikan Guru yang bersangkutan sudah dibuatkan jadwal di hari itu, karena jadwal inilah yang menjadi dasar guru mengisi jurnal mengajar.</span>
+                    </div>
                 </div>
 
-                <!-- TOPIC 5: Pertanyaan Umum (FAQ) & Solusi Kendala -->
+                <!-- TOPIC 5: Jadwal Guru Piket -->
                 <div class="guide-step-card guide-topic-card">
                     <div class="step-header">
                         <span class="step-badge">5</span>
+                        <span>Jadwal Guru Piket</span>
+                    </div>
+                    <p style="color: #475569; font-size: 0.9rem; line-height: 1.6; margin-bottom: 14px;">
+                        Menu ini digunakan untuk menunjuk guru yang bertugas piket pada tiap hari (Senin sampai Jumat). Berguna untuk mengatur jadwal piket dengan jelas dan terpusat.
+                    </p>
+                    <ul class="guide-step-list">
+                        <li><strong>Lihat Kondisi:</strong> Buka menu <em>Akademik ➔ Jadwal Guru Piket</em>. Jadwal ditampilkan per hari.</li>
+                        <li><strong>Tambah Petugas:</strong> Klik tombol <em>Tambah</em> pada hari yang diinginkan, lalu pilih nama guru piket. Anda bisa menambahkan keterangan seperti "Petugas Piket Utama".</li>
+                        <li><strong>Pilih Guru dengan Cepat:</strong> Kolom pilihan guru bisa diketik untuk dicari langsung, sehingga lebih cepat dan tidak salah pilih.</li>
+                        <li><strong>Ubah / Hapus:</strong> Anda bisa menghapus atau mengganti guru piket suatu hari kapan saja.</li>
+                    </ul>
+                </div>
+
+                <!-- TOPIC 6: Jurnal Mengajar & Laporan -->
+                <div class="guide-step-card guide-topic-card">
+                    <div class="step-header">
+                        <span class="step-badge">6</span>
+                        <span>Monitoring Jurnal Mengajar & Ekspor Laporan</span>
+                    </div>
+                    <p style="color: #475569; font-size: 0.9rem; line-height: 1.6; margin-bottom: 14px;">
+                        Menu Jurnal Mengajar merekam aktivitas mengajar guru tiap hari: materi yang diajarkan, kehadiran siswa, dan catatan pembelajaran. Admin bisa memantau dan mengunduh datanya.
+                    </p>
+                    <ul class="guide-step-list">
+                        <li><strong>Pantau Pengisian:</strong> Lihat di Dashboard berapa guru yang sudah/belum mengisi jurnal hari ini (auto-refresh 15 detik).</li>
+                        <li><strong>Cari & Filter Jurnal:</strong> Saring data berdasarkan rentang tanggal, nama guru, kelas, atau mata pelajaran.</li>
+                        <li><strong>Unduh Rekap:</strong> Klik <em>Unduh CSV</em> untuk menyimpan seluruh data jurnal, misalnya untuk laporan bulanan atau supervisi kepala sekolah.</li>
+                    </ul>
+                </div>
+
+                <!-- TOPIC 7: Profil Admin -->
+                <div class="guide-step-card guide-topic-card">
+                    <div class="step-header">
+                        <span class="step-badge">7</span>
+                        <span>Mengubah Profil Pribadi</span>
+                    </div>
+                    <p style="color: #475569; font-size: 0.9rem; line-height: 1.6; margin-bottom: 14px;">
+                        Anda bisa memperbarui data diri dan kata sandi sendiri. Menu ini tersedia untuk semua pengguna yang sudah login.
+                    </p>
+                    <ul class="guide-step-list">
+                        <li><strong>Buka Profil:</strong> Klik menu profil (nama pengguna) di pojok kanan atas.</li>
+                        <li><strong>Ubah data:</strong> Perbarui nama, informasi kontak, atau kata sandi sesuai kebutuhan.</li>
+                        <li><strong>Simpan:</strong> Klik Simpan untuk menyimpan perubahan.</li>
+                    </ul>
+                </div>
+
+                <!-- TOPIC 8: FAQ -->
+                <div class="guide-step-card guide-topic-card">
+                    <div class="step-header">
+                        <span class="step-badge">8</span>
                         <span>Pertanyaan Umum (FAQ) & Solusi Kendala</span>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px;">
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px;">
-                            <div style="font-weight: 800; color: #1e293b; font-size: 0.9rem; margin-bottom: 4px;">Q: Mengapa Guru tidak bisa mengisi Jurnal Mengajar?</div>
-                            <div style="font-size: 0.85rem; color: #475569; line-height: 1.6;">A: Pastikan akun login Guru tersebut sudah dihubungkan dengan data Guru di menu <em>Master Data ➔ Guru</em>. Selain itu, pastikan jadwal pelajaran guru untuk hari tersebut sudah dibuat oleh Admin.</div>
+                        <div class="faq-item">
+                            <div class="faq-q">Q: Mengapa Guru tidak bisa mengisi Jurnal Mengajar?</div>
+                            <div class="faq-a">A: Pastikan akun login guru sudah dihubungkan dengan data Guru di menu <em>Master Data ➔ Guru</em>. Selain itu, pastikan jadwal pelajaran guru untuk hari tersebut sudah dibuat oleh Admin.</div>
                         </div>
 
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px;">
-                            <div style="font-weight: 800; color: #1e293b; font-size: 0.9rem; margin-bottom: 4px;">Q: Bagaimana jika waktu pulang sekolah diperpanjang atau diubah?</div>
-                            <div style="font-size: 0.85rem; color: #475569; line-height: 1.6;">A: Buka <em>Akademik ➔ Jadwal Pelajaran ➔ Kelola Jam & Waktu Pulang</em>. Ubah Jam Pulang (contoh dari `14:30` menjadi `15:00`), lalu klik Simpan. Sistem generator kami akan otomatis menyesuaikan slot sisa waktu tanpa menghapus slot jam pelajaran yang sudah ada.</div>
+                        <div class="faq-item">
+                            <div class="faq-q">Q: Bagaimana cara membuat akun untuk guru baru?</div>
+                            <div class="faq-a">A: Buka <em>Master Data ➔ Pengguna</em>, klik <em>Tambah</em>, isi nama/username/password, lalu pilih role yang sesuai. Jangan lupa hubungkan akun tersebut dengan data guru agar guru bisa login dan mengisi jurnal.</div>
                         </div>
 
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px;">
-                            <div style="font-weight: 800; color: #1e293b; font-size: 0.9rem; margin-bottom: 4px;">Q: Bagaimana cara mengunduh laporan bulanan?</div>
-                            <div style="font-size: 0.85rem; color: #475569; line-height: 1.6;">A: Gunakan menu <em>Akademik ➔ Jurnal Mengajar</em>, atur filter tanggal dari awal bulan hingga akhir bulan, kemudian klik tombol <strong>Unduh CSV</strong> di pojok kanan atas.</div>
+                        <div class="faq-item">
+                            <div class="faq-q">Q: Bagaimana jika waktu pulang sekolah diperpanjang atau diubah?</div>
+                            <div class="faq-a">A: Buka <em>Akademik ➔ Jam Pelajaran</em>, ubah jam pulang (misal dari 14:30 menjadi 15:00), lalu simpan. Sistem otomatis menyesuaikan slot jam tanpa menghapus jadwal yang sudah ada.</div>
+                        </div>
+
+                        <div class="faq-item">
+                            <div class="faq-q">Q: Bagaimana cara mengunduh laporan bulanan?</div>
+                            <div class="faq-a">A: Gunakan menu <em>Akademik ➔ Jurnal Mengajar</em>, atur filter tanggal dari awal sampai akhir bulan, lalu klik <strong>Unduh CSV</strong> di pojok kanan atas.</div>
+                        </div>
+
+                        <div class="faq-item">
+                            <div class="faq-q">Q: Bagaimana jika saya lupa kata sandi?</div>
+                            <div class="faq-a">A: Mintalah admin lain untuk mengubah kata sandi Anda melalui <em>Master Data ➔ Pengguna</em>, atau ubah sendiri lewat menu Profil Anda.</div>
                         </div>
                     </div>
                 </div>

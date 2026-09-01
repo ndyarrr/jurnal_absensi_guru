@@ -242,7 +242,7 @@
                                     <th style="width: 10%;">Kelas</th>
                                     <th style="width: 15%;">Guru</th>
                                     <th style="width: 18%;">Materi</th>
-                                    <th style="width: 10%;">Pertemuan</th>
+                                    <th style="width: 10%;">Murid Hadir</th>
                                     <th style="width: 12%;">Status</th>
                                     <th style="width: 10%; text-align: center;">Aksi</th>
                                 </tr>
@@ -295,7 +295,22 @@
                                                 {{ $j->materi ?? '-' }}
                                             </div>
                                         </td>
-                                        <td style="font-weight: 700;">{{ $j->jumlah_hadir ?? 0 }} / {{ $jumlahSiswa }}</td>
+                                        <td>
+                                            @php
+                                                $hadir = $j->jumlah_hadir ?? 0;
+                                                $total = $jumlahSiswa;
+                                                $pct = $total > 0 ? round(($hadir / $total) * 100) : 0;
+                                                $color = $pct >= 80 ? '#15803d' : ($pct >= 60 ? '#b45309' : '#dc2626');
+                                                $bg    = $pct >= 80 ? '#dcfce7' : ($pct >= 60 ? '#fef3c7' : '#fee2e2');
+                                            @endphp
+                                            <span style="
+                                                font-weight: 800; font-size: 0.9rem;
+                                                color: {{ $color }};
+                                                background: {{ $bg }};
+                                                padding: 3px 10px; border-radius: 20px;
+                                                white-space: nowrap;
+                                            ">{{ $hadir }}/{{ $total }}</span>
+                                        </td>
                                         <td>
                                             @if($j->status_kehadiran == 'Hadir')
                                                 <span class="badge-status-terlaksana">Terlaksana</span>
@@ -523,7 +538,17 @@
                                         ${escapeHtml(j.materi)}
                                     </div>
                                 </td>
-                                <td style="font-weight: 700;">${j.pertemuan}</td>
+                                <td>
+                                    ${(() => {
+                                        const parts = (j.pertemuan || '0/0').split('/');
+                                        const h = parseInt(parts[0]) || 0;
+                                        const t = parseInt(parts[1]) || 1;
+                                        const pct = Math.round((h / t) * 100);
+                                        const color = pct >= 80 ? '#15803d' : (pct >= 60 ? '#b45309' : '#dc2626');
+                                        const bg    = pct >= 80 ? '#dcfce7' : (pct >= 60 ? '#fef3c7' : '#fee2e2');
+                                        return `<span style="font-weight:800;font-size:0.9rem;color:${color};background:${bg};padding:3px 10px;border-radius:20px;white-space:nowrap;">${h}/${t}</span>`;
+                                    })()}
+                                </td>
                                 <td>${statusBadge}</td>
                                 <td>
                                     <div class="action-icons-cell">

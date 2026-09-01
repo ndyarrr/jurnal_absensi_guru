@@ -245,12 +245,18 @@
 
                 <div style="margin-bottom: 18px;">
                     <label style="display: block; font-size: 0.85rem; font-weight: 800; color: #1e2538; margin-bottom: 6px;">Pilih Guru Piket</label>
-                    <select name="id_guru" class="form-field-input" style="width: 100%; padding: 11px 14px; border-radius: 10px; border: 1px solid #cbd5e1;" required>
-                        <option value="">-- Pilih Nama Guru --</option>
-                        @foreach($guruList as $g)
-                            <option value="{{ $g->id_guru }}">{{ $g->nama_guru }} (NUPTK: {{ $g->nuptk ?? '-' }})</option>
-                        @endforeach
-                    </select>
+                    <input type="hidden" name="id_guru" id="assign_id_guru" value="" required>
+                    <div class="searchable-select" id="assign_piket_ss">
+                        <input type="text" class="form-field-input ss-input" id="assign_piket_input" placeholder="Ketik untuk cari" autocomplete="off" onclick="openPiketDropdown()" onkeyup="filterPiketDropdown()" required>
+                        <div class="ss-dropdown" id="assign_piket_dropdown">
+                            @foreach($guruList as $g)
+                                <div class="ss-option" data-value="{{ $g->id_guru }}" onclick="pickPiketGuru('{{ $g->id_guru }}','{{ addslashes($g->nama_guru) }} (NUPTK: {{ $g->nuptk ?? '-' }})')">
+                                    <strong>{{ $g->nama_guru }}</strong>
+                                    <small style="color: #64748b;">NUPTK: {{ $g->nuptk ?? '-' }}</small>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
 
                 <div style="margin-bottom: 24px;">
@@ -275,11 +281,62 @@
             document.getElementById('modal_input_hari').value = day;
             document.getElementById('modal_display_hari').innerHTML = '<i class="fa-solid fa-calendar-day"></i> Hari Tugas: <strong>' + day + '</strong>';
             document.getElementById('assignModal').style.display = 'flex';
+            resetPiketDropdown();
         }
 
         function closeAssignModal() {
             document.getElementById('assignModal').style.display = 'none';
         }
+
+        function resetPiketDropdown() {
+            document.getElementById('assign_id_guru').value = '';
+            document.getElementById('assign_piket_input').value = '';
+            document.getElementById('assign_piket_dropdown').classList.remove('ss-open');
+        }
+
+        function openPiketDropdown() {
+            const input = document.getElementById('assign_piket_input');
+            const dd = document.getElementById('assign_piket_dropdown');
+            const rect = input.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            const dropdownHeight = 220;
+
+            dd.classList.remove('ss-up', 'ss-down');
+            if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+                dd.classList.add('ss-up');
+            } else {
+                dd.classList.add('ss-down');
+            }
+
+            dd.classList.add('ss-open');
+            filterPiketDropdown();
+        }
+
+        function filterPiketDropdown() {
+            const query = document.getElementById('assign_piket_input').value.toLowerCase();
+            const dd = document.getElementById('assign_piket_dropdown');
+            const items = dd.querySelectorAll('.ss-option');
+            items.forEach(item => {
+                const txt = item.textContent.toLowerCase();
+                item.style.display = txt.includes(query) ? 'flex' : 'none';
+            });
+            dd.classList.add('ss-open');
+        }
+
+        function pickPiketGuru(value, label) {
+            document.getElementById('assign_id_guru').value = value;
+            document.getElementById('assign_piket_input').value = value ? label : '';
+            document.getElementById('assign_piket_dropdown').classList.remove('ss-open');
+        }
+
+        document.addEventListener('click', function(e) {
+            const ss = document.getElementById('assign_piket_ss');
+            const dd = document.getElementById('assign_piket_dropdown');
+            if (ss && dd && !ss.contains(e.target)) {
+                dd.classList.remove('ss-open');
+            }
+        }, true);
 
         function updateLiveClock() {
             const timeEl = document.getElementById('live_time_str');
