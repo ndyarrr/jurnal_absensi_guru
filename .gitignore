@@ -15,6 +15,7 @@
 /auth.json
 /node_modules
 bot/node_modules/
+bot/sijurnalsesion
 /public/build
 /public/fonts-manifest.dev.json
 /public/hot
