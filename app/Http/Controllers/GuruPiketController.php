@@ -350,7 +350,37 @@ class GuruPiketController extends Controller
     }
 
     /**
-     * Form Input Dispensasi Siswa.
+     * Helper to generate a unique document number for Surat Dispensasi.
+     */
+    private function generateUniqueNomorSurat(): string
+    {
+        $prefix = 'DISPEN/' . date('Y/m/');
+        
+        $latest = SuratDispensasi::withTrashed()
+            ->where('nomor_surat', 'like', $prefix . '%')
+            ->orderBy('id_dispen', 'desc')
+            ->first();
+
+        $seq = 1;
+        if ($latest) {
+            $parts = explode('/', $latest->nomor_surat);
+            $lastNum = (int) end($parts);
+            $seq = max(1, $lastNum + 1);
+        }
+
+        do {
+            $nomorSurat = $prefix . str_pad($seq, 3, '0', STR_PAD_LEFT);
+            $exists = SuratDispensasi::withTrashed()->where('nomor_surat', $nomorSurat)->exists();
+            if ($exists) {
+                $seq++;
+            }
+        } while ($exists);
+
+        return $nomorSurat;
+    }
+
+    /**
+     * Form Input / Edit Dispensasi Siswa.
      */
     public function inputDispensasi(Request $request)
     {
@@ -367,15 +397,37 @@ class GuruPiketController extends Controller
         $kelasList = Kelas::with('jurusan')->orderBy('tingkat')->orderBy('rombel')->get();
         $siswaList = Siswa::with('kelas.jurusan')->orderBy('nama_siswa')->get();
 
-        // Generate automatic document number
-        $nextId = (SuratDispensasi::max('id_dispen') ?? 0) + 1;
-        $autoNomorSurat = 'DISPEN/' . date('Y/m/') . str_pad($nextId, 3, '0', STR_PAD_LEFT);
+        $surat = null;
+        $isVerified = false;
+        if ($request->filled('id')) {
+            $surat = SuratDispensasi::with(['siswa.kelas.jurusan'])->find($request->input('id'));
+            if ($surat) {
+                $isVerified = ($surat->status_approval === 'disetujui');
+            }
+        }
 
-        return view('guru_piket.input_dispensasi', compact('user', 'namaGuruPiket', 'kelasList', 'siswaList', 'autoNomorSurat', 'isDutyToday', 'todayName'));
+        // Generate automatic unique document number
+        if ($surat) {
+            $autoNomorSurat = $surat->nomor_surat;
+        } else {
+            $autoNomorSurat = $this->generateUniqueNomorSurat();
+        }
+
+        return view('guru_piket.input_dispensasi', compact(
+            'user',
+            'namaGuruPiket',
+            'kelasList',
+            'siswaList',
+            'autoNomorSurat',
+            'isDutyToday',
+            'todayName',
+            'surat',
+            'isVerified'
+        ));
     }
 
     /**
-     * Simpan Dispensasi Siswa secara langsung oleh Guru Piket.
+     * Simpan Dispensasi Siswa beserta TTD Digital oleh Guru Piket.
      */
     public function storeDispensasi(Request $request)
     {
@@ -385,6 +437,14 @@ class GuruPiketController extends Controller
 
         if (!$this->isTeacherDutyToday($user)) {
             return back()->with('error', "Akses Ditolak: Anda tidak terdaftar sebagai Guru Piket bertugas untuk hari {$todayName}. Pengisian dispensasi siswa hanya dibuka untuk Guru Piket bertugas hari ini.");
+        }
+
+        // Block edit if dispensasi letter is already verified / approved
+        if ($request->filled('id_dispen')) {
+            $existing = SuratDispensasi::find($request->input('id_dispen'));
+            if ($existing && $existing->status_approval === 'disetujui') {
+                return back()->with('error', 'Perubahan Ditolak: Surat dispensasi yang telah terverifikasi & disetujui tidak dapat diubah kembali.');
+            }
         }
 
         $request->validate([
@@ -397,17 +457,42 @@ class GuruPiketController extends Controller
             'jam_selesai' => 'required',
             'alasan_dispensasi' => 'required|string|max:500',
             'file_surat' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'ttd_siswa_data' => 'nullable|string',
+            'ttd_guru_data' => 'nullable|string',
         ]);
 
         $siswa = Siswa::with('kelas')->findOrFail($request->id_siswa);
-        $filePath = null;
+
+        $existingDispen = $request->filled('id_dispen') ? SuratDispensasi::find($request->input('id_dispen')) : null;
+        $filePath = $existingDispen ? $existingDispen->file_surat : null;
+
+        if ($request->input('hapus_file_surat') == '1') {
+            if ($existingDispen && $existingDispen->file_surat && Storage::disk('public')->exists($existingDispen->file_surat)) {
+                Storage::disk('public')->delete($existingDispen->file_surat);
+            }
+            $filePath = null;
+        }
 
         if ($request->hasFile('file_surat')) {
+            if ($existingDispen && $existingDispen->file_surat && Storage::disk('public')->exists($existingDispen->file_surat)) {
+                Storage::disk('public')->delete($existingDispen->file_surat);
+            }
             $filePath = $request->file('file_surat')->store('surat_dispensasi', 'public');
         }
 
-        $nextId = (SuratDispensasi::max('id_dispen') ?? 0) + 1;
-        $nomorSurat = $request->input('nomor_surat') ?: ('DISPEN/' . date('Y/m/') . str_pad($nextId, 3, '0', STR_PAD_LEFT));
+        $guru = $user ? $user->guru : null;
+        $namaGuruPiket = $guru ? $guru->nama_guru : ($user->name ?? 'Guru Piket');
+
+        // Resolve guaranteed unique document number
+        if ($request->filled('id_dispen')) {
+            $existing = SuratDispensasi::find($request->input('id_dispen'));
+            $nomorSurat = $existing ? $existing->nomor_surat : $this->generateUniqueNomorSurat();
+        } else {
+            $nomorSurat = $request->input('nomor_surat');
+            if (empty($nomorSurat) || SuratDispensasi::withTrashed()->where('nomor_surat', $nomorSurat)->exists()) {
+                $nomorSurat = $this->generateUniqueNomorSurat();
+            }
+        }
 
         $dispen = SuratDispensasi::create([
             'nomor_surat' => $nomorSurat,
@@ -423,12 +508,43 @@ class GuruPiketController extends Controller
             'alasan_dispensasi' => $request->alasan_dispensasi,
             'file_surat' => $filePath,
             'status_approval' => 'disetujui',
+            'disetujui_oleh' => $user->id,
             'barcode_token' => (string) Str::uuid(),
             'created_at' => Carbon::now('Asia/Jakarta'),
         ]);
 
+        // Process Base64 TTD Siswa
+        if ($request->filled('ttd_siswa_data')) {
+            $base64Siswa = preg_replace('/^data:image\/png;base64,/', '', $request->input('ttd_siswa_data'));
+            $binarySiswa = base64_decode($base64Siswa, true);
+            if ($binarySiswa !== false && strlen($binarySiswa) > 100) {
+                $filenameSiswa = 'ttd_surat_dispensasi/siswa_' . $dispen->id_dispen . '_' . Carbon::now('Asia/Jakarta')->format('Ymd_His') . '.png';
+                Storage::disk('public')->put($filenameSiswa, $binarySiswa);
+                $dispen->update([
+                    'ttd_siswa_path' => $filenameSiswa,
+                    'ttd_siswa_signed_at' => Carbon::now('Asia/Jakarta'),
+                    'ttd_siswa_signed_name' => $siswa->nama_siswa,
+                ]);
+            }
+        }
+
+        // Process Base64 TTD Guru
+        if ($request->filled('ttd_guru_data')) {
+            $base64Guru = preg_replace('/^data:image\/png;base64,/', '', $request->input('ttd_guru_data'));
+            $binaryGuru = base64_decode($base64Guru, true);
+            if ($binaryGuru !== false && strlen($binaryGuru) > 100) {
+                $filenameGuru = 'ttd_surat_dispensasi/guru_' . $dispen->id_dispen . '_' . Carbon::now('Asia/Jakarta')->format('Ymd_His') . '.png';
+                Storage::disk('public')->put($filenameGuru, $binaryGuru);
+                $dispen->update([
+                    'ttd_guru_path' => $filenameGuru,
+                    'ttd_guru_signed_at' => Carbon::now('Asia/Jakarta'),
+                    'ttd_guru_signed_name' => $namaGuruPiket,
+                ]);
+            }
+        }
+
         return redirect()->route('guru-piket.digital-surat')
-            ->with('success', "Surat dispensasi untuk {$siswa->nama_siswa} ({$request->nama_kegiatan}) berhasil diterbitkan dan langsung berlaku!");
+            ->with('success', "Surat dispensasi untuk {$siswa->nama_siswa} ({$request->nama_kegiatan}) beserta TTD Digital berhasil diterbitkan dan terverifikasi!");
     }
 
     /**
@@ -529,5 +645,104 @@ class GuruPiketController extends Controller
         $filename = 'rekap-surat-piket-' . Carbon::now('Asia/Jakarta')->format('Y-m-d') . '.csv';
 
         return CsvExporter::downloadRows($filename, $rows);
+    }
+
+    public function simpanTtdSiswa(Request $request, $id)
+    {
+        $request->validate([
+            'signature'   => ['required', 'string', 'regex:/^data:image\/png;base64,/'],
+            'nama_siswa'  => ['required', 'string', 'max:100'],
+        ]);
+
+        $surat = SuratDispensasi::findOrFail($id);
+
+        if ($surat->tipe_pemohon !== 'siswa' || !$surat->id_siswa) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Surat ini bukan untuk siswa.',
+            ], 422);
+        }
+
+        $base64 = preg_replace('/^data:image\/png;base64,/', '', $request->input('signature'));
+        $binary = base64_decode($base64, true);
+
+        if ($binary === false || strlen($binary) < 100) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tanda tangan tidak valid.',
+            ], 422);
+        }
+
+        if (strlen($binary) > 2 * 1024 * 1024) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ukuran tanda tangan terlalu besar (maks 2MB).',
+            ], 413);
+        }
+
+        if ($surat->ttd_siswa_path && Storage::disk('public')->exists($surat->ttd_siswa_path)) {
+            Storage::disk('public')->delete($surat->ttd_siswa_path);
+        }
+
+        $filename = 'ttd_surat_dispensasi/' . $surat->id_dispen . '_' . Carbon::now('Asia/Jakarta')->format('Ymd_His') . '.png';
+        Storage::disk('public')->put($filename, $binary);
+
+        $surat->update([
+            'ttd_siswa_path'       => $filename,
+            'ttd_siswa_signed_at'  => Carbon::now('Asia/Jakarta'),
+            'ttd_siswa_signed_name'=> $request->input('nama_siswa'),
+        ]);
+
+        return response()->json([
+            'success'    => true,
+            'url'        => $surat->fresh()->ttd_siswa_url,
+            'signed_at'  => optional($surat->fresh()->ttd_siswa_signed_at)->format('d/m/Y H:i'),
+        ]);
+    }
+
+    public function simpanTtdGuru(Request $request, $id)
+    {
+        $request->validate([
+            'signature'  => ['required', 'string', 'regex:/^data:image\/png;base64,/'],
+            'nama_guru' => ['required', 'string', 'max:100'],
+        ]);
+
+        $surat = SuratDispensasi::findOrFail($id);
+
+        $base64 = preg_replace('/^data:image\/png;base64,/', '', $request->input('signature'));
+        $binary = base64_decode($base64, true);
+
+        if ($binary === false || strlen($binary) < 100) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tanda tangan guru tidak valid.',
+            ], 422);
+        }
+
+        if (strlen($binary) > 2 * 1024 * 1024) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ukuran tanda tangan terlalu besar (maks 2MB).',
+            ], 413);
+        }
+
+        if ($surat->ttd_guru_path && Storage::disk('public')->exists($surat->ttd_guru_path)) {
+            Storage::disk('public')->delete($surat->ttd_guru_path);
+        }
+
+        $filename = 'ttd_surat_dispensasi/guru_' . $surat->id_dispen . '_' . Carbon::now('Asia/Jakarta')->format('Ymd_His') . '.png';
+        Storage::disk('public')->put($filename, $binary);
+
+        $surat->update([
+            'ttd_guru_path'        => $filename,
+            'ttd_guru_signed_at'   => Carbon::now('Asia/Jakarta'),
+            'ttd_guru_signed_name' => $request->input('nama_guru'),
+        ]);
+
+        return response()->json([
+            'success'    => true,
+            'url'        => $surat->fresh()->ttd_guru_url,
+            'signed_at'  => optional($surat->fresh()->ttd_guru_signed_at)->format('d/m/Y H:i'),
+        ]);
     }
 }

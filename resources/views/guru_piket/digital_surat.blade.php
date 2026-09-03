@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Surat Piket Digital - Guru Piket</title>
 
     <!-- Google Fonts & FontAwesome -->
@@ -10,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.min.js"></script>
 
     <!-- Modular Dashboard CSS -->
     <link rel="stylesheet" href="{{ asset('css/modules/dashboard.css') }}">
@@ -302,9 +304,14 @@
                                     <span class="pk-badge-status pk-badge-approved"><i class="fa-solid fa-check" style="margin-right: 4px;"></i>Disetujui Piket</span>
                                 </td>
                                 <td>
-                                    <button type="button" onclick="showDispenModal('{{ $dispen->nomor_surat }}', '{{ optional($dispen->siswa)->nama_siswa ?? 'Siswa' }}', '{{ optional($dispen->siswa)->nisn ?? '-' }}', '{{ trim($namaKelas) ?: '-' }}', '{{ addslashes($dispen->nama_kegiatan) }}', '{{ addslashes($dispen->lokasi_kegiatan ?? 'Lingkungan Sekolah') }}', '{{ $dispen->tanggal_mulai }}', '{{ $dispen->jam_mulai }} - {{ $dispen->jam_selesai }}', '{{ addslashes($dispen->alasan_dispensasi ?? '-') }}', '{{ $dispen->barcode_token }}')" style="background: #fce7f3; border: 1px solid #f472b6; color: #be185d; padding: 6px 14px; border-radius: 10px; font-weight: 800; font-size: 0.775rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
-                                        <i class="fa-solid fa-envelope-open-text" style="color: #ec4899;"></i> Surat
-                                    </button>
+                                    <div style="display: flex; gap: 6px; align-items: center;">
+                                        <button type="button" onclick="showDispenModal('{{ $dispen->id_dispen }}', '{{ $dispen->nomor_surat }}', '{{ addslashes(optional($dispen->siswa)->nama_siswa ?? 'Siswa') }}', '{{ optional($dispen->siswa)->nisn ?? '-' }}', '{{ trim($namaKelas) ?: '-' }}', '{{ addslashes($dispen->nama_kegiatan) }}', '{{ addslashes($dispen->lokasi_kegiatan ?? 'Lingkungan Sekolah') }}', '{{ $dispen->tanggal_mulai }}', '{{ $dispen->jam_mulai }} - {{ $dispen->jam_selesai }}', '{{ addslashes($dispen->alasan_dispensasi ?? '-') }}', '{{ $dispen->barcode_token }}', '{{ $dispen->ttd_siswa_url ? addslashes($dispen->ttd_siswa_url) : '' }}', '{{ addslashes($dispen->ttd_siswa_signed_name ?? '') }}', '{{ $dispen->ttd_siswa_signed_at ? $dispen->ttd_siswa_signed_at->format('d/m/Y H:i') : '' }}', '{{ $dispen->ttd_guru_url ? addslashes($dispen->ttd_guru_url) : '' }}', '{{ addslashes($dispen->ttd_guru_signed_name ?? $namaGuruPiket) }}')" style="background: #fce7f3; border: 1px solid #f472b6; color: #be185d; padding: 6px 14px; border-radius: 10px; font-weight: 800; font-size: 0.775rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
+                                            <i class="fa-solid fa-envelope-open-text" style="color: #ec4899;"></i> Surat
+                                        </button>
+                                        <a href="{{ route('guru-piket.input-dispensasi', ['id' => $dispen->id_dispen]) }}" style="background: #e0f2fe; border: 1px solid #7dd3fc; color: #0369a1; padding: 6px 12px; border-radius: 10px; font-weight: 800; font-size: 0.775rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                            <i class="fa-solid fa-eye"></i> Detail
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -485,16 +492,19 @@
                     <!-- Kiri: Penerima -->
                     <div style="text-align: center; width: 220px;">
                         <div>Siswa yang bersangkutan,</div>
-                        <div style="height: 64px;"></div>
-                        <div style="border-top: 1px solid #000; padding-top: 4px; font-weight: bold;" id="dp_ttd_siswa">( __________________ )</div>
+                        <div style="min-height: 64px; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; padding: 4px 0;" id="dp_ttd_siswa_area">
+                            <div style="color:#888; font-style: italic; font-size: 0.8rem;">( area tanda tangan siswa )</div>
+                        </div>
+                        <div id="dp_ttd_siswa"></div>
                     </div>
                     <!-- Kanan: Petugas -->
                     <div style="text-align: center; width: 220px;">
                         <div id="dp_kota_tgl" style="margin-bottom: 2px;"></div>
-                        <div>Petugas Piket,</div>
-                        <div style="height: 64px;"></div>
-                        <div style="border-top: 1px solid #000; padding-top: 4px; font-weight: bold;">( __________________ )</div>
-                        <div style="font-size: 0.8rem; color: #555;">NIP. —</div>
+                        <div>Petugas Piket / Pengesah,</div>
+                        <div style="min-height: 64px; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; padding: 4px 0;" id="dp_ttd_guru_area">
+                            <div style="color:#888; font-style: italic; font-size: 0.8rem;">( area tanda tangan guru )</div>
+                        </div>
+                        <div id="dp_ttd_guru" style="border-top: 1px solid #000; padding-top: 4px; font-weight: bold;">( {{ $namaGuruPiket }} )</div>
                     </div>
                 </div>
 
@@ -523,11 +533,156 @@
     </div>
 
     <script>
-        function showDispenModal(noSurat, siswa, nisn, kelas, kegiatan, lokasi, tanggal, jam, alasan, token) {
+        let dpSignaturePad = null;
+
+        function escapeHtml(s) {
+            if (s == null) return '';
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function renderTtdSiswaArea(idDispen, namaSiswa, ttdUrl, signedName, signedAt) {
+            const area = document.getElementById('dp_ttd_siswa_area');
+            const label = document.getElementById('dp_ttd_siswa');
+            if (!area) return;
+
+            if (ttdUrl) {
+                area.innerHTML = `
+                    <img src="${escapeHtml(ttdUrl)}" alt="TTD ${escapeHtml(signedName || namaSiswa)}" style="max-height:80px; max-width:200px; display:block; margin:0 auto 4px auto;" onerror="this.style.display='none';">
+                    <button type="button" id="dp_btn_ulang_ttd" style="font-size:0.7rem; background:transparent; border:1px dashed #999; color:#444; padding:2px 8px; border-radius:3px; cursor:pointer; margin-bottom:4px;">
+                        Tanda Ulang
+                    </button>
+                `;
+                if (label) {
+                    label.style.borderTop = '1px solid #000';
+                    label.style.paddingTop = '4px';
+                    label.style.fontWeight = 'bold';
+                    label.innerHTML = `( ${escapeHtml(signedName || namaSiswa)} )`;
+                }
+                const btnUlang = document.getElementById('dp_btn_ulang_ttd');
+                if (btnUlang) {
+                    btnUlang.addEventListener('click', function () {
+                        renderTtdSiswaPad(idDispen, namaSiswa);
+                    });
+                }
+            } else {
+                renderTtdSiswaPad(idDispen, namaSiswa);
+            }
+        }
+
+        function renderTtdSiswaPad(idDispen, namaSiswa) {
+            const area = document.getElementById('dp_ttd_siswa_area');
+            const label = document.getElementById('dp_ttd_siswa');
+            if (!area) return;
+
+            area.innerHTML = `
+                <div style="border:1px dashed #555; border-radius:4px; padding:6px; background:#fafafa; max-width: 320px; margin: 0 auto;">
+                    <canvas id="dp_canvas_siswa" width="300" height="120" style="width:100%; height:120px; background:#fff; touch-action: none; display:block; margin: 0 auto; cursor: crosshair; border-radius:2px;"></canvas>
+                    <div style="display:flex; gap:6px; justify-content:center; margin-top:6px;">
+                        <button type="button" id="dp_btn_clear_ttd" style="font-size:0.7rem; padding:3px 10px; background:#e5e7eb; border:1px solid #9ca3af; color:#374151; border-radius:3px; cursor:pointer;">
+                            Bersihkan
+                        </button>
+                        <button type="button" id="dp_btn_simpan_ttd" style="font-size:0.7rem; padding:3px 10px; background:#1e2538; border:1px solid #1e2538; color:#fff; border-radius:3px; cursor:pointer;" disabled>
+                            Simpan TTD
+                        </button>
+                    </div>
+                </div>
+            `;
+            if (label) {
+                label.style.borderTop = '1px solid #000';
+                label.style.paddingTop = '4px';
+                label.style.fontWeight = 'bold';
+                label.innerHTML = `( <span style="color:#888;">menunggu tanda tangan</span> )`;
+            }
+
+            const canvas = document.getElementById('dp_canvas_siswa');
+            if (!canvas || typeof SignaturePad === 'undefined') {
+                if (label) label.innerHTML = '( ' + escapeHtml(namaSiswa) + ' )';
+                return;
+            }
+
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = 300 * ratio;
+            canvas.height = 120 * ratio;
+            canvas.getContext('2d').scale(ratio, ratio);
+
+            if (dpSignaturePad) { try { dpSignaturePad.off(); } catch (e) {} }
+            dpSignaturePad = new SignaturePad(canvas, {
+                backgroundColor: 'rgba(255, 255, 255, 0)',
+                penColor: '#0f172a',
+                minWidth: 0.8,
+                maxWidth: 2.4
+            });
+
+            const btnSimpan = document.getElementById('dp_btn_simpan_ttd');
+            const btnClear  = document.getElementById('dp_btn_clear_ttd');
+
+            function updateSimpanState() {
+                if (!btnSimpan) return;
+                btnSimpan.disabled = dpSignaturePad.isEmpty();
+            }
+            dpSignaturePad.addEventListener('endStroke', updateSimpanState);
+            dpSignaturePad.addEventListener('beginStroke', updateSimpanState);
+            updateSimpanState();
+
+            if (btnClear) {
+                btnClear.addEventListener('click', function () {
+                    dpSignaturePad.clear();
+                    updateSimpanState();
+                });
+            }
+
+            if (btnSimpan) {
+                btnSimpan.addEventListener('click', function () {
+                    if (dpSignaturePad.isEmpty()) return;
+                    const dataUrl = dpSignaturePad.toDataURL('image/png');
+                    btnSimpan.disabled = true;
+                    btnSimpan.textContent = 'Menyimpan...';
+
+                    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                    const url = `/guru-piket/dispensasi/${idDispen}/ttd-siswa`;
+
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrf,
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            signature: dataUrl,
+                            nama_siswa: namaSiswa
+                        })
+                    })
+                    .then(r => r.json().then(j => ({ status: r.status, body: j })))
+                    .then(({ status, body }) => {
+                        if (status >= 200 && status < 300 && body.success) {
+                            renderTtdSiswaArea(idDispen, namaSiswa, body.url, namaSiswa, body.signed_at);
+                        } else {
+                            alert(body.message || 'Gagal menyimpan tanda tangan.');
+                            btnSimpan.disabled = false;
+                            btnSimpan.textContent = 'Simpan TTD';
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Terjadi kesalahan saat menyimpan tanda tangan.');
+                        btnSimpan.disabled = false;
+                        btnSimpan.textContent = 'Simpan TTD';
+                    });
+                });
+            }
+        }
+
+        function showDispenModal(idDispen, noSurat, siswa, nisn, kelas, kegiatan, lokasi, tanggal, jam, alasan, token, ttdUrl, ttdSignedName, ttdSignedAt, ttdGuruUrl, ttdGuruSignedName) {
             document.getElementById('dp_no_surat_formal').innerText = 'Nomor: ' + noSurat;
             document.getElementById('dp_no_surat_footer').innerText = noSurat;
             document.getElementById('dp_nama_siswa').innerText = siswa;
-            document.getElementById('dp_ttd_siswa').innerText = '( ' + siswa + ' )';
             document.getElementById('dp_nisn').innerText = nisn;
             document.getElementById('dp_kelas').innerText = kelas;
             document.getElementById('dp_kegiatan').innerText = kegiatan;
@@ -543,10 +698,26 @@
             const year = now.getFullYear();
             document.getElementById('dp_kota_tgl').innerText = 'Kota, ' + day + ' ' + month + ' ' + year;
 
+            renderTtdSiswaArea(idDispen, siswa, ttdUrl || '', ttdSignedName || '', ttdSignedAt || '');
+
+            const guruArea = document.getElementById('dp_ttd_guru_area');
+            const guruNameEl = document.getElementById('dp_ttd_guru');
+            if (guruArea) {
+                if (ttdGuruUrl) {
+                    guruArea.innerHTML = `<img src="${ttdGuruUrl}" alt="TTD Guru" style="max-height: 60px; max-width: 100%; display:block; margin:0 auto;">`;
+                } else {
+                    guruArea.innerHTML = `<div style="height:54px;"></div>`;
+                }
+            }
+            if (guruNameEl) {
+                guruNameEl.innerHTML = `( ${ttdGuruSignedName || '{{ $namaGuruPiket }}'} )`;
+            }
+
             document.getElementById('dispenModal').style.display = 'flex';
         }
 
         function closeDispenModal() {
+            if (dpSignaturePad) { try { dpSignaturePad.off(); } catch (e) {} dpSignaturePad = null; }
             document.getElementById('dispenModal').style.display = 'none';
         }
 

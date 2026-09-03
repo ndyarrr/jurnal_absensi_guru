@@ -1,4 +1,5 @@
 <div class="dash-sidebar-footer">
+    @if(Auth::check() && Auth::user()->isAdmin())
     <a href="{{ route('panduan.index') }}" class="dash-sidebar-guide-link {{ request()->routeIs('panduan.*') ? 'active' : '' }}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"></circle>
@@ -7,4 +8,5 @@
         </svg>
         <span>Panduan Admin</span>
     </a>
+    @endif
 </div>

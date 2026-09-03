@@ -115,6 +115,68 @@ npm install
 > php artisan queue:work
 > ```
 
+## 🤖 Mengelola Proses Bot WhatsApp via Web (PM2)
+
+Bot WhatsApp (`bot/index.js`) dapat **dihidupkan & dimatikan langsung dari web** di halaman
+**Pengaturan WhatsApp → tab Bot Status** (kartu "Kontrol Proses Bot (PM2)").
+
+Tombol **Hidupkan Bot** setara menjalankan `npm start`, dan **Matikan Bot** menghentikan total
+proses (tidak auto-reconnect). Fitur ini bekerja lewat PM2.
+
+### Setup di server (sekali saja)
+
+1. Pasang PM2 (global):
+   ```bash
+   npm install -g pm2
+   ```
+2. Daftarkan bot sebagai aplikasi PM2:
+   ```bash
+   cd bot
+   pm2 start index.js --name wa-bot
+   pm2 save
+   ```
+   (opsional, agar nyala otomatis saat server reboot: `pm2 startup` lalu ikuti perintah yang muncul)
+3. Atur di `.env`:
+   ```
+   WA_BOT_URL=http://127.0.0.1:3000
+   WA_BOT_DIR=/path/ke/project/bot
+   WA_BOT_PM2_APP_NAME=wa-bot
+   WA_BOT_PM2_BIN=pm2
+   ```
+   - `WA_BOT_PM2_BIN` diisi jika binary pm2 tidak ada di PATH user web (mis. `www-data`).
+   - `WA_BOT_PM2_HOME` diisi jika daemon PM2 memakai home khusus (mis. `/home/www-data/.pm2`).
+   - Pastikan user web (www-data) dapat mengeksekusi binary `pm2` tersebut.
+
+### 🪟 Mengembangkan di Windows
+
+Fitur ini **cross-platform**. Untuk `npm install pm2` di folder `bot/`, lalu:
+
+1. Jalankan dari PowerShell/CMD (di folder `bot`):
+   ```powershell
+   .\node_modules\.bin\pm2 start index.js --name wa-bot
+   .\node_modules\.bin\pm2 save
+   ```
+2. Atur `.env` ke path Windows:
+   ```
+   WA_BOT_DIR=C:\project\jurnal_absensi_guru\bot
+   WA_BOT_PM2_BIN=C:\project\jurnal_absensi_guru\bot\node_modules\.bin\pm2.cmd
+   ```
+   > Helper sudah lintas platform: jika `WA_BOT_PM2_BIN` berisi path tanpa ekstensi,
+   > otomatis dicoba `pm2.cmd`. Jika dibiarkan `pm2`, akan dicari lewat PATH (`where pm2`).
+3. Jebakan Windows:
+   - Web jalan sebagai service (XAMPP/Apache, IIS) → user service berbeda dari user yang
+     menjalankan `pm2 start`. Set **`WA_BOT_PM2_HOME`** ke folder `.pm2` milik user service
+     (mis. `C:\Windows\System32\config\systemprofile\.pm2`) agar daemon PM2 yang sama yang dipakai.
+   - `pm2 startup` (auto-nyala saat reboot) **tidak otomatis** di Windows; gunakan Task Scheduler
+     atau paket `pm2-installer` jika diinginkan. Tidak wajib untuk tombol hidup/mati via web.
+   - Pastikan user service punya izin eksekusi ke folder `bot` dan `pm2.cmd`.
+
+### Penting
+- Web (Laravel) dan bot Node.js harus berada di **server/mesin yang sama**.
+- `pm2 start/stop` memerlukan izin eksekusi untuk user yang menjalankan web (PHP).
+- Catatan: jika `pm2 stop wa-bot`, seluruh fitur notifikasi/reminder WA berhenti sampai bot
+  dinyalakan kembali (manual atau via tombol **Hidupkan Bot**).
+
 
 ## 🔄 Workflow Sebelum Ngoding
 

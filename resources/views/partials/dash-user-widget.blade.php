@@ -29,7 +29,7 @@
 
         @if(session('profile_error'))
             <div class="dash-profile-alert error">{{ session('profile_error') }}</div>
-        @elseif($errors->has('current_password') || $errors->has('new_password'))
+        @elseif(isset($errors) && ($errors->has('current_password') || $errors->has('new_password')))
             <div class="dash-profile-alert error">
                 {{ $errors->first('current_password') ?: $errors->first('new_password') }}
             </div>
@@ -91,7 +91,7 @@
             @endif
 
             <!-- Collapsible Change Password Section -->
-            <details class="dash-change-password-wrap" style="margin-top: 10px; border-top: 1px dashed #e2e8f0; padding-top: 8px;" @if($errors->has('current_password') || $errors->has('new_password')) open @endif>
+            <details class="dash-change-password-wrap" style="margin-top: 10px; border-top: 1px dashed #e2e8f0; padding-top: 8px;" @if(isset($errors) && ($errors->has('current_password') || $errors->has('new_password'))) open @endif>
                 <summary style="font-size: 0.8rem; font-weight: 800; color: #2563eb; cursor: pointer; user-select: none; padding: 4px 0; display: inline-flex; align-items: center; gap: 6px;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: #2563eb; flex-shrink: 0;">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>

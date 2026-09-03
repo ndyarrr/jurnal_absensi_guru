@@ -30,6 +30,17 @@ class SuratDispensasi extends Model
         'status_approval',
         'disetujui_oleh',
         'barcode_token',
+        'ttd_siswa_path',
+        'ttd_siswa_signed_at',
+        'ttd_siswa_signed_name',
+        'ttd_guru_path',
+        'ttd_guru_signed_at',
+        'ttd_guru_signed_name',
+    ];
+
+    protected $casts = [
+        'ttd_siswa_signed_at' => 'datetime',
+        'ttd_guru_signed_at'  => 'datetime',
     ];
 
     protected static function boot()
@@ -75,5 +86,23 @@ class SuratDispensasi extends Model
         }
 
         return asset('storage/' . ltrim($this->file_surat, '/'));
+    }
+
+    public function getTtdSiswaUrlAttribute(): ?string
+    {
+        if (!$this->ttd_siswa_path) {
+            return null;
+        }
+
+        return asset('storage/' . ltrim($this->ttd_siswa_path, '/'));
+    }
+
+    public function getTtdGuruUrlAttribute(): ?string
+    {
+        if (!$this->ttd_guru_path) {
+            return null;
+        }
+
+        return asset('storage/' . ltrim($this->ttd_guru_path, '/'));
     }
 }

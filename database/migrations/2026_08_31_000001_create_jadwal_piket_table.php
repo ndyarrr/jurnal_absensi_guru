@@ -11,15 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('jadwal_piket', function (Blueprint $table) {
-            $table->integer('id_piket')->autoIncrement();
-            $table->enum('hari', ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat']);
-            $table->integer('id_guru');
-            $table->string('keterangan')->nullable();
-            $table->timestamps();
+        if (!Schema::hasTable('jadwal_piket')) {
+            Schema::create('jadwal_piket', function (Blueprint $table) {
+                $table->integer('id_piket')->autoIncrement();
+                $table->enum('hari', ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat']);
+                $table->integer('id_guru');
+                $table->string('keterangan')->nullable();
+                $table->timestamps();
 
-            $table->foreign('id_guru')->references('id_guru')->on('guru')->onDelete('cascade');
-        });
+                $table->foreign('id_guru')->references('id_guru')->on('guru')->onDelete('cascade');
+            });
+        }
     }
 
     /**

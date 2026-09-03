@@ -30,6 +30,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Dedicated coming-soon dashboard for non-admin roles
     Route::get('/role-dashboard', [DashboardController::class, 'roleDashboard'])->name('role.dashboard');
+    Route::get('/guru/dashboard', [DashboardController::class, 'guruMengajarDashboard'])->name('guru-mengajar.dashboard');
     Route::get('/wali-kelas/dashboard', [\App\Http\Controllers\WaliKelasController::class, 'dashboard'])->name('wali-kelas.dashboard');
     Route::get('/wali-kelas/perwalian', [\App\Http\Controllers\WaliKelasController::class, 'perwalian'])->name('wali-kelas.perwalian');
     Route::get('/wali-kelas/rekap-kehadiran', [\App\Http\Controllers\WaliKelasController::class, 'rekapKehadiran'])->name('wali-kelas.rekap-kehadiran');
@@ -54,6 +55,16 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/guru-piket/input-dispensasi', [\App\Http\Controllers\GuruPiketController::class, 'storeDispensasi'])->name('guru-piket.store-dispensasi');
     Route::get('/guru-piket/digital-surat', [\App\Http\Controllers\GuruPiketController::class, 'digitalisasiSurat'])->name('guru-piket.digital-surat');
     Route::get('/guru-piket/export/csv', [\App\Http\Controllers\GuruPiketController::class, 'exportCsv'])->name('guru-piket.export-csv');
+    Route::post('/guru-piket/dispensasi/{id}/ttd-siswa', [\App\Http\Controllers\GuruPiketController::class, 'simpanTtdSiswa'])->name('guru-piket.dispensasi.ttd-siswa');
+    Route::post('/guru-piket/dispensasi/{id}/ttd-guru', [\App\Http\Controllers\GuruPiketController::class, 'simpanTtdGuru'])->name('guru-piket.dispensasi.ttd-guru');
+
+    // Jurnal & Jadwal routes for all authenticated users (Guru, Admin, etc.)
+    Route::get('/jadwal/export/csv', [JadwalPelajaranController::class, 'exportCsv'])->name('jadwal.export-csv');
+    Route::get('/jadwal/export/pdf', [JadwalPelajaranController::class, 'exportPdf'])->name('jadwal.export-pdf');
+    Route::resource('jadwal', JadwalPelajaranController::class);
+    Route::post('/jadwal/{jadwal}/move', [JadwalPelajaranController::class, 'move'])->name('jadwal.move');
+    Route::get('/jurnal/export/csv', [JurnalMengajarController::class, 'exportCsv'])->name('jurnal.export-csv');
+    Route::resource('jurnal', JurnalMengajarController::class);
 
     // Admin Only Protected Routes
     Route::middleware([EnsureUserIsAdmin::class])->group(function () {
@@ -69,13 +80,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('ruangan', RuanganController::class);
         Route::get('/siswa/export/csv', [SiswaController::class, 'exportCsv'])->name('siswa.export-csv');
         Route::resource('siswa', SiswaController::class);
-        Route::get('/jadwal/export/csv', [JadwalPelajaranController::class, 'exportCsv'])->name('jadwal.export-csv');
-        Route::get('/jadwal/export/pdf', [JadwalPelajaranController::class, 'exportPdf'])->name('jadwal.export-pdf');
-        Route::resource('jadwal', JadwalPelajaranController::class);
         Route::resource('jadwal-piket', JadwalPiketController::class);
-        Route::post('/jadwal/{jadwal}/move', [JadwalPelajaranController::class, 'move'])->name('jadwal.move');
-        Route::get('/jurnal/export/csv', [JurnalMengajarController::class, 'exportCsv'])->name('jurnal.export-csv');
-        Route::resource('jurnal', JurnalMengajarController::class);
         Route::resource('users', UserController::class);
         Route::get('/pengguna', [UserController::class, 'index'])->name('pengguna.index');
 
@@ -85,6 +90,29 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/jam/generate', [\App\Http\Controllers\JamPelajaranController::class, 'generateSlots'])->name('jam.generate');
         Route::post('/jam/reorder', [\App\Http\Controllers\JamPelajaranController::class, 'reorderSlots'])->name('jam.reorder');
         Route::resource('jam-pelajaran', \App\Http\Controllers\JamPelajaranController::class)->except(['index']);
+
+        // Kategori Baru: Pengaturan / Notifikasi WhatsApp
+        Route::prefix('pengaturan-wa')->name('pengaturan-wa.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\PengaturanWaController::class, 'index'])->name('index');
+            Route::get('/api/status', [\App\Http\Controllers\PengaturanWaController::class, 'apiStatus'])->name('api-status');
+            Route::post('/pair-code', [\App\Http\Controllers\PengaturanWaController::class, 'requestPairingCode'])->name('pair-code');
+            Route::post('/logout', [\App\Http\Controllers\PengaturanWaController::class, 'logoutBot'])->name('logout');
+            Route::post('/reconnect', [\App\Http\Controllers\PengaturanWaController::class, 'reconnectBot'])->name('reconnect');
+            Route::post('/start', [\App\Http\Controllers\PengaturanWaController::class, 'startBot'])->name('start');
+            Route::post('/stop', [\App\Http\Controllers\PengaturanWaController::class, 'stopBot'])->name('stop');
+            Route::post('/settings', [\App\Http\Controllers\PengaturanWaController::class, 'updateSettings'])->name('settings.update');
+            Route::post('/test-send', [\App\Http\Controllers\PengaturanWaController::class, 'sendTestMessage'])->name('test-send');
+            
+            // Templates
+            Route::post('/templates', [\App\Http\Controllers\PengaturanWaController::class, 'storeTemplate'])->name('templates.store');
+            Route::put('/templates/{id}', [\App\Http\Controllers\PengaturanWaController::class, 'updateTemplate'])->name('templates.update');
+            Route::delete('/templates/{id}', [\App\Http\Controllers\PengaturanWaController::class, 'destroyTemplate'])->name('templates.destroy');
+
+            // Recipients
+            Route::post('/recipients', [\App\Http\Controllers\PengaturanWaController::class, 'storeRecipient'])->name('recipients.store');
+            Route::put('/recipients/{id}', [\App\Http\Controllers\PengaturanWaController::class, 'updateRecipient'])->name('recipients.update');
+            Route::delete('/recipients/{id}', [\App\Http\Controllers\PengaturanWaController::class, 'destroyRecipient'])->name('recipients.destroy');
+        });
     });
 
 });

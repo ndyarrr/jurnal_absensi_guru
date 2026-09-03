@@ -129,7 +129,7 @@ class DashboardController extends Controller
     }
 
     /**
-     * Display clean "Halaman Role $role Segera Hadir" for non-admin roles.
+     * Display clean "Halaman Role $role" for non-admin roles.
      */
     public function roleDashboard()
     {
@@ -139,16 +139,11 @@ class DashboardController extends Controller
             return redirect()->route('dashboard');
         }
 
-        // 1. Check if user is scheduled for Piket Duty today or has guru_piket role
-        if ($this->isTeacherDutyToday($user)) {
+        // 1. Check if user is assigned as Guru Piket or scheduled for Piket Duty today
+        if ($user->isGuruPiket() || $this->isTeacherDutyToday($user)) {
             return redirect()->route('guru-piket.dashboard');
         }
 
-         // 2. Check if user has the Guru Mengajar role
-        if ($user->isGuruMengajar()) {
-            return redirect()->route('guru-mengajar.dashboard');
-        }
-        
         // 2. Check if user is assigned as Wali Kelas
         if ($user->isWaliKelas()) {
             $guru = $user->guru;
@@ -157,7 +152,85 @@ class DashboardController extends Controller
             }
         }
 
+        // 3. Check if user has the Guru Mengajar role
+        if ($user->isGuruMengajar()) {
+            return redirect()->route('guru-mengajar.dashboard');
+        }
+
+        // 4. Fallback for roles that do not have a dedicated dashboard implemented yet (e.g. Kepala Sekolah, Waka, Satpam)
         return view('admin.dashboard.role-coming-soon');
+    }
+
+    /**
+     * Dedicated Dashboard for Guru Mengajar Role matching app theme.
+     */
+    public function guruMengajarDashboard(Request $request)
+    {
+        $user = auth()->user();
+        
+        // Resolve associated Guru model
+        $guru = $user->guru;
+        if (!$guru && !empty($user->name)) {
+            $guru = Guru::where('nama_guru', $user->name)->first();
+        }
+
+        $namaGuru = $guru ? $guru->nama_guru : $user->name;
+        $nipGuru = $guru ? ($guru->nip ?? '-') : '-';
+        $nuptkGuru = $guru ? ($guru->nuptk ?? '-') : '-';
+
+        // Translate current day name (e.g. Monday -> Senin)
+        $dayMap = [
+            'Monday' => 'Senin',
+            'Tuesday' => 'Selasa',
+            'Wednesday' => 'Rabu',
+            'Thursday' => 'Kamis',
+            'Friday' => 'Jumat',
+            'Saturday' => 'Sabtu',
+            'Sunday' => 'Minggu',
+        ];
+        $englishDay = Carbon::now()->format('l');
+        $todayName = $dayMap[$englishDay] ?? 'Senin';
+        $todayStr = Carbon::now()->toDateString();
+
+        $todayJadwals = collect();
+        $filledJadwalIds = [];
+        $totalJadwalHariIni = 0;
+        $jurnalTerisiCount = 0;
+
+        if ($guru) {
+            $todayJadwals = JadwalPelajaran::with(['kelas.jurusan', 'mapel', 'jamPelajaran', 'ruangan'])
+                ->where('id_guru', $guru->id_guru)
+                ->where('hari', $todayName)
+                ->orderBy('id_jam', 'asc')
+                ->get();
+
+            $totalJadwalHariIni = $todayJadwals->count();
+
+            if ($totalJadwalHariIni > 0) {
+                $filledJadwalIds = JurnalMengajar::whereIn('id_jadwal', $todayJadwals->pluck('id_jadwal'))
+                    ->whereDate('tanggal', $todayStr)
+                    ->pluck('id_jadwal')
+                    ->toArray();
+
+                $jurnalTerisiCount = count($filledJadwalIds);
+            }
+        }
+
+        $jurnalBelumTerisiCount = max(0, $totalJadwalHariIni - $jurnalTerisiCount);
+
+        return view('guru.dashboard', compact(
+            'user',
+            'guru',
+            'namaGuru',
+            'nipGuru',
+            'nuptkGuru',
+            'todayName',
+            'todayJadwals',
+            'totalJadwalHariIni',
+            'jurnalTerisiCount',
+            'jurnalBelumTerisiCount',
+            'filledJadwalIds'
+        ));
     }
 
     /**
@@ -166,7 +239,7 @@ class DashboardController extends Controller
     private function isTeacherDutyToday($user): bool
     {
         if (!$user) return false;
-        if ($user->isAdmin()) return true;
+        if ($user->isAdmin()) return false;
 
         $idGuru = $user->id_guru;
         if (!$idGuru && $user->guru) {
@@ -184,8 +257,8 @@ class DashboardController extends Controller
             return false;
         }
 
-        if (!\Illuminate\Support\Facades\Schema::hasTable('jadwal_piket') || \App\Models\JadwalPiket::count() === 0) {
-            return true;
+        if (!\Illuminate\Support\Facades\Schema::hasTable('jadwal_piket')) {
+            return false;
         }
 
         $dayMap = [

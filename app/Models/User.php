@@ -117,7 +117,7 @@ class User extends Authenticatable
     {
         return match ($this->role) {
             'super_admin' => 'Admin Super',
-            'admin' => 'Admin Biasa',
+            'admin' => 'Admin',
             'guru_mengajar' => 'Guru Mengajar',
             'wali_kelas' => 'Wali Kelas',
             'guru_piket' => 'Guru Piket',
@@ -125,7 +125,7 @@ class User extends Authenticatable
             'waka' => 'Waka',
             'waka_sdm' => 'Waka SDM',
             'satpam' => 'Satpam',
-            default => 'Guru Mengajar',
+            default => ucwords(str_replace('_', ' ', $this->role ?? 'Guru Mengajar')),
         };
     }
 

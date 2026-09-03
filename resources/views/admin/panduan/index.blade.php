@@ -288,7 +288,7 @@
 
             <!-- Search Filter Bar -->
             <div style="margin-bottom: 8px;">
-                <input type="text" id="guideSearchInput" onkeyup="filterGuides()" class="search-guide-input" placeholder="Cari bantuan (contoh: jadwal, guru, siswa, piket, export, istirahat)...">
+                <input type="text" id="guideSearchInput" onkeyup="filterGuides()" class="search-guide-input" placeholder="Cari bantuan (contoh: jadwal, guru, siswa, piket, export, istirahat, whatsapp, bot)...">
             </div>
 
             <!-- Visual Workflow Overview -->
@@ -316,6 +316,10 @@
                     <div class="flow-node">
                         <div class="flow-node-title">5. Monitoring Jurnal</div>
                         <div class="flow-node-desc">Pantau jurnal guru & ekspor rekap laporan.</div>
+                    </div>
+                    <div class="flow-node">
+                        <div class="flow-node-title">6. Notifikasi WhatsApp</div>
+                        <div class="flow-node-desc">Hubungkan Bot WA, atur template pesan & penerima otomatis.</div>
                     </div>
                 </div>
             </div>
@@ -473,10 +477,109 @@
                     </ul>
                 </div>
 
-                <!-- TOPIC 6: Jurnal Mengajar & Laporan -->
+                <!-- TOPIC 6 (BARU): Pengaturan WhatsApp / Bot Konfigurasi -->
                 <div class="guide-step-card guide-topic-card">
                     <div class="step-header">
                         <span class="step-badge">6</span>
+                        <span>Pengaturan WhatsApp &amp; Notifikasi Otomatis (Bot Konfigurasi)</span>
+                    </div>
+                    <p style="color: #475569; font-size: 0.9rem; line-height: 1.6; margin-bottom: 14px;">
+                        Fitur <strong>Bot Konfigurasi</strong> (menu di sidebar) adalah pusat kendali notifikasi WhatsApp. Dari sini Anda bisa
+                        menyambungkan bot ke nomor WhatsApp sekolah, menghidupkan/mematikan proses bot, mengatur pengingat jurnal mengajar,
+                        mengubah isi pesan otomatis, serta menentukan siapa saja yang menerima notifikasi. Seluruh halaman dikemas dalam 5 tab:
+                    </p>
+
+                    <table class="mini-table">
+                        <thead>
+                            <tr>
+                                <th>Tab</th>
+                                <th>Fungsi Singkat</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Status Bot</strong></td>
+                                <td>Melihat status koneksi WA, kontrol proses bot (PM2), scan QR / kode pairing, muat ulang sesi, dan logout.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Pengaturan</strong></td>
+                                <td>Saklar utama notifikasi WA, pengingat jurnal (menit sebelum jam selesai), dan target penerima laporan.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Template Pesan</strong></td>
+                                <td>Edit isi pesan otomatis per kategori (Reminder, Izin, Dispensasi, Presensi) dalam tampilan gelembung chat.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Penerima Khusus</strong></td>
+                                <td>Daftar kontak (kepala sekolah, pengawas, admin) yang selalu menerima tembusan notifikasi sistem.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Uji Coba Kirim</strong></td>
+                                <td>Mengirim pesan tes untuk memastikan bot benar-benar aktif sebelum dipakai normal.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="margin-top: 16px;">
+                        <strong style="color: #0f172a; font-size: 0.9rem;">Cara Menyambungkan Bot WhatsApp (Pertama Kali):</strong>
+                    </div>
+                    <ol class="guide-step-list step-list-num">
+                        <li><strong>Buka halamannya:</strong> Klik menu <em>Bot Konfigurasi</em> di sidebar (kategori paling bawah).</li>
+                        <li><strong>Tab Status Bot:</strong> Lihat bagian "Kontrol Proses Bot (PM2)". Jika tertulis <em>PM2 Tidak Terdeteksi</em>, selesaikan dulu setup PM2 di server (lihat README).</li>
+                        <li><strong>Hidupkan Bot:</strong> Klik tombol hijau <em>Hidupkan Bot</em> agar proses Node.js berjalan.</li>
+                        <li><strong>Sambungkan WhatsApp:</strong> Pilih salah satu cara &mdash; <em>scan QR Code</em> dari WhatsApp ponsel (menu <em>Settings ➔ Perangkat Tertaut ➔ Tautkan Perangkat</em>), atau gunakan <em>kode pairing</em> 8 digit dengan memasukkan nomor HP bot terlebih dahulu.</li>
+                        <li><strong>Tunggu status "Bot Terhubung":</strong> Jika badge hijau <em>Bot Terhubung Sempurna</em> muncul, sistem siap mengirim notifikasi otomatis.</li>
+                        <li><strong>Tab Pengaturan:</strong> Pastikan saklar <em>Aktifkan Layanan WhatsApp Notifikasi</em> dan <em>Pengingat Jurnal Mengajar</em> dalam keadaan aktif.</li>
+                        <li><strong>Tab Template Pesan:</strong> Sesuaikan isi pesan otomatis bila perlu (klik <em>Edit</em> pada gelembung chat).</li>
+                        <li><strong>Tab Uji Coba Kirim:</strong> Kirim pesan tes ke nomor Anda sendiri untuk memastikan pengiriman berjalan.</li>
+                    </ol>
+
+                    <div class="feature-grid">
+                        <div class="feature-tile">
+                            <div class="feature-tile-title">
+                                <span class="panduan-icon-circle" style="background:#dcfce7;color:#15803d;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></span>
+                                Kontrol PM2
+                            </div>
+                            <div class="feature-tile-desc">Tombol <em>Hidupkan</em> / <em>Matikan Bot</em> setara dengan menjalankan atau menghentikan proses bot di terminal.</div>
+                        </div>
+                        <div class="feature-tile">
+                            <div class="feature-tile-title">
+                                <span class="panduan-icon-circle" style="background:#eff6ff;color:#2563eb;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="2" width="18" height="20" rx="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg></span>
+                                Reminder Jurnal
+                            </div>
+                            <div class="feature-tile-desc">Pengingat otomatis dikirim ke WhatsApp guru beberapa menit sebelum jam pelajaran berakhir (default 15 menit, bisa 1-120 menit).</div>
+                        </div>
+                        <div class="feature-tile">
+                            <div class="feature-tile-title">
+                                <span class="panduan-icon-circle" style="background:#fef3c7;color:#b45309;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></span>
+                                Template Pesan
+                            </div>
+                            <div class="feature-tile-desc">Gunakan tombol <em>Panduan Variabel</em> untuk melihat variabel otomatis seperti {nama_guru}, {mapel}, {nama_kelas}, dan lainnya.</div>
+                        </div>
+                        <div class="feature-tile">
+                            <div class="feature-tile-title">
+                                <span class="panduan-icon-circle" style="background:#f3e8ff;color:#7e22ce;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg></span>
+                                Penerima Khusus
+                            </div>
+                            <div class="feature-tile-desc">Nomor WhatsApp memakai format 62 di awal (contoh: 628123456789), bukan 08.</div>
+                        </div>
+                    </div>
+
+                    <div class="tip-box">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span><strong>Tips Admin:</strong> Selalu uji lewat tab <em>Uji Coba Kirim</em> setelah menyambungkan bot, sebelum sistem berjalan normal. Pastikan nomor WhatsApp guru sudah terisi benar di <em>Master Data ➔ Guru</em>.</span>
+                    </div>
+
+                    <div class="warning-box">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        <span><strong>Catatan Penting:</strong> Tombol <em>Matikan Bot</em> benar-benar menghentikan proses (tidak auto-reconnect). Seluruh notifikasi WA berhenti sampai bot dihidupkan kembali. Gunakan tombol <em>Logout &amp; Hapus Sesi</em> hanya jika ingin menyambungkan nomor WhatsApp yang berbeda.</span>
+                    </div>
+                </div>
+
+                <!-- TOPIC 7: Jurnal Mengajar & Laporan -->
+                <div class="guide-step-card guide-topic-card">
+                    <div class="step-header">
+                        <span class="step-badge">7</span>
                         <span>Monitoring Jurnal Mengajar & Ekspor Laporan</span>
                     </div>
                     <p style="color: #475569; font-size: 0.9rem; line-height: 1.6; margin-bottom: 14px;">
@@ -489,10 +592,10 @@
                     </ul>
                 </div>
 
-                <!-- TOPIC 7: Profil Admin -->
+                <!-- TOPIC 8: Profil Admin -->
                 <div class="guide-step-card guide-topic-card">
                     <div class="step-header">
-                        <span class="step-badge">7</span>
+                        <span class="step-badge">8</span>
                         <span>Mengubah Profil Pribadi</span>
                     </div>
                     <p style="color: #475569; font-size: 0.9rem; line-height: 1.6; margin-bottom: 14px;">
@@ -505,10 +608,10 @@
                     </ul>
                 </div>
 
-                <!-- TOPIC 8: FAQ -->
+                <!-- TOPIC 9: FAQ -->
                 <div class="guide-step-card guide-topic-card">
                     <div class="step-header">
-                        <span class="step-badge">8</span>
+                        <span class="step-badge">9</span>
                         <span>Pertanyaan Umum (FAQ) & Solusi Kendala</span>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px;">
@@ -535,6 +638,16 @@
                         <div class="faq-item">
                             <div class="faq-q">Q: Bagaimana jika saya lupa kata sandi?</div>
                             <div class="faq-a">A: Mintalah admin lain untuk mengubah kata sandi Anda melalui <em>Master Data ➔ Pengguna</em>, atau ubah sendiri lewat menu Profil Anda.</div>
+                        </div>
+
+                        <div class="faq-item">
+                            <div class="faq-q">Q: Guru tidak menerima notifikasi WhatsApp, kenapa?</div>
+                            <div class="faq-a">A: Periksa di <em>Bot Konfigurasi ➔ Status Bot</em> apakah status sudah <em>Bot Terhubung</em>. Pastikan saklar notifikasi dan pengingat aktif di tab <em>Pengaturan</em>. Terakhir, pastikan nomor WhatsApp guru (format 62....) sudah terisi dengan benar di <em>Master Data ➔ Guru</em>.</div>
+                        </div>
+
+                        <div class="faq-item">
+                            <div class="faq-q">Q: Bagaimana cara mengganti nomor WhatsApp bot?</div>
+                            <div class="faq-a">A: Buka <em>Bot Konfigurasi ➔ Status Bot</em>, klik tombol <em>Logout &amp; Hapus Sesi</em>, lalu sambungkan kembali dengan nomor baru melalui scan QR atau kode pairing.</div>
                         </div>
                     </div>
                 </div>
