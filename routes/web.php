@@ -36,6 +36,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/wali-kelas/surat-izin', [\App\Http\Controllers\WaliKelasController::class, 'suratIzin'])->name('wali-kelas.surat-izin');
     Route::get('/wali-kelas/rekap-kehadiran/export/csv', [\App\Http\Controllers\WaliKelasController::class, 'exportRekapCsv'])->name('wali-kelas.rekap-kehadiran.export-csv');
 
+    // Dedicated Routes for Guru Mengajar
+    Route::get('/guru-mengajar/dashboard', [\App\Http\Controllers\GuruMengajarController::class, 'dashboard'])->name('guru-mengajar.dashboard');
+    Route::get('/guru-mengajar/jadwal', [\App\Http\Controllers\GuruMengajarController::class, 'jadwal'])->name('guru-mengajar.jadwal');
+    Route::get('/guru-mengajar/jurnal', [\App\Http\Controllers\GuruMengajarController::class, 'jurnal'])->name('guru-mengajar.jurnal');
+    Route::post('/guru-mengajar/jurnal', [\App\Http\Controllers\GuruMengajarController::class, 'storeJurnal'])->name('guru-mengajar.jurnal.store');
+    Route::get('/guru-mengajar/jurnal/export/csv', [\App\Http\Controllers\GuruMengajarController::class, 'exportCsv'])->name('guru-mengajar.export-csv');
+    Route::get('/guru-mengajar/jadwal/{idJadwal}/siswa', [\App\Http\Controllers\GuruMengajarController::class, 'getSiswaForJadwal'])->name('guru-mengajar.jadwal.siswa');
+    Route::get('/guru-mengajar/absensi', [\App\Http\Controllers\GuruMengajarController::class, 'absensi'])->name('guru-mengajar.absensi');
+    Route::get('/guru-mengajar/nilai', [\App\Http\Controllers\GuruMengajarController::class, 'nilai'])->name('guru-mengajar.nilai');
+
     // Dedicated Routes for Guru Piket
     Route::get('/guru-piket/dashboard', [\App\Http\Controllers\GuruPiketController::class, 'dashboard'])->name('guru-piket.dashboard');
     Route::get('/guru-piket/input-surat', [\App\Http\Controllers\GuruPiketController::class, 'inputSuratIzin'])->name('guru-piket.input-surat');

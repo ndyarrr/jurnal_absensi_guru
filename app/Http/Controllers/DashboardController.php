@@ -144,6 +144,11 @@ class DashboardController extends Controller
             return redirect()->route('guru-piket.dashboard');
         }
 
+         // 2. Check if user has the Guru Mengajar role
+        if ($user->isGuruMengajar()) {
+            return redirect()->route('guru-mengajar.dashboard');
+        }
+        
         // 2. Check if user is assigned as Wali Kelas
         if ($user->isWaliKelas()) {
             $guru = $user->guru;
