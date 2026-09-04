@@ -256,7 +256,7 @@
 
                                         $jumlahSiswa = 0;
                                         if ($j->jadwal && $j->jadwal->kelas) {
-                                            $jumlahSiswa = $j->jadwal->kelas->jumlah_siswa ?? 36;
+                                            $jumlahSiswa = $j->jadwal->kelas->jumlah_siswa_real;
                                         }
                                     @endphp
                                     <tr id="row-jurnal-{{ $j->id_jurnal }}">

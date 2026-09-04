@@ -39,7 +39,7 @@ class JurnalMengajarController extends Controller
 
                 $jumlahSiswa = 0;
                 if ($j->jadwal && $j->jadwal->kelas) {
-                    $jumlahSiswa = $j->jadwal->kelas->jumlah_siswa ?? 36;
+                    $jumlahSiswa = $j->jadwal->kelas->jumlah_siswa_real;
                 }
 
                 return [
@@ -97,6 +97,10 @@ class JurnalMengajarController extends Controller
 
     public function create()
     {
+        if (!auth()->user() || !auth()->user()->isAdmin()) {
+            return redirect()->route('guru-mengajar.dashboard');
+        }
+
         $jadwal = JadwalPelajaran::with(['kelas.jurusan', 'mapel', 'guru'])->get();
         $guru = Guru::orderBy('nama_guru')->get();
         $siswa = Siswa::orderBy('nama_siswa')->get();

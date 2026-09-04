@@ -88,8 +88,10 @@
             border: 1px solid var(--pk-cream-border);
             padding: 32px;
             box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
-            max-width: 800px;
+            width: 100%;
+            max-width: 100%;
             margin: 0 auto;
+            box-sizing: border-box;
         }
 
         .pk-form-header {
@@ -113,8 +115,10 @@
             margin-bottom: 8px;
         }
 
-        .pk-input, .pk-select {
+        .pk-input, .pk-select, .pk-textarea {
             width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
             padding: 12px 16px;
             border-radius: 12px;
             border: 1px solid #cbd5e1;
@@ -127,7 +131,13 @@
             transition: all 0.2s ease;
         }
 
-        .pk-input:focus, .pk-select:focus {
+        .pk-textarea {
+            resize: vertical;
+            min-height: 90px;
+            max-width: 100%;
+        }
+
+        .pk-input:focus, .pk-select:focus, .pk-textarea:focus {
             border-color: var(--pk-blue);
             background-color: #ffffff;
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);

@@ -58,7 +58,7 @@ class GuruMengajarController extends Controller
      */
     private function jadwalQuery(?int $idGuru)
     {
-        return JadwalPelajaran::with(['kelas.jurusan', 'mapel', 'jamPelajaran'])
+        return JadwalPelajaran::with(['kelas' => fn ($q) => $q->withCount('siswa'), 'kelas.jurusan', 'mapel', 'jamPelajaran'])
             ->when($idGuru, fn ($q) => $q->where('id_guru', $idGuru), fn ($q) => $q->whereRaw('1 = 0'));
     }
 
@@ -115,14 +115,14 @@ class GuruMengajarController extends Controller
             ->whereYear('tanggal', $now->year)
             ->count();
 
-        $totalKelasDiampu = $this->jadwalQuery($idGuru)->distinct('id_kelas')->count('id_kelas');
+        $totalJamMinggu = $this->jadwalQuery($idGuru)->count();
 
         $stats = [
             'total_jadwal_hari_ini'  => $totalJadwalHariIni,
             'jurnal_terisi_hari_ini' => $jurnalTerisiHariIni,
             'persentase_hari_ini'    => $persentaseHariIni,
             'jurnal_bulan_ini'       => $jurnalBulanIni,
-            'total_kelas_diampu'     => $totalKelasDiampu,
+            'total_jam_minggu'       => $totalJamMinggu,
         ];
 
         return view('guru_mengajar.dashboard', compact(
@@ -205,6 +205,93 @@ class GuruMengajarController extends Controller
     }
 
     /**
+     * Map Carbon/PHP day-of-week number to Indonesian day name.
+     * Carbon uses: 0=Sunday, 1=Monday, ..., 6=Saturday
+     */
+    private function hariFromDate(string $tanggal): string
+    {
+        $map = [0 => 'Minggu', 1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu', 4 => 'Kamis', 5 => 'Jumat', 6 => 'Sabtu'];
+        return $map[Carbon::parse($tanggal)->dayOfWeek] ?? '';
+    }
+
+    /**
+     * Dedicated Page for Inputting/Editing Jurnal KBM & Presensi Siswa.
+     */
+    public function inputJurnal(Request $request)
+    {
+        $idGuru = $this->resolveGuruId();
+        $guru = $idGuru ? Guru::find($idGuru) : null;
+        $idJadwal = $request->input('id_jadwal');
+        $tanggal = $request->input('tanggal', Carbon::now('Asia/Jakarta')->toDateString());
+
+        if (!$idJadwal) {
+            return redirect()->route('guru-mengajar.dashboard')->with('error', 'Pilih jadwal mengajar terlebih dahulu.');
+        }
+
+        $jadwal = $this->jadwalQuery($idGuru)->where('id_jadwal', $idJadwal)->first();
+
+        if (!$jadwal) {
+            return redirect()->route('guru-mengajar.dashboard')->with('error', 'Jadwal tidak ditemukan atau bukan milik Anda.');
+        }
+
+        // Validate that the date's day matches the schedule's day
+        $hariTanggal = $this->hariFromDate($tanggal);
+        if ($jadwal->hari && $hariTanggal !== $jadwal->hari) {
+            return redirect()->route('guru-mengajar.dashboard')
+                ->with('error', "Tanggal yang dipilih ({$hariTanggal}, {$tanggal}) tidak sesuai dengan hari jadwal mengajar ini ({$jadwal->hari}).");
+        }
+
+        $siswaList = Siswa::where('id_kelas', $jadwal->id_kelas)->orderBy('nama_siswa')->get();
+        $siswaIds = $siswaList->pluck('id_siswa');
+
+        // Fetch Surat Izin & Surat Dispensasi for students in this class on $tanggal
+        $izinList = \App\Models\PermohonanIzin::where('tipe_pemohon', 'siswa')
+            ->whereIn('id_siswa', $siswaIds)
+            ->whereDate('tanggal_mulai', '<=', $tanggal)
+            ->whereDate('tanggal_selesai', '>=', $tanggal)
+            ->where('status', '!=', 'rejected')
+            ->get()
+            ->keyBy('id_siswa');
+
+        $dispenList = \App\Models\SuratDispensasi::where('tipe_pemohon', 'siswa')
+            ->whereIn('id_siswa', $siswaIds)
+            ->whereDate('tanggal_mulai', '<=', $tanggal)
+            ->whereDate('tanggal_selesai', '>=', $tanggal)
+            ->where('status_approval', 'disetujui')
+            ->get()
+            ->keyBy('id_siswa');
+
+        // Fetch existing journal (if editing)
+        $jurnal = JurnalMengajar::where('id_jadwal', $jadwal->id_jadwal)
+            ->whereDate('tanggal', $tanggal)
+            ->with('detailKetidakhadiran')
+            ->first();
+
+        $existingDetails = [];
+        if ($jurnal) {
+            $statusReverse = ['S' => 'Sakit', 'I' => 'Izin', 'A' => 'Alpa'];
+            foreach ($jurnal->detailKetidakhadiran as $d) {
+                $existingDetails[$d->id_siswa] = [
+                    'status' => $statusReverse[$d->status] ?? 'Alpa',
+                    'keterangan' => $d->catatan ?? '',
+                ];
+            }
+        }
+
+        $waktuStr = optional($jadwal->jamPelajaran)->jam_mulai
+            ? (Carbon::parse($jadwal->jamPelajaran->jam_mulai)->format('H:i') . ' - ' . Carbon::parse($jadwal->jamPelajaran->jam_selesai)->format('H:i'))
+            : '-';
+        $kelasName = $this->kelasLabel($jadwal->kelas);
+        $mapelName = optional($jadwal->mapel)->nama_mapel ?? '-';
+        $jamStr = optional($jadwal->jamPelajaran)->keterangan ?? ('Jam Ke-' . $jadwal->jam_ke);
+
+        return view('guru_mengajar.input_jurnal', compact(
+            'guru', 'jadwal', 'tanggal', 'jurnal', 'siswaList', 'izinList', 'dispenList',
+            'existingDetails', 'waktuStr', 'kelasName', 'mapelName', 'jamStr'
+        ));
+    }
+
+    /**
      * AJAX: get siswa list of a jadwal's kelas, plus existing jurnal (if any) for the given date.
      */
     public function getSiswaForJadwal(Request $request, $idJadwal)
@@ -219,7 +306,34 @@ class GuruMengajarController extends Controller
 
         $tanggal = $request->input('tanggal', Carbon::now('Asia/Jakarta')->toDateString());
 
+        // Validate that the submitted date's day-of-week matches the jadwal's hari
+        $hariTanggal = $this->hariFromDate($tanggal);
+        if ($jadwal->hari && $hariTanggal !== $jadwal->hari) {
+            return response()->json([
+                'message' => "Tanggal yang dipilih ({$hariTanggal}, {$tanggal}) tidak sesuai dengan hari jadwal mengajar ini ({$jadwal->hari}). Pilih tanggal yang jatuh pada hari {$jadwal->hari}.",
+            ], 422);
+        }
+
         $siswaList = Siswa::where('id_kelas', $jadwal->id_kelas)->orderBy('nama_siswa')->get();
+        $siswaIds = $siswaList->pluck('id_siswa');
+
+        // Deteksi otomatis jika siswa sudah ada surat izin fisik/piket untuk tanggal ini
+        $izinList = \App\Models\PermohonanIzin::where('tipe_pemohon', 'siswa')
+            ->whereIn('id_siswa', $siswaIds)
+            ->whereDate('tanggal_mulai', '<=', $tanggal)
+            ->whereDate('tanggal_selesai', '>=', $tanggal)
+            ->where('status', '!=', 'rejected')
+            ->get()
+            ->keyBy('id_siswa');
+
+        // Deteksi otomatis jika siswa memiliki surat dispensasi aktif untuk tanggal ini
+        $dispenList = \App\Models\SuratDispensasi::where('tipe_pemohon', 'siswa')
+            ->whereIn('id_siswa', $siswaIds)
+            ->whereDate('tanggal_mulai', '<=', $tanggal)
+            ->whereDate('tanggal_selesai', '>=', $tanggal)
+            ->where('status_approval', 'disetujui')
+            ->get()
+            ->keyBy('id_siswa');
 
         $jurnal = JurnalMengajar::where('id_jadwal', $jadwal->id_jadwal)
             ->whereDate('tanggal', $tanggal)
@@ -238,11 +352,32 @@ class GuruMengajarController extends Controller
                 'waktu' => $waktuStr,
                 'jam' => optional($jadwal->jamPelajaran)->keterangan ?? ('Jam Ke-' . $jadwal->jam_ke),
             ],
-            'siswa' => $siswaList->map(fn ($s) => [
-                'id_siswa' => $s->id_siswa,
-                'nama_siswa' => $s->nama_siswa,
-                'nisn' => $s->nisn,
-            ]),
+            'siswa' => $siswaList->map(function ($s) use ($izinList, $dispenList) {
+                $izin = $izinList->get($s->id_siswa);
+                $dispen = $dispenList->get($s->id_siswa);
+                $autoStatus = null;
+                $autoKet = null;
+                $badge = null;
+
+                if ($izin) {
+                    $autoStatus = strtolower($izin->jenis_izin) === 'sakit' ? 'Sakit' : 'Izin';
+                    $autoKet = '[Surat Piket: ' . $izin->jenis_izin . ']';
+                    $badge = 'Surat ' . $izin->jenis_izin . ' (Piket)';
+                } elseif ($dispen) {
+                    $autoStatus = 'Izin';
+                    $autoKet = '[Dispensasi] ' . ($dispen->nama_kegiatan ?? 'Dispensasi');
+                    $badge = 'Dispensasi';
+                }
+
+                return [
+                    'id_siswa' => $s->id_siswa,
+                    'nama_siswa' => $s->nama_siswa,
+                    'nisn' => $s->nisn,
+                    'auto_status' => $autoStatus,
+                    'auto_ket' => $autoKet,
+                    'badge' => $badge,
+                ];
+            }),
             'jurnal' => $jurnal ? [
                 'id_jurnal' => $jurnal->id_jurnal,
                 'tanggal' => $jurnal->tanggal,
@@ -276,9 +411,20 @@ class GuruMengajarController extends Controller
             'presensi.*.keterangan' => 'nullable|string|max:255',
         ]);
 
+        // Pastikan jadwal ini benar-benar milik guru yang login
         $jadwal = $this->jadwalQuery($idGuru)->where('id_jadwal', $validated['id_jadwal'])->first();
         if (!$jadwal) {
-            return response()->json(['message' => 'Jadwal tidak ditemukan atau bukan milik Anda.'], 403);
+            return back()->with('error', 'Akses Ditolak: Jadwal tidak ditemukan atau bukan milik Anda.');
+        }
+
+        // Validasi hari: tanggal yang diinput harus sesuai dengan hari jadwal
+        $hariTanggal = $this->hariFromDate($validated['tanggal']);
+        if ($jadwal->hari && $hariTanggal !== $jadwal->hari) {
+            return back()->withInput()->with('error',
+                "Pengisian Ditolak: Jadwal ini adalah hari {$jadwal->hari}, " .
+                "sedangkan tanggal yang Anda masukkan ({$validated['tanggal']}) jatuh pada hari {$hariTanggal}. " .
+                "Pilih tanggal yang memang jatuh pada hari {$jadwal->hari}."
+            );
         }
 
         $presensi = collect($validated['presensi'] ?? []);
@@ -316,6 +462,7 @@ class GuruMengajarController extends Controller
         return redirect()->route('guru-mengajar.dashboard')->with('success', 'Jurnal & presensi berhasil disimpan.');
     }
 
+
     public function exportCsv(Request $request)
     {
         $idGuru = $this->resolveGuruId();
@@ -344,70 +491,5 @@ class GuruMengajarController extends Controller
         return CsvExporter::download($filename, [
             'Tanggal', 'Hari', 'Mata Pelajaran', 'Kelas', 'Materi', 'Jumlah Hadir', 'Jumlah Tidak Hadir', 'Catatan',
         ], $rows);
-    }
-
-    /* ==========================================================================
-       4. ABSENSI SISWA (Rekap Kehadiran per Kelas)
-       ========================================================================== */
-    public function absensi(Request $request)
-    {
-        $idGuru = $this->resolveGuruId();
-        $guru = $idGuru ? Guru::find($idGuru) : null;
-
-        $jadwalList = $this->jadwalQuery($idGuru)->get();
-        $kelasIds = $jadwalList->pluck('id_kelas')->unique();
-
-        $allKelas = Kelas::whereIn('id_kelas', $kelasIds)->with('jurusan')
-            ->orderBy('tingkat')->orderBy('rombel')->get();
-
-        $selectedKelasId = $request->input('id_kelas', $allKelas->first()->id_kelas ?? null);
-
-        $siswaList = collect();
-        $selectedKelas = null;
-
-        if ($selectedKelasId) {
-            $selectedKelas = Kelas::with('jurusan')->find($selectedKelasId);
-            $jadwalIdsForKelas = $jadwalList->where('id_kelas', $selectedKelasId)->pluck('id_jadwal');
-
-            $siswaList = Siswa::where('id_kelas', $selectedKelasId)->orderBy('nama_siswa')->get();
-
-            $detailByStudent = \App\Models\DetailKetidakhadiran::whereHas('jurnal', function ($q) use ($jadwalIdsForKelas) {
-                $q->whereIn('id_jadwal', $jadwalIdsForKelas);
-            })->get()->groupBy('id_siswa');
-
-            $totalPertemuan = JurnalMengajar::whereIn('id_jadwal', $jadwalIdsForKelas)->count();
-
-            $siswaList = $siswaList->map(function ($siswa) use ($detailByStudent, $totalPertemuan) {
-                $details = $detailByStudent->get($siswa->id_siswa, collect());
-                $sakit = $details->where('status', 'S')->count();
-                $izin = $details->where('status', 'I')->count();
-                $alpa = $details->where('status', 'A')->count();
-                $tidakHadir = $sakit + $izin + $alpa;
-                $hadir = max($totalPertemuan - $tidakHadir, 0);
-                $persentase = $totalPertemuan > 0 ? round(($hadir / $totalPertemuan) * 100) : 100;
-
-                $siswa->rekap_hadir = $hadir;
-                $siswa->rekap_sakit = $sakit;
-                $siswa->rekap_izin = $izin;
-                $siswa->rekap_alpa = $alpa;
-                $siswa->rekap_persentase = $persentase;
-                return $siswa;
-            });
-        } else {
-            $totalPertemuan = 0;
-        }
-
-        return view('guru_mengajar.absensi', compact(
-            'guru', 'allKelas', 'selectedKelas', 'selectedKelasId', 'siswaList', 'totalPertemuan'
-        ));
-    }
-
-    /* ==========================================================================
-       5. NILAI & RAPOR (belum ada tabel nilai di database)
-       ========================================================================== */
-    public function nilai(Request $request)
-    {
-        $guru = ($idGuru = $this->resolveGuruId()) ? Guru::find($idGuru) : null;
-        return view('guru_mengajar.nilai', compact('guru'));
     }
 }

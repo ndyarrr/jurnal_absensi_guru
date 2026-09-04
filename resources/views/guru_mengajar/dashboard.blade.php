@@ -41,10 +41,10 @@
         </div>
 
         <div class="gm-stat-card">
-            <div class="gm-stat-icon blue"><i class="fa-solid fa-chalkboard"></i></div>
+            <div class="gm-stat-icon blue"><i class="fa-solid fa-calendar-week"></i></div>
             <div>
-                <div class="gm-stat-value">{{ $stats['total_kelas_diampu'] }}</div>
-                <div class="gm-stat-label">Total Kelas Diampu</div>
+                <div class="gm-stat-value">{{ $stats['total_jam_minggu'] }}</div>
+                <div class="gm-stat-label">Total Jam Mengajar / Minggu</div>
             </div>
         </div>
     </section>
@@ -72,12 +72,13 @@
                     </div>
                 @else
                     <div class="gm-schedule-grid">
-                        @foreach($jadwalHariIni as $jadwal)
+                            @foreach($jadwalHariIni as $jadwal)
                             @php
                                 $kelasName = $jadwal->kelas ? ($jadwal->kelas->tingkat . ' ' . optional($jadwal->kelas->jurusan)->kode_jurusan . ' ' . $jadwal->kelas->rombel) : 'Kelas -';
                                 $mapelName = optional($jadwal->mapel)->nama_mapel ?? 'Mata Pelajaran';
                                 $jamStr = optional($jadwal->jamPelajaran)->keterangan ?? ('Jam Ke-' . $jadwal->jam_ke);
                                 $waktuStr = optional($jadwal->jamPelajaran)->jam_mulai ? (\Carbon\Carbon::parse($jadwal->jamPelajaran->jam_mulai)->format('H:i') . ' - ' . \Carbon\Carbon::parse($jadwal->jamPelajaran->jam_selesai)->format('H:i')) : '-';
+                                $todayStr = $now->toDateString();
                             @endphp
                             <div class="gm-schedule-card {{ $jadwal->is_filled ? 'filled' : '' }}">
                                 <div class="gm-schedule-top">
@@ -92,14 +93,15 @@
                                 <div class="gm-mapel-name"><i class="fa-solid fa-book"></i> {{ $mapelName }}</div>
                                 <div class="gm-schedule-meta">
                                     <div class="gm-meta-item"><i class="fa-solid fa-door-open"></i> {{ $jadwal->ruangan ?? 'Ruang Kelas' }}</div>
-                                    <div class="gm-meta-item"><i class="fa-solid fa-users"></i> {{ $jadwal->kelas->jumlah_siswa ?? '-' }} Siswa</div>
+                                    <div class="gm-meta-item"><i class="fa-solid fa-users"></i> {{ $jadwal->kelas ? ($jadwal->kelas->siswa_count ?? $jadwal->kelas->jumlah_siswa_real) : 0 }} Siswa</div>
                                 </div>
-                                <a href="{{ route('guru-mengajar.jurnal', ['id_kelas' => $jadwal->id_kelas]) }}" class="gm-btn {{ $jadwal->is_filled ? 'gm-btn-outline' : 'gm-btn-navy' }}" style="width: 100%;">
+                                <a href="{{ route('guru-mengajar.jurnal.input', ['id_jadwal' => $jadwal->id_jadwal, 'tanggal' => $todayStr]) }}"
+                                    class="gm-btn {{ $jadwal->is_filled ? 'gm-btn-outline' : 'gm-btn-navy' }}" style="width: 100%; text-decoration: none;">
                                     <i class="fa-solid {{ $jadwal->is_filled ? 'fa-pen-to-square' : 'fa-plus' }}"></i>
                                     {{ $jadwal->is_filled ? 'Edit Jurnal & Absensi' : 'Isi Jurnal & Absensi' }}
                                 </a>
                             </div>
-                        @endforeach
+                            @endforeach
                     </div>
                 @endif
             </div>
@@ -132,19 +134,6 @@
                             Tidak ada jadwal mengajar berikutnya hari ini.
                         </div>
                     @endif
-                </div>
-            </div>
-
-            <!-- Berita & Pengumuman Sekolah -->
-            <div class="gm-card">
-                <div class="gm-card-header">
-                    <h3 class="gm-card-title"><i class="fa-regular fa-bell" style="color: var(--dash-navy);"></i> Berita & Pengumuman Sekolah</h3>
-                </div>
-                <div class="gm-card-body">
-                    <div class="gm-empty-state" style="padding: 24px 12px;">
-                        <div class="gm-empty-icon" style="font-size: 1.6rem;"><i class="fa-regular fa-folder-open"></i></div>
-                        <p style="font-size: 0.825rem;">Belum ada pengumuman sekolah yang dipublikasikan.</p>
-                    </div>
                 </div>
             </div>
 

@@ -30,7 +30,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Dedicated coming-soon dashboard for non-admin roles
     Route::get('/role-dashboard', [DashboardController::class, 'roleDashboard'])->name('role.dashboard');
-    Route::get('/guru/dashboard', [DashboardController::class, 'guruMengajarDashboard'])->name('guru-mengajar.dashboard');
+    Route::get('/guru/dashboard', fn () => redirect()->route('guru-mengajar.dashboard'))->name('guru.dashboard.redirect');
     Route::get('/wali-kelas/dashboard', [\App\Http\Controllers\WaliKelasController::class, 'dashboard'])->name('wali-kelas.dashboard');
     Route::get('/wali-kelas/perwalian', [\App\Http\Controllers\WaliKelasController::class, 'perwalian'])->name('wali-kelas.perwalian');
     Route::get('/wali-kelas/rekap-kehadiran', [\App\Http\Controllers\WaliKelasController::class, 'rekapKehadiran'])->name('wali-kelas.rekap-kehadiran');
@@ -41,11 +41,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/guru-mengajar/dashboard', [\App\Http\Controllers\GuruMengajarController::class, 'dashboard'])->name('guru-mengajar.dashboard');
     Route::get('/guru-mengajar/jadwal', [\App\Http\Controllers\GuruMengajarController::class, 'jadwal'])->name('guru-mengajar.jadwal');
     Route::get('/guru-mengajar/jurnal', [\App\Http\Controllers\GuruMengajarController::class, 'jurnal'])->name('guru-mengajar.jurnal');
+    Route::get('/guru-mengajar/jurnal/input', [\App\Http\Controllers\GuruMengajarController::class, 'inputJurnal'])->name('guru-mengajar.jurnal.input');
     Route::post('/guru-mengajar/jurnal', [\App\Http\Controllers\GuruMengajarController::class, 'storeJurnal'])->name('guru-mengajar.jurnal.store');
     Route::get('/guru-mengajar/jurnal/export/csv', [\App\Http\Controllers\GuruMengajarController::class, 'exportCsv'])->name('guru-mengajar.export-csv');
     Route::get('/guru-mengajar/jadwal/{idJadwal}/siswa', [\App\Http\Controllers\GuruMengajarController::class, 'getSiswaForJadwal'])->name('guru-mengajar.jadwal.siswa');
-    Route::get('/guru-mengajar/absensi', [\App\Http\Controllers\GuruMengajarController::class, 'absensi'])->name('guru-mengajar.absensi');
-    Route::get('/guru-mengajar/nilai', [\App\Http\Controllers\GuruMengajarController::class, 'nilai'])->name('guru-mengajar.nilai');
+    Route::get('/guru-mengajar/absensi', fn () => redirect()->route('guru-mengajar.dashboard'));
 
     // Dedicated Routes for Guru Piket
     Route::get('/guru-piket/dashboard', [\App\Http\Controllers\GuruPiketController::class, 'dashboard'])->name('guru-piket.dashboard');

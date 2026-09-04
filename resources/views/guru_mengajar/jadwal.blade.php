@@ -18,14 +18,14 @@
             <div class="gm-stat-icon blue"><i class="fa-solid fa-chalkboard"></i></div>
             <div>
                 <div class="gm-stat-value">{{ $totalKelasDiampu }}</div>
-                <div class="gm-stat-label">Total Kelas Diampu</div>
+                <div class="gm-stat-label">Total Kelas Diajar</div>
             </div>
         </div>
         <div class="gm-stat-card">
             <div class="gm-stat-icon emerald"><i class="fa-solid fa-book"></i></div>
             <div>
                 <div class="gm-stat-value">{{ $totalMapelDiampu }}</div>
-                <div class="gm-stat-label">Mata Pelajaran Diampu</div>
+                <div class="gm-stat-label">Mata Pelajaran Diajar</div>
             </div>
         </div>
     </section>

@@ -778,21 +778,12 @@
             if (ttdUrl) {
                 area.innerHTML = `
                     <img src="${escapeHtml(ttdUrl)}" alt="TTD ${escapeHtml(signedName || namaSiswa)}" style="max-height:80px; max-width:200px; display:block; margin:0 auto 4px auto;" onerror="this.style.display='none';">
-                    <button type="button" id="dp_btn_ulang_ttd" style="font-size:0.7rem; background:transparent; border:1px dashed #999; color:#444; padding:2px 8px; border-radius:3px; cursor:pointer; margin-bottom:4px;">
-                        Tanda Ulang
-                    </button>
                 `;
                 if (label) {
                     label.style.borderTop = '1px solid #000';
                     label.style.paddingTop = '4px';
                     label.style.fontWeight = 'bold';
                     label.innerHTML = `( ${escapeHtml(signedName || namaSiswa)} )`;
-                }
-                const btnUlang = document.getElementById('dp_btn_ulang_ttd');
-                if (btnUlang) {
-                    btnUlang.addEventListener('click', function () {
-                        renderTtdSiswaPad(idDispen, namaSiswa);
-                    });
                 }
             } else {
                 renderTtdSiswaPad(idDispen, namaSiswa);

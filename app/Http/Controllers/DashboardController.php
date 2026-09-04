@@ -166,75 +166,11 @@ class DashboardController extends Controller
      */
     public function guruMengajarDashboard(Request $request)
     {
-        $user = auth()->user();
-        
-        // Resolve associated Guru model
-        $guru = $user->guru;
-        if (!$guru && !empty($user->name)) {
-            $guru = Guru::where('nama_guru', $user->name)->first();
-        }
-
-        $namaGuru = $guru ? $guru->nama_guru : $user->name;
-        $nipGuru = $guru ? ($guru->nip ?? '-') : '-';
-        $nuptkGuru = $guru ? ($guru->nuptk ?? '-') : '-';
-
-        // Translate current day name (e.g. Monday -> Senin)
-        $dayMap = [
-            'Monday' => 'Senin',
-            'Tuesday' => 'Selasa',
-            'Wednesday' => 'Rabu',
-            'Thursday' => 'Kamis',
-            'Friday' => 'Jumat',
-            'Saturday' => 'Sabtu',
-            'Sunday' => 'Minggu',
-        ];
-        $englishDay = Carbon::now()->format('l');
-        $todayName = $dayMap[$englishDay] ?? 'Senin';
-        $todayStr = Carbon::now()->toDateString();
-
-        $todayJadwals = collect();
-        $filledJadwalIds = [];
-        $totalJadwalHariIni = 0;
-        $jurnalTerisiCount = 0;
-
-        if ($guru) {
-            $todayJadwals = JadwalPelajaran::with(['kelas.jurusan', 'mapel', 'jamPelajaran', 'ruangan'])
-                ->where('id_guru', $guru->id_guru)
-                ->where('hari', $todayName)
-                ->orderBy('id_jam', 'asc')
-                ->get();
-
-            $totalJadwalHariIni = $todayJadwals->count();
-
-            if ($totalJadwalHariIni > 0) {
-                $filledJadwalIds = JurnalMengajar::whereIn('id_jadwal', $todayJadwals->pluck('id_jadwal'))
-                    ->whereDate('tanggal', $todayStr)
-                    ->pluck('id_jadwal')
-                    ->toArray();
-
-                $jurnalTerisiCount = count($filledJadwalIds);
-            }
-        }
-
-        $jurnalBelumTerisiCount = max(0, $totalJadwalHariIni - $jurnalTerisiCount);
-
-        return view('guru.dashboard', compact(
-            'user',
-            'guru',
-            'namaGuru',
-            'nipGuru',
-            'nuptkGuru',
-            'todayName',
-            'todayJadwals',
-            'totalJadwalHariIni',
-            'jurnalTerisiCount',
-            'jurnalBelumTerisiCount',
-            'filledJadwalIds'
-        ));
+        return redirect()->route('guru-mengajar.dashboard');
     }
 
     /**
-     * Helper to check if current user is scheduled for Piket Duty today.
+     * Helper to verify if user is scheduled on duty today (guru piket).
      */
     private function isTeacherDutyToday($user): bool
     {

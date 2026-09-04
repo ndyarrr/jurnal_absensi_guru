@@ -65,8 +65,10 @@
             border: 1px solid var(--pk-cream-border);
             padding: 32px;
             box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
-            max-width: 840px;
+            width: 100%;
+            max-width: 100%;
             margin: 0 auto;
+            box-sizing: border-box;
         }
 
         .pk-form-header {
@@ -90,6 +92,8 @@
 
         .pk-input, .pk-select, .pk-textarea {
             width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
             padding: 12px 16px;
             border-radius: 12px;
             border: 1px solid #cbd5e1;
@@ -100,6 +104,12 @@
             color: var(--pk-text-dark);
             outline: none;
             transition: all 0.2s ease;
+        }
+
+        .pk-textarea {
+            resize: vertical;
+            min-height: 90px;
+            max-width: 100%;
         }
 
         .pk-input:focus, .pk-select:focus, .pk-textarea:focus {
@@ -307,7 +317,7 @@
                         </select>
                     </div>
 
-                    <div class="pk-form-group" id="siswa_group" style="margin-bottom: 0;">
+                    <div class="pk-form-group" id="siswa_group" style="margin-bottom: 0; display: none;">
                         <label class="pk-label"><i class="fa-solid fa-user-graduate" style="margin-right: 6px; color: var(--pk-amber);"></i>2. Pilih Nama Siswa</label>
                         <select name="id_siswa" id="select_siswa" class="pk-select" @if((isset($isDutyToday) && !$isDutyToday) || (isset($isVerified) && $isVerified)) disabled @endif>
                             <option value="">-- Pilih Nama Siswa --</option>
@@ -382,7 +392,7 @@
                                          onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'" title="Klik untuk lihat gambar penuh">
                                         <img src="{{ $surat->file_surat_url }}" alt="Preview Surat" style="width: 100%; max-height: 180px; object-fit: cover; display: block;">
                                         <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(30,37,56,0.85); color: #ffffff; padding: 6px 10px; font-size: 0.75rem; font-weight: 700; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                                            <i class="fa-solid fa-magnifying-glass-plus"></i> Klik untuk Perbesar (Full View)
+                                            <i class="fa-solid fa-magnifying-glass-plus"></i> Perbesar
                                         </div>
                                     </div>
                                 @else
@@ -518,7 +528,7 @@
     </main>
 
     <!-- Modal Full View Image Zoom -->
-    <div id="fileZoomModal" style="display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(5px); align-items: center; justify-content: center; padding: 20px;" onclick="closeFileZoomModal()">
+    <div id="fileZoomModal" style="display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.31); backdrop-filter: blur(5px); align-items: center; justify-content: center; padding: 20px;" onclick="closeFileZoomModal()">
         <div style="position: relative; max-width: 90vw; max-height: 90vh; background: #ffffff; border-radius: 16px; padding: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; align-items: center;" onclick="event.stopPropagation()">
             <div style="width: 100%; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0;">
                 <h3 id="zoomModalTitle" style="font-size: 1rem; font-weight: 800; color: var(--pk-navy); font-family: 'Plus Jakarta Sans', sans-serif;">
@@ -619,12 +629,18 @@
             const siswaSelect = document.getElementById('select_siswa');
             if (!siswaSelect) return;
             const options = siswaSelect.querySelectorAll('option');
-            
+
+            siswaSelect.value = '';
+
             if (!kelasId) {
-                siswaSelect.value = '';
+                siswaGroup.style.display = 'none';
+                siswaSelect.removeAttribute('required');
                 options.forEach(opt => opt.style.display = 'block');
                 return;
             }
+
+            siswaGroup.style.display = 'block';
+            siswaSelect.setAttribute('required', 'required');
 
             options.forEach(option => {
                 if (!option.value) {

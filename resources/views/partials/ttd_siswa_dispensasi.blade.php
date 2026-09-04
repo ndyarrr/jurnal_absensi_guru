@@ -11,9 +11,6 @@
         <div style="border-top: 1px solid #000; padding-top: 4px; font-weight: bold;" id="dp_ttd_siswa_nama">
             ( {{ $signedName }} )
         </div>
-        <button type="button" class="dp-btn-ulang-ttd" id="dp_btn_ulang_ttd" style="margin-top:6px; font-size:0.75rem; background:transparent; border:1px dashed #999; color:#444; padding:2px 8px; border-radius:3px; cursor:pointer;">
-            Tanda Ulang
-        </button>
     @else
         <div class="dp-signature-container" id="dp_signature_container" style="border:1px dashed #555; border-radius:4px; padding:6px; background:#fafafa; margin: 0 auto 4px auto; max-width: 320px;">
             <canvas id="dp_canvas_siswa" width="300" height="120" style="width:100%; height:120px; background:#fff; touch-action: none; display:block; margin: 0 auto; cursor: crosshair;"></canvas>

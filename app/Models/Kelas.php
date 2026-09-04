@@ -42,4 +42,12 @@ class Kelas extends Model
     {
         return $this->hasMany(JadwalPelajaran::class, 'id_kelas');
     }
+
+    public function getJumlahSiswaRealAttribute(): int
+    {
+        if (array_key_exists('siswa_count', $this->attributes)) {
+            return (int) $this->attributes['siswa_count'];
+        }
+        return $this->siswa()->count();
+    }
 }
