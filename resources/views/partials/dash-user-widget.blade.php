@@ -118,8 +118,11 @@
                 </div>
             </details>
 
-            <div class="dash-profile-readonly" style="margin-top: 10px;">
+            <div class="dash-profile-readonly" style="margin-top: 10px; display: flex; flex-direction: column; gap: 4px; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
                 <small style="font-weight: 700; color: #475569;">Role: {{ $profileUser->role_label }}</small>
+                @if($profileUser->guru && !empty($profileUser->guru->nuptk))
+                    <small style="font-weight: 700; color: #1e293b;">NUPTK / NIP: <span style="color: #2563eb;">{{ $profileUser->guru->nuptk }}</span></small>
+                @endif
             </div>
 
             <button type="submit" class="btn-modal-submit dash-profile-save">Simpan Profil & Password</button>
