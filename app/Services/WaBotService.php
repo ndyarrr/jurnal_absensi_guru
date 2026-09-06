@@ -60,26 +60,31 @@ class WaBotService
      * 2. Otomatis lengkapi ekstensi ".cmd" di Windows bila path berupa file tanpa ekstensi.
      * 3. Default "pm2" (Linux/macOS) atau "pm2.cmd" (Windows, lewat PATH).
      */
+
     protected function resolvePm2Binary(): string
     {
         $bin = trim((string) config('services.wa_bot.pm2_bin'));
 
-        if ($bin === '') {
-            return $this->isWindows() ? 'pm2.cmd' : 'pm2';
+        if ($bin !== '') {
+            return $bin;
         }
 
         if ($this->isWindows()) {
-            $hasExtension = (bool) preg_match('/\.(cmd|bat|exe|ps1)$/i', $bin);
-            $looksLikePath = str_contains($bin, '\\')
-                || str_contains($bin, '/')
-                || is_file($bin);
+            $appData = getenv('APPDATA');
 
-            if (!$hasExtension && $looksLikePath && is_file($bin . '.cmd')) {
-                return $bin . '.cmd';
+            if ($appData) {
+                $pm2 = $appData . DIRECTORY_SEPARATOR . 'npm'
+                    . DIRECTORY_SEPARATOR . 'pm2.cmd';
+
+                if (is_file($pm2)) {
+                    return $pm2;
+                }
             }
+
+            return 'pm2.cmd';
         }
 
-        return $bin;
+        return 'pm2';
     }
 
     /**
@@ -89,7 +94,7 @@ class WaBotService
     {
         $looksLikePath = str_contains($bin, '\\')
             || str_contains($bin, '/')
-            || str_ends_with(strtolower($bin), ['.cmd', '.bat', '.exe', '.ps1']);
+            || preg_match('/\.(cmd|bat|exe|ps1)$/i', $bin);
 
         if ($looksLikePath) {
             if (is_file($bin)) {
@@ -122,12 +127,27 @@ class WaBotService
         $botDir = config('services.wa_bot.bot_dir', base_path('bot'));
         $pm2Home = config('services.wa_bot.pm2_home');
 
-        $process = Process::fromShellCommandline(trim(escapeshellarg($bin) . ' ' . $command));
+        if ($this->isWindows()) {
+            $shellCommand = 'cmd /d /s /c ""'
+                . $bin
+                . '" '
+                . $command
+                . '"';
+
+            $process = Process::fromShellCommandline($shellCommand);
+        } else {
+            $process = Process::fromShellCommandline(
+                escapeshellarg($bin) . ' ' . $command
+            );
+        }
+
         $process->setWorkingDirectory($botDir);
         $process->setTimeout(30);
 
         if ($pm2Home) {
-            $process->setEnv(['PM2_HOME' => $pm2Home]);
+            $process->setEnv([
+                'PM2_HOME' => $pm2Home,
+            ]);
         }
 
         $process->run();
