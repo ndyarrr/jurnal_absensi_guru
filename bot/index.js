@@ -14,6 +14,7 @@ import path from "path";
 // Express Server Setup
 const app = express();
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '127.0.0.1';
 app.use(express.json());
 
 // Bot State Management
@@ -207,12 +208,28 @@ app.post("/api/send", async (req, res) => {
 app.post("/api/logout", async (req, res) => {
     try {
         if (sijurnal) {
-            await sijurnal.logout();
+            try {
+                await sijurnal.logout();
+            } catch (err) {
+                console.warn("[WA BOT] Logout socket warning:", err?.message || err);
+            }
+            try {
+                sijurnal.end(undefined);
+            } catch (err) {
+                // ignore
+            }
+            sijurnal = null;
         }
+
         const sessionPath = './sijurnalsesion';
         if (fs.existsSync(sessionPath)) {
-            fs.rmSync(sessionPath, { recursive: true, force: true });
+            try {
+                fs.rmSync(sessionPath, { recursive: true, force: true });
+            } catch (fsErr) {
+                console.error("[WA BOT] Gagal menghapus session dir:", fsErr);
+            }
         }
+
         botStatus = "disconnected";
         qrCodeData = null;
         pairingCodeData = null;
@@ -239,7 +256,11 @@ app.post("/api/reconnect", async (req, res) => {
 });
 
 // Start Express Server & Initial Connect
-app.listen(PORT, () => {
-    console.log(chalk.blue.bold(`🚀 [WA BOT API] Server listening on http://127.0.0.1:${PORT}`));
+const server = app.listen(PORT, HOST, () => {
+    console.log(chalk.blue.bold(`🚀 [WA BOT API] Server listening on http://${HOST}:${PORT}`));
     connectToWhatsApp();
+});
+
+server.on("error", (err) => {
+    console.error(chalk.red(`[WA BOT API] Server error:`), err);
 });

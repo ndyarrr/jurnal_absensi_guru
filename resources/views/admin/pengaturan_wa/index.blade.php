@@ -548,7 +548,7 @@
                                     </li>
                                 </ul>
 
-                                <div style="display: flex; align-items: center; gap: 12px; margin-top: 20px; flex-wrap: wrap;">
+                                <div id="botSessionActionButtons" style="display: {{ ($botInfo['status'] ?? '') === 'connected' ? 'flex' : 'none' }}; align-items: center; gap: 12px; margin-top: 20px; flex-wrap: wrap;">
                                     <form action="{{ route('pengaturan-wa.reconnect') }}" method="POST" style="margin: 0; display: inline-flex;">
                                         @csrf
                                         <button type="submit" style="background: #0284c7; color: white; border-radius: 10px; height: 40px; padding: 0 18px; font-weight: 700; font-size: 0.85rem; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.2s;">
@@ -597,10 +597,9 @@
                                     @endif
                                 </div>
 
-                                <hr style="margin: 20px 0; border: none; border-top: 1px solid #f1f5f9;">
-
                                 <!-- Option: Pairing Code -->
-                                <div>
+                                <div id="pairingCodeSection" style="display: {{ in_array($botInfo['status'] ?? '', ['qr_ready', 'connecting']) ? 'block' : 'none' }};">
+                                    <hr style="margin: 20px 0; border: none; border-top: 1px solid #f1f5f9;">
                                     <h5 style="margin: 0 0 10px 0; color: #475569; font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
                                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 2l-2 2m-2-2l2 2m7 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path></svg>
                                         <span>Sambungkan dengan Kode Pairing (Alternatif)</span>
@@ -1138,14 +1137,103 @@
             });
         }
 
-        // On page load: show only Reminder bubbles
+        // On page load: show only Reminder bubbles + start Live QR/Status Polling
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.template-item-card').forEach(card => {
                 if (card.getAttribute('data-category') !== 'reminder') {
                     card.style.display = 'none';
                 }
             });
+
+            @if($activeTab === 'bot-status')
+                startStatusPolling();
+            @endif
         });
+
+        let pollingTimer = null;
+        function startStatusPolling() {
+            if (pollingTimer) clearInterval(pollingTimer);
+
+            function updateBotStatusUI() {
+                fetch("{{ route('pengaturan-wa.api-status') }}")
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data) return;
+
+                        const qrContainer = document.getElementById('qrCodeContainer');
+                        const statusBadge = document.getElementById('statusBadgeContainer');
+                        const botStatusText = document.getElementById('botStatusText');
+                        const botPhoneText = document.getElementById('botPhoneText');
+                        const botNameText = document.getElementById('botNameText');
+
+                        const sessionActions = document.getElementById('botSessionActionButtons');
+                        if (sessionActions) {
+                            sessionActions.style.display = (data.status === 'connected') ? 'flex' : 'none';
+                        }
+
+                        const pairingSection = document.getElementById('pairingCodeSection');
+                        if (pairingSection) {
+                            pairingSection.style.display = (['qr_ready', 'connecting'].includes(data.status)) ? 'block' : 'none';
+                        }
+
+                        if (botStatusText) botStatusText.innerText = data.status || 'Offline';
+                        if (botPhoneText && data.user && data.user.id) botPhoneText.innerText = data.user.id;
+                        if (botNameText && data.user && data.user.name) botNameText.innerText = data.user.name;
+
+                        // Status Badges
+                        if (statusBadge) {
+                            if (data.status === 'connected') {
+                                statusBadge.innerHTML = `
+                                    <span class="status-badge-custom status-connected">
+                                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                        <span>Bot Terhubung</span>
+                                    </span>`;
+                            } else if (data.status === 'qr_ready') {
+                                statusBadge.innerHTML = `
+                                    <span class="status-badge-custom status-qr_ready">
+                                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                                        <span>Silakan Scan QR Code</span>
+                                    </span>`;
+                            } else if (data.status === 'connecting') {
+                                statusBadge.innerHTML = `
+                                    <span class="status-badge-custom status-qr_ready">
+                                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line></svg>
+                                        <span>Menghubungkan...</span>
+                                    </span>`;
+                            } else {
+                                statusBadge.innerHTML = `
+                                    <span class="status-badge-custom status-offline">
+                                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                                        <span>Bot Belum Terhubung / Offline</span>
+                                    </span>`;
+                            }
+                        }
+
+                        // QR Code Container
+                        if (qrContainer) {
+                            if (data.status === 'qr_ready' && data.qrCode) {
+                                qrContainer.innerHTML = `
+                                    <img src="${data.qrCode}" class="qr-code-img" alt="Scan QR Code WA">
+                                    <p style="font-size: 0.85rem; color: #64748b; margin-top: 10px;">
+                                        Buka WhatsApp di Ponsel -> <b>Perangkat Tertaut</b> -> <b>Tautkan Perangkat</b> -> Scan QR Code di atas.
+                                    </p>`;
+                            } else if (data.status === 'connected') {
+                                qrContainer.innerHTML = `
+                                    <div style="padding: 30px; background: #f0fdf4; border-radius: 12px; border: 1px dashed #4ade80;">
+                                        <svg width="48" height="48" fill="none" stroke="#16a34a" stroke-width="2" viewBox="0 0 24 24" style="margin: 0 auto 12px auto; display: block;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                        <h4 style="color: #15803d; margin: 0 0 4px 0; font-size: 1.05rem; font-weight: 800;">Bot Terhubung Sempurna!</h4>
+                                        <p style="font-size: 0.85rem; color: #166534; margin: 0;">Sistem siap mengirimkan notifikasi pengingat & presensi.</p>
+                                    </div>`;
+                                clearInterval(pollingTimer);
+                            }
+                        }
+                    })
+                    .catch(() => {});
+            }
+
+            updateBotStatusUI();
+            pollingTimer = setInterval(updateBotStatusUI, 2500);
+        }
 
         // Track which contenteditable is active so insertVarAtCursor works
         let activeEditEl = null;

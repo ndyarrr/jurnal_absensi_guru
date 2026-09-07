@@ -14,7 +14,7 @@ class WaBotService
     public function __construct()
     {
         $this->baseUrl = config('services.wa_bot.url', 'http://127.0.0.1:3000');
-        $this->timeout = 5; // seconds
+        $this->timeout = 2; // seconds (fast fail when offline)
     }
 
     /**
@@ -151,6 +151,175 @@ class WaBotService
     }
 
     /**
+     * Cari letak binary Node.js yang valid secara otomatis atau dari config.
+     */
+    protected function resolveNodeBinary(): ?string
+    {
+        $isWin = $this->isWindows();
+        $binConfig = trim((string) config('services.wa_bot.node_bin'));
+
+        if ($binConfig !== '') {
+            $absPath = $this->makeAbsolutePath($binConfig);
+            if (is_file($absPath)) {
+                return $absPath;
+            }
+            if ($isWin && !preg_match('/\.(exe|cmd|bat)$/i', $absPath) && is_file($absPath . '.exe')) {
+                return $absPath . '.exe';
+            }
+        }
+
+        // Cek via command 'where' (Windows) atau 'which' (Linux)
+        try {
+            $checker = $isWin ? 'where node' : 'which node';
+            $process = Process::fromShellCommandline($checker);
+            $process->setTimeout(5);
+            $process->run();
+            if ($process->isSuccessful()) {
+                $lines = array_filter(array_map('trim', explode("\n", $process->getOutput())));
+                foreach ($lines as $line) {
+                    if (is_file($line)) {
+                        return $line;
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            // Ignore failure
+        }
+
+        // Candidate lokasi umum Node.js
+        $candidates = [];
+        if ($isWin) {
+            $programFiles = getenv('ProgramFiles') ?: 'C:\\Program Files';
+            $programFilesX86 = getenv('ProgramFiles(x86)') ?: 'C:\\Program Files (x86)';
+            $localAppData = getenv('LOCALAPPDATA');
+            $appData = getenv('APPDATA');
+
+            $candidates = [
+                'D:\\nodejs\\node.exe',
+                'C:\\nodejs\\node.exe',
+                $programFiles . '\\nodejs\\node.exe',
+                $programFilesX86 . '\\nodejs\\node.exe',
+            ];
+            if ($localAppData) {
+                $candidates[] = $localAppData . '\\Programs\\node\\node.exe';
+            }
+            if ($appData) {
+                $candidates[] = $appData . '\\npm\\node.exe';
+            }
+            $nvmHome = getenv('NVM_HOME');
+            if ($nvmHome) {
+                $candidates[] = rtrim($nvmHome, '\\/') . '\\node.exe';
+            }
+            $nvmSymlink = getenv('NVM_SYMLINK');
+            if ($nvmSymlink) {
+                $candidates[] = rtrim($nvmSymlink, '\\/') . '\\node.exe';
+            }
+        } else {
+            $candidates = [
+                '/usr/local/bin/node',
+                '/usr/bin/node',
+                '/bin/node',
+            ];
+            $home = getenv('HOME');
+            if ($home) {
+                $nvmNodes = glob($home . '/.nvm/versions/node/*/bin/node');
+                if (is_array($nvmNodes)) {
+                    $candidates = array_merge($candidates, $nvmNodes);
+                }
+            }
+        }
+
+        foreach ($candidates as $candidate) {
+            if (is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Dapatkan Environment Variables untuk Symfony Process (memastikan PATH memuat lokasi Node & PM2).
+     */
+    protected function getEnvironmentVariables(): array
+    {
+        $isWin = $this->isWindows();
+        $sep = $isWin ? ';' : ':';
+
+        // Ambil PATH yang ada di environment PHP
+        $currentPath = getenv('PATH') ?: (getenv('Path') ?: ($_SERVER['PATH'] ?? ($_SERVER['Path'] ?? '')));
+        $pathDirs = array_filter(explode($sep, (string) $currentPath), fn($d) => trim($d) !== '');
+
+        $extraDirs = [];
+
+        // 1. Lokasi Node.js dari resolveNodeBinary
+        $nodeBin = $this->resolveNodeBinary();
+        if ($nodeBin && is_file($nodeBin)) {
+            $extraDirs[] = dirname($nodeBin);
+        }
+
+        // 2. Lokasi PM2 dari resolvePm2Binary
+        $pm2Bin = $this->resolvePm2Binary();
+        if (is_file($pm2Bin)) {
+            $extraDirs[] = dirname($pm2Bin);
+        }
+
+        // 3. Fallback folder umum Node/PM2
+        if ($isWin) {
+            $programFiles = getenv('ProgramFiles') ?: 'C:\\Program Files';
+            $programFilesX86 = getenv('ProgramFiles(x86)') ?: 'C:\\Program Files (x86)';
+            $appData = getenv('APPDATA');
+            $localAppData = getenv('LOCALAPPDATA');
+
+            $commonWinDirs = [
+                'D:\\nodejs',
+                'C:\\nodejs',
+                $programFiles . '\\nodejs',
+                $programFilesX86 . '\\nodejs',
+            ];
+            if ($appData) {
+                $commonWinDirs[] = $appData . '\\npm';
+            }
+            if ($localAppData) {
+                $commonWinDirs[] = $localAppData . '\\Programs\\node';
+            }
+
+            foreach ($commonWinDirs as $dir) {
+                if (is_dir($dir)) {
+                    $extraDirs[] = $dir;
+                }
+            }
+        } else {
+            $commonLinuxDirs = ['/usr/local/bin', '/usr/bin', '/bin'];
+            foreach ($commonLinuxDirs as $dir) {
+                if (is_dir($dir)) {
+                    $extraDirs[] = $dir;
+                }
+            }
+        }
+
+        // Gabungkan extraDirs dan pathDirs (hindari duplikat)
+        $mergedDirs = [];
+        foreach (array_merge($extraDirs, $pathDirs) as $dir) {
+            $normalized = rtrim($dir, '/\\');
+            if ($normalized !== '' && !in_array($normalized, $mergedDirs, true)) {
+                $mergedDirs[] = $normalized;
+            }
+        }
+
+        $env = [
+            'PATH' => implode($sep, $mergedDirs),
+        ];
+
+        $pm2Home = config('services.wa_bot.pm2_home');
+        if ($pm2Home) {
+            $env['PM2_HOME'] = $pm2Home;
+        }
+
+        return $env;
+    }
+
+    /**
      * Cek apakah sebuah perintah tersedia di sistem (path file atau where/which).
      */
     protected function commandExists(string $bin): bool
@@ -177,6 +346,7 @@ class WaBotService
         try {
             $checker = $this->isWindows() ? 'where' : 'which';
             $process = new Process([$checker, $bin]);
+            $process->setEnv($this->getEnvironmentVariables());
             $process->setTimeout(10);
             $process->run();
 
@@ -194,7 +364,6 @@ class WaBotService
         $bin = $this->resolvePm2Binary();
         $botDirConfig = config('services.wa_bot.bot_dir', 'bot');
         $botDir = $this->makeAbsolutePath($botDirConfig ?: 'bot');
-        $pm2Home = config('services.wa_bot.pm2_home');
 
         if (is_array($command)) {
             $cmdArray = array_merge([$bin], $command);
@@ -206,12 +375,7 @@ class WaBotService
         $process = new Process($cmdArray);
         $process->setWorkingDirectory($botDir);
         $process->setTimeout(30);
-
-        if ($pm2Home) {
-            $process->setEnv([
-                'PM2_HOME' => $pm2Home,
-            ]);
-        }
+        $process->setEnv($this->getEnvironmentVariables());
 
         $process->run();
 
@@ -306,6 +470,9 @@ class WaBotService
     /**
      * Nyalakan proses bot via PM2 (setara npm start)
      */
+    /**
+     * Nyalakan atau restart proses bot via PM2 (setara npm start)
+     */
     public function startProcess(): array
     {
         $info = $this->getProcessInfo();
@@ -319,20 +486,31 @@ class WaBotService
 
         $appName = config('services.wa_bot.pm2_app_name', 'wa-bot');
 
-        if ($info['registered'] && $info['status'] === 'online') {
+        // Cek apakah HTTP API bot benar-benar merespon
+        $isHttpOnline = false;
+        try {
+            $resp = Http::timeout(2)->get("{$this->baseUrl}/api/status");
+            if ($resp->successful()) {
+                $isHttpOnline = true;
+            }
+        } catch (\Throwable $e) {
+            $isHttpOnline = false;
+        }
+
+        if ($info['registered'] && $info['status'] === 'online' && $isHttpOnline) {
             return ['success' => true, 'message' => 'Bot WhatsApp sudah berjalan (online).'];
         }
 
-        $command = $info['registered']
-            ? "start {$appName}"
-            : "start index.js --name {$appName}";
+        $command = ($info['registered'] && $info['status'] === 'online')
+            ? "restart {$appName}"
+            : ($info['registered'] ? "start {$appName}" : "start index.js --name {$appName}");
 
         $result = $this->runPm2($command);
 
         return [
             'success' => $result['success'],
             'message' => $result['success']
-                ? 'Proses bot WhatsApp berhasil dihidupkan (pm2 start).'
+                ? 'Proses bot WhatsApp berhasil dihidupkan/direset (PM2).'
                 : 'Gagal menghidupkan bot WhatsApp: ' . trim($result['error'] ?: $result['output']),
         ];
     }
@@ -415,9 +593,21 @@ class WaBotService
             $response = Http::timeout(10)->post("{$this->baseUrl}/api/logout");
             return $response->json();
         } catch (\Exception $e) {
+            // Hapus sesi lokal secara manual jika service bot offline
+            $botDirConfig = config('services.wa_bot.bot_dir', 'bot');
+            $sessionDir = $this->makeAbsolutePath($botDirConfig . '/sijurnalsesion');
+
+            if (is_dir($sessionDir)) {
+                try {
+                    \Illuminate\Support\Facades\File::deleteDirectory($sessionDir);
+                } catch (\Throwable $t) {
+                    // Ignore failure
+                }
+            }
+
             return [
-                'success' => false,
-                'message' => 'Gagal logout bot: ' . $e->getMessage(),
+                'success' => true,
+                'message' => 'Bot offline saat logout, tetapi sesi lokal berhasil dibersihkan.',
             ];
         }
     }

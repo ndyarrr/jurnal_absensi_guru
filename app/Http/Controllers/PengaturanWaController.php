@@ -101,6 +101,9 @@ class PengaturanWaController extends Controller
         $result = $this->waBotService->startProcess();
 
         if ($result['success'] ?? false) {
+            // Jeda 1.5 detik agar Node.js/Baileys sempat inisialisasi & generate QR Code
+            usleep(1500000);
+
             return redirect()->route('pengaturan-wa.index', ['tab' => 'bot-status'])
                 ->with('success', $result['message']);
         }

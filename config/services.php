@@ -41,6 +41,7 @@ return [
         'pm2_app_name' => env('WA_BOT_PM2_APP_NAME', 'wa-bot'),
         'pm2_bin' => env('WA_BOT_PM2_BIN'),
         'pm2_home' => env('WA_BOT_PM2_HOME'),
+        'node_bin' => env('WA_BOT_NODE_BIN'),
     ],
 
 ];

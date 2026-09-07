@@ -145,7 +145,8 @@ proses (tidak auto-reconnect). Fitur ini bekerja lewat PM2.
    ```
    - `WA_BOT_PM2_BIN` diisi jika binary pm2 tidak ada di PATH user web (mis. `www-data`).
    - `WA_BOT_PM2_HOME` diisi jika daemon PM2 memakai home khusus (mis. `/home/www-data/.pm2`).
-   - Pastikan user web (www-data) dapat mengeksekusi binary `pm2` tersebut.
+   - `WA_BOT_NODE_BIN` (opsional) diisi jika binary `node` / `node.exe` berada di lokasi non-standar.
+   - Pastikan user web (www-data) dapat mengeksekusi binary `pm2` dan `node` tersebut.
 
 ### 🪟 Mengembangkan di Windows
 
