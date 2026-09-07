@@ -49,6 +49,15 @@
         .pk-nav-link:hover { color: #1e2538; background: #f1f5f9; }
         .pk-nav-link.active { background-color: var(--pk-navy); color: #ffffff; font-weight: 800; box-shadow: 0 4px 12px rgba(30, 37, 56, 0.15); }
 
+
+        .pk-sidebar-footer {
+            border-top: 1px solid #e2e8f0;
+            padding-top: 16px;
+            font-size: 0.775rem;
+            color: #64748b;
+            font-weight: 700;
+        }
+
         .pk-main { flex: 1; margin-left: 250px; padding: 28px 36px; overflow-y: auto; width: calc(100% - 250px); }
 
         .pk-header-bar {
