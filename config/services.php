@@ -37,9 +37,9 @@ return [
 
     'wa_bot' => [
         'url' => env('WA_BOT_URL', 'http://127.0.0.1:3000'),
-        'bot_dir' => env('WA_BOT_DIR', base_path('bot')),
+        'bot_dir' => env('WA_BOT_DIR', 'bot'),
         'pm2_app_name' => env('WA_BOT_PM2_APP_NAME', 'wa-bot'),
-        'pm2_bin' => env('WA_BOT_PM2_BIN', 'pm2'),
+        'pm2_bin' => env('WA_BOT_PM2_BIN'),
         'pm2_home' => env('WA_BOT_PM2_HOME'),
     ],
 

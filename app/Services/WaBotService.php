@@ -53,34 +53,97 @@ class WaBotService
     }
 
     /**
+     * Konversi path relatif menjadi path absolut terhadap base_path() project.
+     * Jika sudah berupa path absolut, kembalikan apa adanya.
+     */
+    protected function makeAbsolutePath(string $path): string
+    {
+        $path = trim($path);
+        if ($path === '') {
+            return '';
+        }
+
+        $isAbsolute = str_starts_with($path, '/')
+            || str_starts_with($path, '\\')
+            || (strlen($path) >= 2 && $path[1] === ':');
+
+        if ($isAbsolute) {
+            return $path;
+        }
+
+        return base_path($path);
+    }
+
+    /**
      * Cari letak binary PM2 yang valid lintas platform.
      *
      * Prioritas:
      * 1. Nilai config WA_BOT_PM2_BIN / wa_bot.pm2_bin (jika diisi).
-     * 2. Otomatis lengkapi ekstensi ".cmd" di Windows bila path berupa file tanpa ekstensi.
-     * 3. Default "pm2" (Linux/macOS) atau "pm2.cmd" (Windows, lewat PATH).
+     * 2. Auto-detect PM2 lokal dari bot/node_modules/.bin/ atau node_modules/.bin/.
+     * 3. Default "pm2" (Linux/macOS) atau "pm2.cmd" / APPDATA (Windows).
      */
-
     protected function resolvePm2Binary(): string
     {
-        $bin = trim((string) config('services.wa_bot.pm2_bin'));
+        $isWin = $this->isWindows();
+        $binConfig = trim((string) config('services.wa_bot.pm2_bin'));
 
-        if ($bin !== '') {
-            return $bin;
+        if ($binConfig !== '') {
+            $absPath = $this->makeAbsolutePath($binConfig);
+
+            if (str_contains($binConfig, '/') || str_contains($binConfig, '\\') || is_file($absPath)) {
+                if ($isWin) {
+                    if (!preg_match('/\.(cmd|bat|exe)$/i', $absPath)) {
+                        if (is_file($absPath . '.cmd')) {
+                            return $absPath . '.cmd';
+                        }
+                        if (is_file($absPath . '.exe')) {
+                            return $absPath . '.exe';
+                        }
+                        if (is_file($absPath . '.bat')) {
+                            return $absPath . '.bat';
+                        }
+                    }
+                }
+                if (is_file($absPath)) {
+                    return $absPath;
+                }
+            } else {
+                if ($isWin && !preg_match('/\.(cmd|bat|exe)$/i', $binConfig)) {
+                    return $binConfig . '.cmd';
+                }
+                return $binConfig;
+            }
         }
 
-        if ($this->isWindows()) {
-            $appData = getenv('APPDATA');
+        // Auto-detect PM2 lokal di node_modules project
+        $localCandidates = [
+            'bot/node_modules/.bin/pm2',
+            'node_modules/.bin/pm2',
+        ];
 
-            if ($appData) {
-                $pm2 = $appData . DIRECTORY_SEPARATOR . 'npm'
-                    . DIRECTORY_SEPARATOR . 'pm2.cmd';
-
-                if (is_file($pm2)) {
-                    return $pm2;
+        foreach ($localCandidates as $candidate) {
+            $candidateAbs = base_path($candidate);
+            if ($isWin) {
+                if (is_file($candidateAbs . '.cmd')) {
+                    return $candidateAbs . '.cmd';
+                }
+                if (is_file($candidateAbs . '.exe')) {
+                    return $candidateAbs . '.exe';
                 }
             }
+            if (is_file($candidateAbs)) {
+                return $candidateAbs;
+            }
+        }
 
+        if ($isWin) {
+            $appData = getenv('APPDATA');
+            if ($appData) {
+                $pm2Win = $appData . DIRECTORY_SEPARATOR . 'npm' . DIRECTORY_SEPARATOR . 'pm2.cmd';
+                if (is_file($pm2Win)) {
+                    return $pm2Win;
+                }
+            }
             return 'pm2.cmd';
         }
 
@@ -92,18 +155,23 @@ class WaBotService
      */
     protected function commandExists(string $bin): bool
     {
+        $absPath = $this->makeAbsolutePath($bin);
+        if (is_file($absPath)) {
+            return true;
+        }
+
+        if ($this->isWindows()) {
+            if (!preg_match('/\.(cmd|bat|exe)$/i', $absPath) && is_file($absPath . '.cmd')) {
+                return true;
+            }
+        }
+
         $looksLikePath = str_contains($bin, '\\')
             || str_contains($bin, '/')
             || preg_match('/\.(cmd|bat|exe|ps1)$/i', $bin);
 
         if ($looksLikePath) {
-            if (is_file($bin)) {
-                return true;
-            }
-
-            return $this->isWindows()
-                && !preg_match('/\.(cmd|bat|exe|ps1)$/i', $bin)
-                && is_file($bin . '.cmd');
+            return false;
         }
 
         try {
@@ -121,26 +189,21 @@ class WaBotService
     /**
      * Jalankan perintah PM2 dari folder bot/
      */
-    protected function runPm2(string $command): array
+    protected function runPm2(string|array $command): array
     {
         $bin = $this->resolvePm2Binary();
-        $botDir = config('services.wa_bot.bot_dir', base_path('bot'));
+        $botDirConfig = config('services.wa_bot.bot_dir', 'bot');
+        $botDir = $this->makeAbsolutePath($botDirConfig ?: 'bot');
         $pm2Home = config('services.wa_bot.pm2_home');
 
-        if ($this->isWindows()) {
-            $shellCommand = 'cmd /d /s /c ""'
-                . $bin
-                . '" '
-                . $command
-                . '"';
-
-            $process = Process::fromShellCommandline($shellCommand);
+        if (is_array($command)) {
+            $cmdArray = array_merge([$bin], $command);
         } else {
-            $process = Process::fromShellCommandline(
-                escapeshellarg($bin) . ' ' . $command
-            );
+            $parts = array_values(array_filter(explode(' ', $command), fn($s) => $s !== ''));
+            $cmdArray = array_merge([$bin], $parts);
         }
 
+        $process = new Process($cmdArray);
         $process->setWorkingDirectory($botDir);
         $process->setTimeout(30);
 
@@ -157,7 +220,7 @@ class WaBotService
             'output' => $process->getOutput(),
             'error' => $process->getErrorOutput(),
             'exitCode' => $process->getExitCode(),
-            'command' => $bin . ' ' . $command,
+            'command' => implode(' ', $cmdArray),
         ];
     }
 
