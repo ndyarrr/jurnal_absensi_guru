@@ -247,15 +247,15 @@
                 <!-- RIGHT COLUMN (Aktivitas & Guru Belum Mengisi) -->
                 <div style="display: flex; flex-direction: column; gap: 20px;">
 
-                    <!-- Panel 3: Aktivitas -->
+                    <!-- Panel 3: Aktivitas Hari Ini -->
                     <div class="dash-panel-card">
                         <div class="dash-panel-header">
-                            <h2 class="dash-panel-title">Aktivitas</h2>
+                            <h2 class="dash-panel-title">Aktivitas Hari Ini</h2>
                             <a href="{{ route('jurnal.index') }}" class="btn-lihat-semua">Lihat Semua</a>
                         </div>
 
                         <div class="dash-list-wrapper" id="aktivitas_list_container">
-                            @foreach($aktivitasList as $act)
+                            @forelse($aktivitasList as $act)
                                 <div class="dash-list-item">
                                     <span class="activity-time">{{ $act['waktu'] }}</span>
                                     <div class="avatar-circle" style="background: {{ $act['bg'] }};">
@@ -266,7 +266,12 @@
                                         <span class="item-detail">{{ $act['detail'] }}</span>
                                     </div>
                                 </div>
-                            @endforeach
+                            @empty
+                                <div style="text-align: center; padding: 24px 16px; color: #64748b; font-size: 0.875rem; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" style="margin: 0 auto 6px auto; display: block; color: #94a3b8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                    Belum ada aktivitas jurnal hari ini
+                                </div>
+                            @endforelse
                         </div>
                     </div>
 
@@ -278,7 +283,7 @@
                         </div>
 
                         <div class="dash-list-wrapper" id="guru_belum_mengisi_container">
-                            @foreach($guruBelumMengisi as $guru)
+                            @forelse($guruBelumMengisi as $guru)
                                 <div class="dash-list-item">
                                     <div class="avatar-circle" style="background: #f1ebd9; color: #847e73;">
                                         {{ substr($guru['nama'], 0, 1) }}
@@ -288,7 +293,19 @@
                                         <span class="item-detail">{{ $guru['mapel'] }}</span>
                                     </div>
                                 </div>
-                            @endforeach
+                            @empty
+                                @if(!($stats['is_ada_jadwal'] ?? true))
+                                    <div style="text-align: center; padding: 24px 16px; color: #64748b; font-size: 0.875rem; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
+                                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" style="margin: 0 auto 6px auto; display: block; color: #94a3b8;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        Tidak ada jadwal pelajaran hari ini ({{ $stats['hari_ini'] ?? 'Libur' }})
+                                    </div>
+                                @else
+                                    <div style="text-align: center; padding: 24px 16px; color: #047857; font-size: 0.875rem; font-weight: 600; background: #ecfdf5; border-radius: 12px; border: 1px solid #a7f3d0;">
+                                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin: 0 auto 6px auto; display: block; color: #10b981;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                        Semua guru jadwal hari ini sudah mengisi jurnal
+                                    </div>
+                                @endif
+                            @endforelse
                         </div>
                     </div>
 
@@ -374,6 +391,78 @@
                             `;
                         });
                         chartContainer.innerHTML = html;
+                    }
+                }
+
+                // Update Aktivitas List Container
+                const actContainer = document.getElementById('aktivitas_list_container');
+                if (actContainer && Array.isArray(data.aktivitasList)) {
+                    if (data.aktivitasList.length === 0) {
+                        actContainer.innerHTML = `
+                            <div style="text-align: center; padding: 24px 16px; color: #64748b; font-size: 0.875rem; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
+                                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" style="margin: 0 auto 6px auto; display: block; color: #94a3b8;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                Belum ada aktivitas jurnal hari ini
+                            </div>
+                        `;
+                    } else {
+                        let html = '';
+                        data.aktivitasList.forEach(act => {
+                            const initial = act.nama ? act.nama.charAt(0) : 'G';
+                            html += `
+                                <div class="dash-list-item">
+                                    <span class="activity-time">${act.waktu}</span>
+                                    <div class="avatar-circle" style="background: ${act.bg};">
+                                        ${initial}
+                                    </div>
+                                    <div class="item-info">
+                                        <span class="item-name">${act.nama}</span>
+                                        <span class="item-detail">${act.detail}</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        actContainer.innerHTML = html;
+                    }
+                }
+
+                // Update Guru Belum Mengisi Container
+                const guruContainer = document.getElementById('guru_belum_mengisi_container');
+                if (guruContainer && Array.isArray(data.guruBelumMengisi)) {
+                    if (data.guruBelumMengisi.length === 0) {
+                        const isAdaJadwal = data.stats.is_ada_jadwal;
+                        const hariIni = data.stats.hari_ini || 'Hari ini';
+                        if (!isAdaJadwal) {
+                            guruContainer.innerHTML = `
+                                <div style="text-align: center; padding: 24px 16px; color: #64748b; font-size: 0.875rem; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" style="margin: 0 auto 6px auto; display: block; color: #94a3b8;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                    Tidak ada jadwal pelajaran hari ini (${hariIni})
+                                </div>
+                            `;
+                        } else {
+                            guruContainer.innerHTML = `
+                                <div style="text-align: center; padding: 24px 16px; color: #047857; font-size: 0.875rem; font-weight: 600; background: #ecfdf5; border-radius: 12px; border: 1px solid #a7f3d0;">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin: 0 auto 6px auto; display: block; color: #10b981;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                    Semua guru jadwal hari ini sudah mengisi jurnal
+                                </div>
+                            `;
+                        }
+                    } else {
+                        let html = '';
+                        data.guruBelumMengisi.forEach(guru => {
+                            const initial = guru.nama ? guru.nama.charAt(0) : 'G';
+                            html += `
+                                <div class="dash-list-item">
+                                    <div class="avatar-circle" style="background: #f1ebd9; color: #847e73;">
+                                        ${initial}
+                                    </div>
+                                    <div class="item-info">
+                                        <span class="item-name">${guru.nama}</span>
+                                        <span class="item-detail">${guru.mapel}</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        guruContainer.innerHTML = html;
                     }
                 }
             })

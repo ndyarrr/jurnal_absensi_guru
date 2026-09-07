@@ -73,6 +73,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/panduan-admin', [PanduanAdminController::class, 'index'])->name('panduan.index');
 
         Route::get('/guru/export/csv', [GuruController::class, 'exportCsv'])->name('guru.export-csv');
+        Route::post('/guru/deduplicate', [GuruController::class, 'deduplicate'])->name('guru.deduplicate');
         Route::resource('guru', GuruController::class);
         Route::resource('jurusan', JurusanController::class);
         Route::resource('kelas', KelasController::class)->parameters(['kelas' => 'kelas']);

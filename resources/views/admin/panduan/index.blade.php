@@ -241,6 +241,14 @@
             padding: 3px 8px;
             border-radius: 6px;
         }
+        mark.search-highlight {
+            background-color: #fef08a;
+            color: #854d0e;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-weight: 800;
+            box-shadow: 0 0 0 1px #fde047;
+        }
     </style>
 </head>
 <body class="dashboard-body">
@@ -287,8 +295,19 @@
             </header>
 
             <!-- Search Filter Bar -->
-            <div style="margin-bottom: 8px;">
-                <input type="text" id="guideSearchInput" onkeyup="filterGuides()" class="search-guide-input" placeholder="Cari bantuan (contoh: jadwal, guru, siswa, piket, export, istirahat, whatsapp, bot)...">
+            <div style="margin-bottom: 12px;">
+                <input type="text" id="guideSearchInput" onkeyup="filterGuides()" oninput="filterGuides()" class="search-guide-input" placeholder="Cari bantuan (contoh: jadwal, guru, siswa, piket, export, istirahat, whatsapp, bot)...">
+            </div>
+
+            <!-- Peringatan Tidak Ada Hasil Ditemukan -->
+            <div id="noResultsGuide" style="display: none; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; border-radius: 14px; padding: 20px 24px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.06);">
+                <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin: 0 auto 10px auto; display: block; color: #ef4444;">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    <line x1="8" y1="11" x2="14" y2="11"></line>
+                </svg>
+                <div style="font-weight: 800; font-size: 1.05rem; margin-bottom: 6px; color: #991b1b;">Tidak Ada Panduan Ditemukan</div>
+                <div style="font-size: 0.875rem; color: #7f1d1d;">Panduan dengan kata kunci "<span id="noResultsQueryText" style="font-weight: 800; color: #b91c1c;"></span>" tidak tersedia dalam sistem. Silakan coba cari kata kunci lain (seperti: <em>jadwal, guru, piket, whatsapp, siswa, kelas</em>).</div>
             </div>
 
             <!-- Visual Workflow Overview -->
@@ -656,30 +675,86 @@
         </main>
     </div>
 
-    <!-- Toggle Submenu & Live Search Script -->
+    <!-- Toggle Submenu & Live Search with Text Highlighting Script -->
     <script>
         function toggleSubmenu(id) {
             const el = document.getElementById(id);
-            if (el.style.display === 'none' || el.style.display === '') {
-                el.style.display = 'flex';
-            } else {
-                el.style.display = 'none';
+            if (el) {
+                if (el.style.display === 'none' || el.style.display === '') {
+                    el.style.display = 'flex';
+                } else {
+                    el.style.display = 'none';
+                }
             }
         }
 
-        // Live Filter Guide Cards
-        function filterGuides() {
-            const query = document.getElementById('guideSearchInput').value.toLowerCase();
+        document.addEventListener('DOMContentLoaded', () => {
             const cards = document.querySelectorAll('.guide-topic-card');
+            cards.forEach(card => {
+                card.dataset.originalHtml = card.innerHTML;
+            });
+        });
+
+        function highlightInNode(node, queryRegex) {
+            if (node.nodeType === Node.TEXT_NODE) {
+                const val = node.nodeValue;
+                if (queryRegex.test(val)) {
+                    const span = document.createElement('span');
+                    span.innerHTML = val.replace(queryRegex, match => `<mark class="search-highlight">${match}</mark>`);
+                    node.parentNode.replaceChild(span, node);
+                }
+            } else if (node.nodeType === Node.ELEMENT_NODE && !['SCRIPT', 'STYLE', 'SVG', 'PATH', 'BUTTON', 'INPUT'].includes(node.tagName)) {
+                Array.from(node.childNodes).forEach(child => highlightInNode(child, queryRegex));
+            }
+        }
+
+        function filterGuides() {
+            const queryInput = document.getElementById('guideSearchInput');
+            const rawQuery = queryInput ? queryInput.value.trim() : '';
+            const cards = document.querySelectorAll('.guide-topic-card');
+            const noResultsEl = document.getElementById('noResultsGuide');
+            const queryTextSpan = document.getElementById('noResultsQueryText');
+
+            if (!rawQuery) {
+                cards.forEach(card => {
+                    if (card.dataset.originalHtml) {
+                        card.innerHTML = card.dataset.originalHtml;
+                    }
+                    card.style.display = 'block';
+                });
+                if (noResultsEl) noResultsEl.style.display = 'none';
+                return;
+            }
+
+            const escapedQuery = rawQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const queryRegex = new RegExp(escapedQuery, 'gi');
+
+            let visibleCount = 0;
 
             cards.forEach(card => {
-                const text = card.innerText.toLowerCase();
-                if (text.includes(query)) {
+                if (!card.dataset.originalHtml) {
+                    card.dataset.originalHtml = card.innerHTML;
+                }
+
+                // Restore original HTML before checking & highlighting
+                card.innerHTML = card.dataset.originalHtml;
+
+                const text = card.innerText || card.textContent;
+                if (queryRegex.test(text)) {
                     card.style.display = 'block';
+                    highlightInNode(card, queryRegex);
+                    visibleCount++;
                 } else {
                     card.style.display = 'none';
                 }
             });
+
+            if (visibleCount === 0) {
+                if (queryTextSpan) queryTextSpan.textContent = rawQuery;
+                if (noResultsEl) noResultsEl.style.display = 'block';
+            } else {
+                if (noResultsEl) noResultsEl.style.display = 'none';
+            }
         }
     </script>
     <script src="/js/sidebar-toggle.js"></script>

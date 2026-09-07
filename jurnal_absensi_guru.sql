@@ -136,15 +136,6 @@ INSERT INTO `guru` (`id_guru`, `nuptk`, `nama_guru`, `no_hp`, `deleted_at`) VALU
 (8, '199107182017012010', 'Dewi Lestari, S.Pd', '081234500008', NULL),
 (9, '198809052013011011', 'Hendra Wijaya, S.Kom', '081234500009', NULL),
 (10, '199305142018022012', 'Siti Nurhaliza, S.Pd', '081234500010', NULL),
-(11, '198501152010011001', 'Trisno Wibowo, S.Pd., M.M.', '081234567801', NULL),
-(12, '199002202015022002', 'Kurnila Putri Islamawati, S.Pd', '081234567802', NULL),
-(13, '198803102012011003', 'Budi Santoso, S.Kom', '081234567803', NULL),
-(14, '199204052018022004', 'Rina Amelia, S.Pd', '081234567804', NULL),
-(15, '198605122011011005', 'Agus Prasetyo, S.T', '081234567805', NULL),
-(16, '199106182017022006', 'Dewi Lestari, S.Pd', '081234567806', NULL),
-(17, '198907252014011007', 'Hendra Wijaya, S.Kom', '081234567807', NULL),
-(18, '199308302019022008', 'Siti Nurhaliza, S.Pd', '081234567808', NULL),
-(19, '199409142020022009', 'Anisa Kusumawati, S.Pd', '081234567809', NULL),
 (20, '1111123456789094', 'Pandy', '081234567899', NULL);
 
 -- --------------------------------------------------------
@@ -163,11 +154,11 @@ CREATE TABLE `guru_mapel` (
 --
 
 INSERT INTO `guru_mapel` (`id_guru`, `id_mapel`) VALUES
-(15, 6),
-(15, 7),
-(15, 12),
-(15, 14),
-(15, 18),
+(7, 6),
+(7, 7),
+(7, 12),
+(7, 14),
+(7, 18),
 (20, 6),
 (20, 12);
 
@@ -221,10 +212,10 @@ INSERT INTO `jadwal_pelajaran` (`id_jadwal`, `id_kelas`, `hari`, `jam_ke`, `id_j
 (8, 2, 'Selasa', 1, NULL, 5, 3, NULL),
 (9, 3, 'Rabu', 2, NULL, 6, 5, NULL),
 (10, 4, 'Kamis', 4, NULL, 7, 4, NULL),
-(13, 12, 'Senin', 3, NULL, 13, 7, NULL),
+(13, 12, 'Senin', 3, NULL, 5, 7, NULL),
 (14, 6, 'Senin', 2, 710, 2, 1, 'R.58'),
-(15, 14, 'Selasa', 1, NULL, 15, 13, NULL),
-(17, 5, 'Selasa', 7, 716, 18, 4, 'Lab. RPL 1');
+(15, 14, 'Selasa', 1, NULL, 7, 13, NULL),
+(17, 5, 'Selasa', 7, 716, 10, 4, 'Lab. RPL 1');
 
 -- --------------------------------------------------------
 
@@ -420,16 +411,16 @@ INSERT INTO `kelas` (`id_kelas`, `tingkat`, `id_jurusan`, `rombel`, `id_guru_wal
 (2, 'XI', 1, 2, NULL, 'Budi Santoso, S.Kom', 30, NULL),
 (3, 'XI', 2, 1, NULL, 'Agus Prasetyo, S.T', 31, NULL),
 (4, 'XI', 2, 2, NULL, 'Hendra Wijaya, S.Kom', 29, '2026-08-12 09:57:37'),
-(5, 'X', 1, 1, 17, 'Hendra Wijaya, S.Kom', 33, NULL),
+(5, 'X', 1, 1, 9, 'Hendra Wijaya, S.Kom', 33, NULL),
 (6, 'X', 1, 2, NULL, 'Dewi Lestari, S.Pd', 32, NULL),
 (7, 'XII', 1, 1, NULL, 'Anisa Kusumawati, S.Pd', 30, NULL),
 (8, 'XII', 1, 2, NULL, 'Siti Nurhaliza, S.Pd', 28, NULL),
 (9, 'X', 2, 1, NULL, 'Shinta Indyar Smoney Susanto, S.Pd', 31, NULL),
 (10, 'XII', 2, 1, NULL, 'Trisno Wibowo, S.Pd., M.M.', 30, NULL),
 (11, 'X', 2, 2, NULL, 'PAK TRIS', 30, NULL),
-(12, 'XI', 4, 1, 13, 'Budi Santoso, S.Kom', 34, NULL),
-(13, 'X', 5, 1, 16, 'Dewi Lestari, S.Pd', 28, NULL),
-(14, 'X', 6, 2, 15, 'Agus Prasetyo, S.T', 31, NULL),
+(12, 'XI', 4, 1, 5, 'Budi Santoso, S.Kom', 34, NULL),
+(13, 'X', 5, 1, 8, 'Dewi Lestari, S.Pd', 28, NULL),
+(14, 'X', 6, 2, 7, 'Agus Prasetyo, S.T', 31, NULL),
 (15, 'X', 3, 5, 5, 'Budi Santoso, S.Kom', 36, NULL),
 (16, 'X', 4, 4, 4, 'Anisa Kusumawati, S.Pd', 36, NULL);
 

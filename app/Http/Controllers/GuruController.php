@@ -138,6 +138,26 @@ class GuruController extends Controller
     }
 
     /**
+     * Remove duplicate Guru entries and re-link relations.
+     */
+    public function deduplicate(Request $request)
+    {
+        $result = \App\Console\Commands\DeduplicateGuruCommand::runDeduplication();
+
+        if ($result['deleted_count'] > 0) {
+            $msg = "Berhasil membersihkan data! {$result['merged_count']} kelompok guru ganda berhasil digabungkan dan {$result['deleted_count']} data guru ganda telah dihapus.";
+        } else {
+            $msg = "Tidak ditemukan data guru ganda. Seluruh data guru sudah bersih.";
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => $msg]);
+        }
+
+        return redirect()->route('guru.index')->with('success', $msg);
+    }
+
+    /**
      * Export filtered guru data as CSV.
      */
     public function exportCsv(Request $request)

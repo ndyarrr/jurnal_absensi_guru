@@ -24,29 +24,47 @@ class DashboardController extends Controller
             return redirect()->route('role.dashboard');
         }
 
-        $todayStr = Carbon::now()->toDateString();
+        $dayMap = [
+            'Monday'    => 'Senin',
+            'Tuesday'   => 'Selasa',
+            'Wednesday' => 'Rabu',
+            'Thursday'  => 'Kamis',
+            'Friday'    => 'Jumat',
+            'Saturday'  => 'Sabtu',
+            'Sunday'    => 'Minggu',
+        ];
+        $todayDayName = $dayMap[Carbon::now('Asia/Jakarta')->format('l')] ?? 'Senin';
+        $todayStr     = Carbon::now('Asia/Jakarta')->toDateString();
 
-        // 1. Real Counts
-        $totalPengguna = User::count();
-        $totalSiswa    = Siswa::count();
-        $totalGuru     = Guru::count();
-        $totalKelas    = Kelas::count();
-        $totalJadwal   = JadwalPelajaran::count();
-        $sudahMengisi  = JurnalMengajar::whereDate('tanggal', $todayStr)->count();
+        // 1. Real Counts for Today
+        $totalPengguna      = User::count();
+        $totalSiswa         = Siswa::count();
+        $totalGuru          = Guru::count();
+        $totalKelas         = Kelas::count();
+        $totalJadwalHariIni = JadwalPelajaran::where('hari', $todayDayName)->count();
+        $sudahMengisi       = JurnalMengajar::whereDate('tanggal', $todayStr)->count();
+        $belumMengisi       = max(0, $totalJadwalHariIni - $sudahMengisi);
+
+        $persentase = $totalJadwalHariIni > 0 
+            ? round(($sudahMengisi / $totalJadwalHariIni) * 100) 
+            : ($sudahMengisi > 0 ? 100 : 0);
 
         $stats = [
-            'total_pengguna' => $totalPengguna,
-            'total_siswa'    => $totalSiswa,
-            'total_guru'     => $totalGuru,
-            'total_kelas'    => $totalKelas,
-            'total_jadwal'   => $totalJadwal,
-            'sudah_mengisi'  => $sudahMengisi,
-            'belum_mengisi'  => max(0, $totalJadwal - $sudahMengisi),
-            'persentase'     => $totalJadwal > 0 ? round(($sudahMengisi / $totalJadwal) * 100) : 0,
+            'total_pengguna'  => $totalPengguna,
+            'total_siswa'     => $totalSiswa,
+            'total_guru'      => $totalGuru,
+            'total_kelas'     => $totalKelas,
+            'total_jadwal'    => $totalJadwalHariIni,
+            'sudah_mengisi'   => $sudahMengisi,
+            'belum_mengisi'   => $belumMengisi,
+            'persentase'      => min(100, $persentase),
+            'hari_ini'        => $todayDayName,
+            'is_ada_jadwal'   => $totalJadwalHariIni > 0,
         ];
 
-        // 2. Real Aktivitas List (Latest Jurnal Entries)
-        $recentJurnals = JurnalMengajar::with(['jadwal.guru', 'jadwal.kelas.jurusan', 'jadwal.mapel', 'jadwal.jamPelajaran'])
+        // 2. Real Aktivitas List (Strictly Today's Jurnal Entries)
+        $todayJurnals = JurnalMengajar::with(['jadwal.guru', 'jadwal.kelas.jurusan', 'jadwal.mapel', 'jadwal.jamPelajaran'])
+            ->whereDate('tanggal', $todayStr)
             ->orderBy('id_jurnal', 'desc')
             ->take(5)
             ->get();
@@ -60,18 +78,20 @@ class DashboardController extends Controller
         ];
 
         $aktivitasList = [];
-        foreach ($recentJurnals as $idx => $jurnal) {
-            $waktu = optional($jurnal->jadwal->jamPelajaran)->jam_mulai
+        foreach ($todayJurnals as $idx => $jurnal) {
+            $waktu = optional(optional($jurnal->jadwal)->jamPelajaran)->jam_mulai
                 ? Carbon::parse($jurnal->jadwal->jamPelajaran->jam_mulai)->format('H:i')
                 : '07:' . str_pad($idx * 2 + 3, 2, '0', STR_PAD_LEFT);
 
-            $namaGuru = optional($jurnal->jadwal->guru)->nama_guru ?? 'Guru';
+            $namaGuru = optional(optional($jurnal->jadwal)->guru)->nama_guru ?? 'Guru';
 
-            $kelasStr = optional($jurnal->jadwal->kelas)->tingkat
-                . ' ' . optional(optional($jurnal->jadwal->kelas)->jurusan)->kode_jurusan
-                . ' ' . optional($jurnal->jadwal->kelas)->rombel;
+            $kelasStr = trim(
+                optional(optional($jurnal->jadwal)->kelas)->tingkat
+                . ' ' . optional(optional(optional($jurnal->jadwal)->kelas)->jurusan)->kode_jurusan
+                . ' ' . optional(optional($jurnal->jadwal)->kelas)->rombel
+            );
 
-            $mapelStr = optional($jurnal->jadwal->mapel)->nama_mapel ?? '';
+            $mapelStr = optional(optional($jurnal->jadwal)->mapel)->nama_mapel ?? '';
 
             $aktivitasList[] = [
                 'waktu'  => $waktu,
@@ -81,21 +101,24 @@ class DashboardController extends Controller
             ];
         }
 
-        // 3. Real Guru Belum Mengisi Hari Ini
-        $filledJadwalIds = JurnalMengajar::whereDate('tanggal', $todayStr)->pluck('id_jadwal');
-
-        $unfilledJadwals = JadwalPelajaran::with(['guru', 'mapel'])
-            ->whereNotIn('id_jadwal', $filledJadwalIds)
-            ->take(5)
-            ->get();
-
+        // 3. Real Guru Belum Mengisi HARI INI (Filtered strictly by Today's Scheduled Classes)
         $guruBelumMengisi = [];
-        foreach ($unfilledJadwals as $jadwal) {
-            if ($jadwal->guru) {
-                $guruBelumMengisi[] = [
-                    'nama'  => $jadwal->guru->nama_guru,
-                    'mapel' => optional($jadwal->mapel)->nama_mapel ?? 'Mata Pelajaran',
-                ];
+        if ($totalJadwalHariIni > 0) {
+            $filledJadwalIds = JurnalMengajar::whereDate('tanggal', $todayStr)->pluck('id_jadwal');
+
+            $unfilledJadwals = JadwalPelajaran::with(['guru', 'mapel'])
+                ->where('hari', $todayDayName)
+                ->whereNotIn('id_jadwal', $filledJadwalIds)
+                ->take(5)
+                ->get();
+
+            foreach ($unfilledJadwals as $jadwal) {
+                if ($jadwal->guru) {
+                    $guruBelumMengisi[] = [
+                        'nama'  => $jadwal->guru->nama_guru,
+                        'mapel' => optional($jadwal->mapel)->nama_mapel ?? 'Mata Pelajaran',
+                    ];
+                }
             }
         }
 
@@ -103,7 +126,7 @@ class DashboardController extends Controller
         $days = in_array((int) $request->input('days'), [7, 14, 30]) ? (int) $request->input('days') : 7;
         $chartData = [];
         for ($i = $days - 1; $i >= 0; $i--) {
-            $date = Carbon::now()->subDays($i);
+            $date = Carbon::now('Asia/Jakarta')->subDays($i);
             $count = JurnalMengajar::whereDate('tanggal', $date->toDateString())->count();
             $chartData[] = [
                 'label'  => $date->format('n/j'),
@@ -219,32 +242,43 @@ class DashboardController extends Controller
      */
     public function exportCsv()
     {
-        $todayStr = Carbon::now('Asia/Jakarta')->toDateString();
-        $todayLabel = Carbon::now('Asia/Jakarta')->translatedFormat('d F Y');
+        $dayMap = [
+            'Monday'    => 'Senin',
+            'Tuesday'   => 'Selasa',
+            'Wednesday' => 'Rabu',
+            'Thursday'  => 'Kamis',
+            'Friday'    => 'Jumat',
+            'Saturday'  => 'Sabtu',
+            'Sunday'    => 'Minggu',
+        ];
+        $todayDayName = $dayMap[Carbon::now('Asia/Jakarta')->format('l')] ?? 'Senin';
+        $todayStr     = Carbon::now('Asia/Jakarta')->toDateString();
+        $todayLabel   = Carbon::now('Asia/Jakarta')->translatedFormat('d F Y');
 
-        $totalPengguna = User::count();
-        $totalSiswa    = Siswa::count();
-        $totalGuru     = Guru::count();
-        $totalKelas    = Kelas::count();
-        $totalJadwal   = JadwalPelajaran::count();
-        $sudahMengisi  = JurnalMengajar::whereDate('tanggal', $todayStr)->count();
-        $belumMengisi  = max(0, $totalJadwal - $sudahMengisi);
-        $persentase    = $totalJadwal > 0 ? round(($sudahMengisi / $totalJadwal) * 100) : 0;
+        $totalPengguna      = User::count();
+        $totalSiswa         = Siswa::count();
+        $totalGuru          = Guru::count();
+        $totalKelas         = Kelas::count();
+        $totalJadwalHariIni = JadwalPelajaran::where('hari', $todayDayName)->count();
+        $sudahMengisi       = JurnalMengajar::whereDate('tanggal', $todayStr)->count();
+        $belumMengisi       = max(0, $totalJadwalHariIni - $sudahMengisi);
+        $persentase         = $totalJadwalHariIni > 0 ? round(($sudahMengisi / $totalJadwalHariIni) * 100) : ($sudahMengisi > 0 ? 100 : 0);
 
         $rows = [
             ['Laporan Dashboard Admin'],
             ['Tanggal Ekspor', $todayLabel],
+            ['Hari Ini', $todayDayName],
             [],
             ['Ringkasan Statistik'],
             ['Total Pengguna', $totalPengguna],
             ['Total Siswa', $totalSiswa],
             ['Total Guru', $totalGuru],
             ['Total Kelas', $totalKelas],
-            ['Total Jadwal', $totalJadwal],
+            ['Total Jadwal Hari Ini (' . $todayDayName . ')', $totalJadwalHariIni],
             ['Rekap Jurnal Hari Ini'],
             ['Sudah Mengisi', $sudahMengisi],
             ['Belum Mengisi', $belumMengisi],
-            ['Persentase Penyelesaian', $persentase . '%'],
+            ['Persentase Penyelesaian', min(100, $persentase) . '%'],
             [],
             ['Grafik Jurnal (9 Hari Terakhir)'],
             ['Tanggal', 'Jumlah Jurnal'],
@@ -257,49 +291,63 @@ class DashboardController extends Controller
         }
 
         $rows[] = [];
-        $rows[] = ['Aktivitas Terbaru'];
+        $rows[] = ['Aktivitas Hari Ini'];
         $rows[] = ['Waktu', 'Guru', 'Detail'];
 
-        $recentJurnals = JurnalMengajar::with(['jadwal.guru', 'jadwal.kelas.jurusan', 'jadwal.mapel', 'jadwal.jamPelajaran'])
+        $todayJurnals = JurnalMengajar::with(['jadwal.guru', 'jadwal.kelas.jurusan', 'jadwal.mapel', 'jadwal.jamPelajaran'])
+            ->whereDate('tanggal', $todayStr)
             ->orderByDesc('id_jurnal')
             ->take(20)
             ->get();
 
-        foreach ($recentJurnals as $idx => $jurnal) {
-            $waktu = optional($jurnal->jadwal->jamPelajaran)->jam_mulai
-                ? Carbon::parse($jurnal->jadwal->jamPelajaran->jam_mulai)->format('H:i')
-                : '-';
+        if ($todayJurnals->isEmpty()) {
+            $rows[] = ['-', 'Belum ada aktivitas jurnal hari ini', '-'];
+        } else {
+            foreach ($todayJurnals as $idx => $jurnal) {
+                $waktu = optional(optional($jurnal->jadwal)->jamPelajaran)->jam_mulai
+                    ? Carbon::parse($jurnal->jadwal->jamPelajaran->jam_mulai)->format('H:i')
+                    : '-';
 
-            $kelasStr = trim(
-                optional($jurnal->jadwal->kelas)->tingkat . ' '
-                . optional(optional($jurnal->jadwal->kelas)->jurusan)->kode_jurusan . ' '
-                . optional($jurnal->jadwal->kelas)->rombel
-            );
-            $mapelStr = optional($jurnal->jadwal->mapel)->nama_mapel ?? '';
-            $detail = trim($kelasStr . ' - ' . $mapelStr, ' -');
+                $kelasStr = trim(
+                    optional(optional($jurnal->jadwal)->kelas)->tingkat . ' '
+                    . optional(optional(optional($jurnal->jadwal)->kelas)->jurusan)->kode_jurusan . ' '
+                    . optional(optional($jurnal->jadwal)->kelas)->rombel
+                );
+                $mapelStr = optional(optional($jurnal->jadwal)->mapel)->nama_mapel ?? '';
+                $detail = trim($kelasStr . ' - ' . $mapelStr, ' -');
 
-            $rows[] = [
-                $waktu,
-                optional($jurnal->jadwal->guru)->nama_guru ?? '-',
-                $detail ?: '-',
-            ];
+                $rows[] = [
+                    $waktu,
+                    optional(optional($jurnal->jadwal)->guru)->nama_guru ?? '-',
+                    $detail ?: '-',
+                ];
+            }
         }
 
-        $filledJadwalIds = JurnalMengajar::whereDate('tanggal', $todayStr)->pluck('id_jadwal');
-        $unfilledJadwals = JadwalPelajaran::with(['guru', 'mapel'])
-            ->whereNotIn('id_jadwal', $filledJadwalIds)
-            ->get();
-
         $rows[] = [];
-        $rows[] = ['Guru Belum Mengisi Hari Ini'];
+        $rows[] = ['Guru Belum Mengisi Hari Ini (' . $todayDayName . ')'];
         $rows[] = ['Nama Guru', 'Mata Pelajaran'];
 
-        foreach ($unfilledJadwals as $jadwal) {
-            if ($jadwal->guru) {
-                $rows[] = [
-                    $jadwal->guru->nama_guru,
-                    optional($jadwal->mapel)->nama_mapel ?? '-',
-                ];
+        if ($totalJadwalHariIni == 0) {
+            $rows[] = ['Tidak ada jadwal pelajaran hari ini (' . $todayDayName . ')', '-'];
+        } else {
+            $filledJadwalIds = JurnalMengajar::whereDate('tanggal', $todayStr)->pluck('id_jadwal');
+            $unfilledJadwals = JadwalPelajaran::with(['guru', 'mapel'])
+                ->where('hari', $todayDayName)
+                ->whereNotIn('id_jadwal', $filledJadwalIds)
+                ->get();
+
+            if ($unfilledJadwals->isEmpty()) {
+                $rows[] = ['Semua guru jadwal hari ini sudah mengisi jurnal', '-'];
+            } else {
+                foreach ($unfilledJadwals as $jadwal) {
+                    if ($jadwal->guru) {
+                        $rows[] = [
+                            $jadwal->guru->nama_guru,
+                            optional($jadwal->mapel)->nama_mapel ?? '-',
+                        ];
+                    }
+                }
             }
         }
 
