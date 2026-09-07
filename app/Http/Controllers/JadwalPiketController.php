@@ -116,23 +116,14 @@ class JadwalPiketController extends Controller
     {
         $user = \App\Models\User::where('id_guru', $guru->id_guru)->first();
 
-        // Belum punya akun -> buat akun khusus Guru Piket
+        // Belum punya akun -> buat akun Guru
         if (!$user) {
             \App\Models\User::create([
                 'name'     => $guru->nama_guru,
                 'password' => \Illuminate\Support\Facades\Hash::make($guru->nuptk ?? ('guru' . $guru->id_guru)),
-                'role'     => 'guru_piket',
+                'role'     => 'guru_mengajar',
                 'id_guru'  => $guru->id_guru,
             ]);
-            return;
-        }
-
-        // Akun sudah ada tapi belum guru mengajar -> jadikan Guru Piket,
-        // kecuali role pimpinan agar tidak tertimpa.
-        if ($user->role !== 'guru_mengajar'
-            && !in_array($user->role, ['admin', 'super_admin', 'kepala_sekolah', 'waka', 'waka_sdm'], true)
-            && $user->role !== 'guru_piket') {
-            $user->update(['role' => 'guru_piket']);
         }
     }
 

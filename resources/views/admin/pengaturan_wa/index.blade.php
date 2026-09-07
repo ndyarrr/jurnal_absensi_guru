@@ -165,9 +165,12 @@
         }
 
         .wa-chat-canvas {
-            background: #efeae2;
-            background-image: radial-gradient(#d1d7db 1px, transparent 1px);
-            background-size: 16px 16px;
+            background-color: #efeae2;
+            background-image: url("{{ asset('assets/image/backgrounds/wa-canvas.jpg') }}");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-attachment: local;
             border-radius: 18px;
             padding: 24px;
             border: 1px solid #d1d7db;
@@ -664,6 +667,24 @@
                                 </p>
                             </div>
 
+                            <div style="background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; margin-bottom: 20px;">
+                                <label style="font-weight: 700; color: #334155; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                    <span>Nomor Kontak WhatsApp Tujuan Notifikasi Izin Guru</span>
+                                </label>
+                                <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 12px 0;">Nomor ini digunakan untuk membuat link langsung (wa.me) dan notifikasi pesan izin guru ke Waka & Kepsek.</p>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+                                    <div>
+                                        <label style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Nomor WA Waka (Kurikulum / SDM)</label>
+                                        <input type="text" name="wa_nomor_waka" class="form-control" value="{{ $settings['wa_nomor_waka'] ?? '' }}" placeholder="Contoh: 628123456789" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Nomor WA Kepala Sekolah</label>
+                                        <input type="text" name="wa_nomor_kepsek" class="form-control" value="{{ $settings['wa_nomor_kepsek'] ?? '' }}" placeholder="Contoh: 628987654321" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem;">
+                                    </div>
+                                </div>
+                            </div>
+
                             <div style="background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; margin-bottom: 24px;">
                                 <label style="font-weight: 700; color: #334155; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -718,7 +739,6 @@
                             <button type="button" class="wa-filter-pill active" onclick="filterTemplates('reminder', this)">Reminder</button>
                             <button type="button" class="wa-filter-pill" onclick="filterTemplates('izin', this)">Izin</button>
                             <button type="button" class="wa-filter-pill" onclick="filterTemplates('dispensasi', this)">Dispensasi</button>
-                            <button type="button" class="wa-filter-pill" onclick="filterTemplates('presensi', this)">Presensi</button>
                         </div>
 
                         <!-- WhatsApp Chat Canvas Background -->
@@ -729,7 +749,8 @@
                                         $allSystemVars = [
                                             '{nama_guru}','{nama_siswa}','{nama_kelas}','{jam_ke}','{mapel}','{alasan}',
                                             '{jenis_izin}','{nama_kegiatan}','{lokasi}','{nama_piket}','{tanggal}','{status}',
-                                            '{waktu_selesai}','{sisa_menit}','{keterangan}'
+                                            '{waktu_selesai}','{sisa_menit}','{keterangan}',
+                                            '{link_dokumen_bukti_izin}','{link_persetujuan_waka_kepsek}','{link_bukti}','{link_persetujuan}'
                                         ];
                                     @endphp
                                     <div class="wa-chat-bubble-wrap template-item-card"
@@ -742,10 +763,10 @@
                                         {{-- Meta Header: Title & Code sit cleanly above the WhatsApp Chat Bubble --}}
                                         <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 650px; margin-bottom: 8px; padding: 0 4px;">
                                             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                                <span class="bubble-nama" id="nama-{{ $tmpl->id }}" data-original="{{ e($tmpl->nama) }}" style="font-weight: 800; font-size: 0.95rem; color: #0f172a; outline: none;">{{ $tmpl->nama }}</span>
+                                                <span class="bubble-nama" id="nama-{{ $tmpl->id }}" data-original="{{ e($tmpl->nama) }}" style="font-weight: 800; font-size: 0.95rem; color: #ffffff; outline: none;">{{ $tmpl->nama }}</span>
                                                 <span class="bubble-kode" id="kode-{{ $tmpl->id }}" data-original="{{ e($tmpl->kode) }}" contenteditable="false" style="font-size: 0.75rem; color: #64748b; font-family: monospace; font-weight: 600; background: #e2e8f0; padding: 2px 8px; border-radius: 6px; outline: none;">{{ $tmpl->kode }}</span>
                                             </div>
-                                            <span class="bubble-kat-badge" id="kat-badge-{{ $tmpl->id }}" style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: #0f172a; color: #ffffff; padding: 3px 10px; border-radius: 12px; letter-spacing: 0.5px;">{{ $tmpl->kategori }}</span>
+                                            <span class="bubble-kat-badge" id="kat-badge-{{ $tmpl->id }}" style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: #ffffff; color: #000000; padding: 3px 10px; border-radius: 12px; letter-spacing: 0.5px;">{{ $tmpl->kategori }}</span>
                                         </div>
 
                                         {{-- 100% Pure Solid WhatsApp Speech Bubble --}}
@@ -960,7 +981,6 @@
                             <label style="font-weight: 700; font-size: 0.85rem; color: #475569; display: block; margin-bottom: 4px;">Kategori:</label>
                             <select name="kategori" id="tmplKategori" class="form-control" onchange="updateLivePreview()" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1;">
                                 <option value="reminder">Reminder Pengingat</option>
-                                <option value="presensi">Presensi & Laporan Piket</option>
                                 <option value="izin">Surat Izin Siswa / Guru</option>
                                 <option value="dispensasi">Surat Dispensasi Siswa</option>
                                 <option value="umum">Umum</option>
@@ -1082,7 +1102,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 12px;">
                 <h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px;">
                     <svg width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                    <span>Daftar Variabel Dinamis Sistem (15 Variabel)</span>
+                    <span>Daftar Variabel Dinamis Sistem (17 Variabel)</span>
                 </h3>
                 <button type="button" onclick="closeVarGuideModal()" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #64748b; line-height: 1;">&times;</button>
             </div>
@@ -1105,6 +1125,8 @@
                 <div style="font-size: 0.82rem; color: #334155; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px;"><code style="background:#e0f2fe; color:#0369a1; padding:2px 7px; border-radius:6px; font-weight:800; font-family:monospace;">{status}</code> <span>Status Absensi</span></div>
                 <div style="font-size: 0.82rem; color: #334155; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px;"><code style="background:#e0f2fe; color:#0369a1; padding:2px 7px; border-radius:6px; font-weight:800; font-family:monospace;">{waktu_selesai}</code> <span>Jam Selesai Pelajaran</span></div>
                 <div style="font-size: 0.82rem; color: #334155; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px;"><code style="background:#e0f2fe; color:#0369a1; padding:2px 7px; border-radius:6px; font-weight:800; font-family:monospace;">{sisa_menit}</code> <span>Sisa Menit Reminder</span></div>
+                <div style="font-size: 0.82rem; color: #334155; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px;"><code style="background:#e0f2fe; color:#0369a1; padding:2px 7px; border-radius:6px; font-weight:800; font-family:monospace;">{link_dokumen_bukti_izin}</code> <span>Link Bukti Surat Izin Guru</span></div>
+                <div style="font-size: 0.82rem; color: #334155; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px;"><code style="background:#e0f2fe; color:#0369a1; padding:2px 7px; border-radius:6px; font-weight:800; font-family:monospace;">{link_persetujuan_waka_kepsek}</code> <span>Link Persetujuan 1-Klik Waka & Kepsek</span></div>
             </div>
             <div style="display: flex; justify-content: flex-end;">
                 <button type="button" onclick="closeVarGuideModal()" style="background: var(--dash-navy); color: white; border: none; padding: 8px 20px; border-radius: 8px; font-weight: 700; cursor: pointer;">Tutup</button>

@@ -182,9 +182,9 @@ app.post("/api/pair-code", async (req, res) => {
 
 app.post("/api/send", async (req, res) => {
     try {
-        const { phone, message } = req.body;
-        if (!phone || !message) {
-            return res.status(400).json({ success: false, message: "Nomor penerima dan pesan wajib diisi" });
+        const { phone, message, mediaUrl, filePath, fileName } = req.body;
+        if (!phone || (!message && !mediaUrl && !filePath)) {
+            return res.status(400).json({ success: false, message: "Nomor penerima dan pesan/media wajib diisi" });
         }
 
         if (botStatus !== "connected" || !sijurnal) {
@@ -192,11 +192,39 @@ app.post("/api/send", async (req, res) => {
         }
 
         const jid = formatJid(phone);
-        const result = await sijurnal.sendMessage(jid, { text: message });
+        let sendContent = { text: message || "" };
+
+        const targetFile = filePath || mediaUrl;
+        if (targetFile) {
+            let bufferData = null;
+            if (typeof targetFile === 'string' && fs.existsSync(targetFile)) {
+                bufferData = fs.readFileSync(targetFile);
+            }
+
+            const ext = path.extname(targetFile).toLowerCase();
+            const isImage = [".jpg", ".jpeg", ".png", ".webp"].includes(ext);
+            const isPdf = ext === ".pdf";
+
+            if (isImage) {
+                sendContent = {
+                    image: bufferData || { url: targetFile },
+                    caption: message || ""
+                };
+            } else {
+                sendContent = {
+                    document: bufferData || { url: targetFile },
+                    mimetype: isPdf ? "application/pdf" : "application/octet-stream",
+                    fileName: fileName || path.basename(targetFile),
+                    caption: message || ""
+                };
+            }
+        }
+
+        const result = await sijurnal.sendMessage(jid, sendContent);
 
         return res.json({
             success: true,
-            message: "Pesan berhasil dikirim",
+            message: "Pesan / media berhasil dikirim",
             details: result
         });
     } catch (err) {

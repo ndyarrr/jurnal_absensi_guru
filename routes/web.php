@@ -27,6 +27,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Profile Settings Route for all authenticated users
     Route::put('/profil', [ProfileController::class, 'update'])->name('profil.update');
+    Route::match(['get', 'post'], '/switch-role', [AuthController::class, 'switchRole'])->name('switch-role');
 
     // Dedicated coming-soon dashboard for non-admin roles
     Route::get('/role-dashboard', [DashboardController::class, 'roleDashboard'])->name('role.dashboard');
@@ -46,6 +47,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/guru-mengajar/jurnal/export/csv', [\App\Http\Controllers\GuruMengajarController::class, 'exportCsv'])->name('guru-mengajar.export-csv');
     Route::get('/guru-mengajar/jadwal/{idJadwal}/siswa', [\App\Http\Controllers\GuruMengajarController::class, 'getSiswaForJadwal'])->name('guru-mengajar.jadwal.siswa');
     Route::get('/guru-mengajar/absensi', fn () => redirect()->route('guru-mengajar.dashboard'));
+
+    // Pengajuan Izin Guru Routes
+    Route::get('/guru-mengajar/izin', [\App\Http\Controllers\GuruMengajarController::class, 'izin'])->name('guru-mengajar.izin');
+    Route::get('/guru-mengajar/izin/buat', [\App\Http\Controllers\GuruMengajarController::class, 'buatIzin'])->name('guru-mengajar.izin.create');
+    Route::post('/guru-mengajar/izin', [\App\Http\Controllers\GuruMengajarController::class, 'storeIzin'])->name('guru-mengajar.izin.store');
+    Route::delete('/guru-mengajar/izin/{id}', [\App\Http\Controllers\GuruMengajarController::class, 'destroyIzin'])->name('guru-mengajar.izin.destroy');
 
     // Dedicated Routes for Guru Piket
     Route::get('/guru-piket/dashboard', [\App\Http\Controllers\GuruPiketController::class, 'dashboard'])->name('guru-piket.dashboard');
@@ -117,3 +124,8 @@ Route::middleware(['auth'])->group(function () {
     });
 
 });
+
+// Public / Token-based Approval Routes for Waka & Kepsek
+Route::get('/izin-guru/persetujuan/{id}/{token}', [\App\Http\Controllers\IzinApprovalController::class, 'show'])->name('izin.approval.show');
+Route::post('/izin-guru/persetujuan/{id}/{token}/setujui', [\App\Http\Controllers\IzinApprovalController::class, 'approve'])->name('izin.approval.approve');
+Route::post('/izin-guru/persetujuan/{id}/{token}/tolak', [\App\Http\Controllers\IzinApprovalController::class, 'reject'])->name('izin.approval.reject');

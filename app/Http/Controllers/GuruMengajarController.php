@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Guru;
+use App\Models\IzinGuru;
 use App\Models\JadwalPelajaran;
 use App\Models\JurnalMengajar;
 use App\Models\Kelas;
 use App\Models\Mapel;
 use App\Models\Siswa;
+use App\Models\WaSetting;
+use App\Models\WaTemplate;
+use App\Services\WaBotService;
 use App\Support\CsvExporter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -491,5 +495,154 @@ class GuruMengajarController extends Controller
         return CsvExporter::download($filename, [
             'Tanggal', 'Hari', 'Mata Pelajaran', 'Kelas', 'Materi', 'Jumlah Hadir', 'Jumlah Tidak Hadir', 'Catatan',
         ], $rows);
+    }
+
+    /* ==========================================================================
+       4. PENGAJUAN IZIN GURU
+       ========================================================================== */
+    public function izin(Request $request)
+    {
+        $idGuru = $this->resolveGuruId();
+        $guru = $idGuru ? Guru::find($idGuru) : null;
+
+        $nomorWaka = WaSetting::getByKey('wa_nomor_waka', '');
+        $nomorKepsek = WaSetting::getByKey('wa_nomor_kepsek', '');
+
+        $izinList = IzinGuru::where('id_guru', $idGuru)
+            ->orderByDesc('created_at')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('guru_mengajar.izin.index', compact('guru', 'izinList', 'nomorWaka', 'nomorKepsek'));
+    }
+
+    public function buatIzin()
+    {
+        $idGuru = $this->resolveGuruId();
+        $guru = $idGuru ? Guru::find($idGuru) : null;
+
+        return view('guru_mengajar.izin.create', compact('guru'));
+    }
+
+    public function storeIzin(Request $request, WaBotService $waBotService)
+    {
+        $idGuru = $this->resolveGuruId();
+        if (!$idGuru) {
+            return back()->with('error', 'Profil guru Anda tidak ditemukan.');
+        }
+
+        $guru = $idGuru ? Guru::find($idGuru) : null;
+
+        $validated = $request->validate([
+            'kategori_izin' => 'required|in:sakit,dinas,cuti,acara_keluarga,lainnya',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+            'alasan_izin' => 'required|string|max:1000',
+            'bukti_surat' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
+        ], [
+            'kategori_izin.required' => 'Pilih alasan / jenis izin.',
+            'tanggal_mulai.required' => 'Tanggal mulai izin wajib diisi.',
+            'tanggal_selesai.required' => 'Tanggal selesai izin wajib diisi.',
+            'tanggal_selesai.after_or_equal' => 'Tanggal selesai harus sama atau setelah tanggal mulai.',
+            'alasan_izin.required' => 'Berikan keterangan / rincian alasan izin.',
+            'bukti_surat.mimes' => 'Format file bukti harus berupa foto (JPG, PNG, WEBP) atau PDF.',
+            'bukti_surat.max' => 'Ukuran file maksimal 5 MB.',
+        ]);
+
+        $buktiPath = null;
+        if ($request->hasFile('bukti_surat')) {
+            $buktiPath = $request->file('bukti_surat')->store('bukti_izin_guru', 'public');
+        }
+
+        $izin = IzinGuru::create([
+            'id_guru' => $idGuru,
+            'kategori_izin' => $validated['kategori_izin'],
+            'tanggal_mulai' => $validated['tanggal_mulai'],
+            'tanggal_selesai' => $validated['tanggal_selesai'],
+            'alasan_izin' => $validated['alasan_izin'],
+            'bukti_surat' => $buktiPath,
+            'status_approval' => 'pending',
+        ]);
+
+        $botInfo = null;
+        $botInfoType = 'warning';
+
+        // Auto notification via Bot WA if configured
+        try {
+            $waEnabled = WaSetting::getByKey('wa_enabled', '1') === '1';
+            $botStatus = $waBotService->getStatus();
+            $isBotOnline = $waEnabled && isset($botStatus['status']) && $botStatus['status'] === 'connected';
+
+            $namaGuru = $guru->nama_guru ?? auth()->user()->name;
+            $kategoriLabel = ucfirst(str_replace('_', ' ', $validated['kategori_izin']));
+            $tglMulai = Carbon::parse($validated['tanggal_mulai'])->format('d/m/Y');
+            $tglSelesai = Carbon::parse($validated['tanggal_selesai'])->format('d/m/Y');
+            $tglStr = ($tglMulai === $tglSelesai) ? $tglMulai : "{$tglMulai} s/d {$tglSelesai}";
+            $buktiUrl = $buktiPath ? asset('storage/' . $buktiPath) : '-';
+
+            $pesan = WaTemplate::renderMessage('izin_guru', [
+                'nama_guru' => $namaGuru,
+                'jenis_izin' => $kategoriLabel,
+                'tanggal' => $tglStr,
+                'keterangan' => $validated['alasan_izin'],
+                'link_dokumen_bukti_izin' => $buktiUrl,
+                'link_persetujuan_waka_kepsek' => $izin->approval_url,
+            ]);
+
+            $nomorWaka = WaSetting::getByKey('wa_nomor_waka', '');
+            $nomorKepsek = WaSetting::getByKey('wa_nomor_kepsek', '');
+
+            if ($isBotOnline && (!empty($nomorWaka) || !empty($nomorKepsek))) {
+                $fileAbsPath = $buktiPath ? storage_path('app/public/' . $buktiPath) : null;
+                $hasFile = $fileAbsPath && file_exists($fileAbsPath);
+
+                if (!empty($nomorWaka)) {
+                    if ($hasFile) {
+                        $waBotService->sendMediaMessage($nomorWaka, $pesan, $fileAbsPath);
+                    } else {
+                        $waBotService->sendMessage($nomorWaka, $pesan);
+                    }
+                }
+                if (!empty($nomorKepsek)) {
+                    if ($hasFile) {
+                        $waBotService->sendMediaMessage($nomorKepsek, $pesan, $fileAbsPath);
+                    } else {
+                        $waBotService->sendMessage($nomorKepsek, $pesan);
+                    }
+                }
+                $botInfo = 'Notifikasi & Dokumen Bukti WA otomatis berhasil dikirimkan via Bot WhatsApp ke Waka/Kepsek.';
+                $botInfoType = 'success';
+            } else {
+                $botInfo = 'Notifikasi WA otomatis via bot TIDAK terkirim karena Bot WhatsApp sedang Offline / Nonaktif. Silakan gunakan tombol WhatsApp "Waka" & "Kepsek" di bawah ini untuk mengirim pesan langsung.';
+                $botInfoType = 'warning';
+            }
+        } catch (\Exception $e) {
+            $botInfo = 'Notifikasi WA otomatis via bot TIDAK terkirim (Bot WhatsApp offline). Silakan gunakan tombol WhatsApp "Waka" & "Kepsek" di bawah ini untuk mengirim pesan langsung.';
+            $botInfoType = 'warning';
+        }
+
+        return redirect()->route('guru-mengajar.izin')
+            ->with('success', 'Permohonan izin berhasil diajukan!')
+            ->with('bot_info', $botInfo)
+            ->with('bot_info_type', $botInfoType);
+    }
+
+    public function destroyIzin($id)
+    {
+        $idGuru = $this->resolveGuruId();
+        $izin = IzinGuru::where('id_guru', $idGuru)->where('id_izin_guru', $id)->firstOrFail();
+
+        if ($izin->status_approval !== 'pending') {
+            return back()->with('error', 'Permohonan izin yang sudah diproses tidak dapat dihapus.');
+        }
+
+        if ($izin->bukti_surat) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($izin->bukti_surat);
+        }
+
+        $izin->delete();
+
+        return redirect()->route('guru-mengajar.izin')
+            ->with('success', 'Permohonan izin berhasil dibatalkan/dihapus.');
     }
 }

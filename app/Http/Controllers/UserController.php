@@ -40,7 +40,7 @@ class UserController extends Controller
         $users = $query->orderBy('id', 'asc')->paginate(8)->withQueryString();
 
         // 3. Guru list for create/edit select dropdowns
-        $guruList = Guru::orderBy('nama_guru')->get();
+        $guruList = Guru::with('user')->orderBy('nama_guru')->get();
 
         return view('admin.users.index', compact(
             'users',

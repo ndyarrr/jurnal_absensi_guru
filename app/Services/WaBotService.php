@@ -585,6 +585,28 @@ class WaBotService
     }
 
     /**
+     * Kirim pesan WhatsApp dengan lampiran media/file (Gambar/PDF/Dokumen)
+     */
+    public function sendMediaMessage(string $phone, string $message, string $filePathOrUrl, ?string $fileName = null): array
+    {
+        try {
+            $response = Http::timeout(20)->post("{$this->baseUrl}/api/send", [
+                'phone' => $phone,
+                'message' => $message,
+                'filePath' => $filePathOrUrl,
+                'fileName' => $fileName,
+            ]);
+
+            return $response->json();
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Gagal mengirim pesan media via Bot WA: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
      * Logout & bersihkan sesi bot WA
      */
     public function logout(): array

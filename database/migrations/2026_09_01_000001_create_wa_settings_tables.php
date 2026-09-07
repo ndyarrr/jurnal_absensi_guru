@@ -90,16 +90,7 @@ return new class extends Migration
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
-            [
-                'kode' => 'presensi_guru_absen',
-                'nama' => 'Notifikasi Guru Tidak Hadir',
-                'kategori' => 'presensi',
-                'format_pesan' => "📌 *LAPORAN INVENTARIS PIKET*\n\nBpk/Ibu Guru: {nama_guru}\nStatus: {status}\nKeterangan: {keterangan}\nTanggal: {tanggal}\n\nPesan otomatis dari Sistem SiJurnal.",
-                'variabel_tersedia' => json_encode(['{nama_guru}', '{status}', '{keterangan}', '{tanggal}']),
-                'is_active' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
+
             [
                 'kode' => 'izin_siswa',
                 'nama' => 'Notifikasi Surat Izin Siswa',

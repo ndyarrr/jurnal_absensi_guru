@@ -84,13 +84,8 @@
                             <select name="role" id="role" class="form-select">
                                 <option value="" selected disabled>Pilih Role</option>
                                 <option value="super_admin" {{ old('role') == 'super_admin' ? 'selected' : '' }}>Admin Super</option>
-                                <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin Biasa</option>
-                                <option value="guru_mengajar" {{ old('role') == 'guru_mengajar' ? 'selected' : '' }}>Guru Mengajar</option>
-                                <option value="wali_kelas" {{ old('role') == 'wali_kelas' ? 'selected' : '' }}>Wali Kelas</option>
-                                <option value="guru_piket" {{ old('role') == 'guru_piket' ? 'selected' : '' }}>Guru Piket</option>
-                                <option value="kepala_sekolah" {{ old('role') == 'kepala_sekolah' ? 'selected' : '' }}>Kepala Sekolah</option>
-                                <option value="waka" {{ old('role') == 'waka' ? 'selected' : '' }}>Waka</option>
-                                <option value="waka_sdm" {{ old('role') == 'waka_sdm' ? 'selected' : '' }}>Waka SDM</option>
+                                <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                                <option value="guru_mengajar" {{ old('role') == 'guru_mengajar' || old('role') == 'guru' ? 'selected' : '' }}>Guru</option>
                                 <option value="satpam" {{ old('role') == 'satpam' ? 'selected' : '' }}>Satpam</option>
                             </select>
                         </div>
@@ -110,11 +105,7 @@
                     </button>
                     <div class="demo-tags-dropdown" id="demoDropdown">
                         <button type="button" class="demo-tag" onclick="fillQuickAccount('Administrator', 'password', 'super_admin')">Admin Super</button>
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Trisno Wibowo (Guru)', 'password', 'guru_mengajar')">Guru Mengajar</button>
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Kurnila (Wali Kelas)', 'password', 'wali_kelas')">Wali Kelas</button>
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Budi Santoso (Guru Piket)', 'password', 'guru_piket')">Guru Piket</button>
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Kepala Sekolah', 'password', 'kepala_sekolah')">Kepsek</button>
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Waka SDM', 'password', 'waka_sdm')">Waka SDM</button>
+                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Trisno Wibowo (Guru)', 'password', 'guru_mengajar')">Guru (Mapel / Sub-Role)</button>
                         <button type="button" class="demo-tag" onclick="fillQuickAccount('Satpam Gerbang', 'password', 'satpam')">Satpam</button>
                     </div>
                 </div>

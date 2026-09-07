@@ -125,8 +125,10 @@
                 @endif
             </div>
 
-            <button type="submit" class="btn-modal-submit dash-profile-save">Simpan Profil & Password</button>
+            <button type="submit" class="btn-modal-submit dash-profile-save" style="margin-top: 12px;">Simpan Profil & Password</button>
         </form>
+
+        @include('partials.dash-role-switcher')
 
         <form action="{{ route('logout') }}" method="POST" class="dash-profile-logout-form">
             @csrf

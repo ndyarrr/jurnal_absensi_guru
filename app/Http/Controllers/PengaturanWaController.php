@@ -138,11 +138,15 @@ class PengaturanWaController extends Controller
             'reminder_jurnal_enabled' => 'nullable|in:0,1',
             'reminder_before_minutes' => 'required|integer|min:1|max:120',
             'target_roles' => 'array',
+            'wa_nomor_waka' => 'nullable|string',
+            'wa_nomor_kepsek' => 'nullable|string',
         ]);
 
         WaSetting::setKey('wa_enabled', $request->has('wa_enabled') ? '1' : '0', 'general', 'Aktifkan/Nonaktifkan Notifikasi WA');
         WaSetting::setKey('reminder_jurnal_enabled', $request->has('reminder_jurnal_enabled') ? '1' : '0', 'reminder', 'Aktifkan Pengingat Jurnal');
         WaSetting::setKey('reminder_before_minutes', $request->reminder_before_minutes, 'reminder', 'Waktu pengingat sebelum jam selesai');
+        WaSetting::setKey('wa_nomor_waka', $request->wa_nomor_waka ?? '', 'contact', 'Nomor WhatsApp Waka');
+        WaSetting::setKey('wa_nomor_kepsek', $request->wa_nomor_kepsek ?? '', 'contact', 'Nomor WhatsApp Kepsek');
         
         if ($request->has('target_roles')) {
             WaSetting::setKey('notification_target_roles', $request->target_roles, 'general', 'Role target penerima default');

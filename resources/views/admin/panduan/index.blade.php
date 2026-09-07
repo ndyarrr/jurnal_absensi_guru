@@ -97,7 +97,7 @@
         }
         .search-guide-input {
             width: 100%;
-            padding: 12px 18px;
+            padding: 12px 18px 12px 42px;
             border-radius: 12px;
             border: 1px solid #cbd5e1;
             font-size: 0.9rem;
@@ -244,11 +244,21 @@
         mark.search-highlight {
             background-color: #fef08a;
             color: #854d0e;
-            padding: 1px 5px;
-            border-radius: 4px;
+            padding: 1px 1px;
             font-weight: 800;
             box-shadow: 0 0 0 1px #fde047;
         }
+        .ad-search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            color: #94a3b8;
+            pointer-events: none;
+        }
+        
     </style>
 </head>
 <body class="dashboard-body">
@@ -295,19 +305,23 @@
             </header>
 
             <!-- Search Filter Bar -->
-            <div style="margin-bottom: 12px;">
+            <div style="margin-bottom: 12px; position: relative; ">
+                    <svg class="ad-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
                 <input type="text" id="guideSearchInput" onkeyup="filterGuides()" oninput="filterGuides()" class="search-guide-input" placeholder="Cari bantuan (contoh: jadwal, guru, siswa, piket, export, istirahat, whatsapp, bot)...">
             </div>
 
             <!-- Peringatan Tidak Ada Hasil Ditemukan -->
-            <div id="noResultsGuide" style="display: none; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; border-radius: 14px; padding: 20px 24px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.06);">
-                <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin: 0 auto 10px auto; display: block; color: #ef4444;">
+            <div id="noResultsGuide" style="display: none; background: #fef2f2; border: 1px solid #fecaca; color: #b8b8b8; border-radius: 14px; padding: 20px 24px; text-align: center; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.06);">
+                <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin: 0 auto 10px auto; display: block; color: #020202;">
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     <line x1="8" y1="11" x2="14" y2="11"></line>
                 </svg>
-                <div style="font-weight: 800; font-size: 1.05rem; margin-bottom: 6px; color: #991b1b;">Tidak Ada Panduan Ditemukan</div>
-                <div style="font-size: 0.875rem; color: #7f1d1d;">Panduan dengan kata kunci "<span id="noResultsQueryText" style="font-weight: 800; color: #b91c1c;"></span>" tidak tersedia dalam sistem. Silakan coba cari kata kunci lain (seperti: <em>jadwal, guru, piket, whatsapp, siswa, kelas</em>).</div>
+                <div style="font-weight: 800; font-size: 1.05rem; margin-bottom: 6px; color: #050505;">Tidak Ada Panduan Ditemukan</div>
+                <div style="font-size: 0.875rem; color: #454545;">Panduan dengan kata kunci "<span id="noResultsQueryText" style="font-weight: 800; color: #000000;"></span>" tidak tersedia dalam sistem. Silakan coba cari kata kunci lain (seperti: <em>jadwal, guru, piket, whatsapp, siswa, kelas</em>).</div>
             </div>
 
             <!-- Visual Workflow Overview -->

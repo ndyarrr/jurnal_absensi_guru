@@ -99,6 +99,12 @@ class AuthController extends Controller
             }
 
             $selectedRole = $request->input('role');
+            if (in_array($selectedRole, ['guru_mengajar', 'wali_kelas', 'guru_piket'], true)) {
+                session(['active_role' => $selectedRole]);
+            } else {
+                session(['active_role' => 'guru_mengajar']);
+            }
+
             if ($selectedRole === 'guru_piket') {
                 return redirect()->intended(route('guru-piket.dashboard'));
             } elseif ($selectedRole === 'wali_kelas') {
@@ -111,6 +117,53 @@ class AuthController extends Controller
         return back()->withErrors([
             'username' => 'Username, role atau password salah.',
         ])->onlyInput('username', 'role');
+    }
+
+    /**
+     * Switch active role / view for teachers without re-authenticating.
+     */
+    public function switchRole(Request $request)
+    {
+        $targetRole = $request->input('role') ?: $request->query('role');
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $allowedRoles = ['admin', 'guru_mengajar', 'wali_kelas', 'guru_piket'];
+        if (!in_array($targetRole, $allowedRoles, true)) {
+            return back()->with('error', 'Peran/Tampilan yang dipilih tidak valid.');
+        }
+
+        if ($targetRole === 'admin') {
+            if (!$user->isAdmin()) {
+                return back()->with('error', 'Hanya Admin yang dapat kembali ke Dashboard Utama Admin.');
+            }
+            session()->forget('active_role');
+            return redirect()->route('dashboard')->with('success', 'Kembali ke Dashboard Utama Admin.');
+        }
+
+        $isTeacherUser = in_array($user->role, ['guru', 'guru_mengajar', 'wali_kelas', 'guru_piket'], true) || $user->isAdmin() || $user->id_guru || $user->guru;
+        if (!$isTeacherUser) {
+            return back()->with('error', 'Fitur beralih tampilan ini hanya untuk pengguna akun Guru/Admin.');
+        }
+
+        session(['active_role' => $targetRole]);
+
+        $roleNames = [
+            'guru_mengajar' => 'Guru Mengajar (Mapel)',
+            'wali_kelas'    => 'Wali Kelas',
+            'guru_piket'    => 'Guru Piket',
+        ];
+
+        $targetRoute = match ($targetRole) {
+            'wali_kelas' => 'wali-kelas.dashboard',
+            'guru_piket' => 'guru-piket.dashboard',
+            default => 'guru-mengajar.dashboard',
+        };
+
+        return redirect()->route($targetRoute)->with('success', 'Berhasil beralih ke tampilan ' . ($roleNames[$targetRole] ?? $targetRole) . '.');
     }
 
     /**

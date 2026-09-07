@@ -373,14 +373,12 @@
                             <option value="super_admin">Admin (Super Admin)</option>
                         @endif
                         <option value="admin">Admin (Admin Biasa)</option>
-                        <option value="guru_mengajar">Guru Mengajar</option>
-                        <option value="wali_kelas">Wali Kelas</option>
-                        <option value="guru_piket">Guru Piket</option>
-                        <option value="kepala_sekolah">Kepala Sekolah</option>
-                        <option value="waka">Waka</option>
-                        <option value="waka_sdm">Waka SDM</option>
+                        <option value="guru_mengajar">Guru (Mengajar, Wali Kelas & Piket otomatis)</option>
                         <option value="satpam">Satpam</option>
                     </select>
+                    <small style="color: #0284c7; background: #e0f2fe; border: 1px solid #bae6fd; padding: 6px 10px; border-radius: 6px; display: block; margin-top: 6px; font-weight: 500; font-size: 0.78rem;">
+                        💡 <strong>Info Role Guru:</strong> Cukup pilih <strong>Guru</strong>. Fitur <strong>Wali Kelas</strong> dan <strong>Guru Piket</strong> akan otomatis aktif secara dinamis apabila guru ditugaskan di Master Kelas atau Jadwal Piket.
+                    </small>
                 </div>
 
                 <!-- Relasi Profil Guru (Wajib untuk role non-admin) -->
@@ -391,10 +389,24 @@
                         <input type="text" class="form-field-input ss-input" id="create_guru_input" placeholder="Ketik nama guru atau NUPTK..." autocomplete="off" onclick="openDropdown('create')" onkeyup="filterDropdown('create')">
                         <div class="ss-dropdown" id="create_guru_dropdown">
                             @foreach($guruList as $g)
-                                <div class="ss-option" data-value="{{ $g->id_guru }}" onclick="pickGuru('create','{{ $g->id_guru }}','{{ addslashes($g->nama_guru) }} ({{ $g->nuptk }})')">
-                                    <strong>{{ $g->nama_guru }}</strong>
-                                    <small style="color:#64748b;">NUPTK: {{ $g->nuptk }}</small>
-                                </div>
+                                @php $hasUser = (bool) $g->user; @endphp
+                                @if($hasUser)
+                                    <div class="ss-option ss-option-disabled" data-value="{{ $g->id_guru }}" style="opacity: 0.5; background: #f8fafc; cursor: not-allowed; pointer-events: none; padding: 10px 12px; border-bottom: 1px solid #f1f5f9;">
+                                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                                            <strong style="color: #64748b;">{{ $g->nama_guru }}</strong>
+                                            <span style="background: #f1f5f9; color: #64748b; font-size: 0.68rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; border: 1px solid #cbd5e1;">Sudah Punya Akun ({{ $g->user->name }})</span>
+                                        </div>
+                                        <small style="color:#94a3b8;">NUPTK: {{ $g->nuptk }}</small>
+                                    </div>
+                                @else
+                                    <div class="ss-option" data-value="{{ $g->id_guru }}" onclick="pickGuru('create','{{ $g->id_guru }}','{{ addslashes($g->nama_guru) }} ({{ $g->nuptk }})')">
+                                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                                            <strong style="color: #0f172a;">{{ $g->nama_guru }}</strong>
+                                            <span style="background: #f0fdf4; color: #16a34a; font-size: 0.68rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; border: 1px solid #bbf7d0;">Tersedia</span>
+                                        </div>
+                                        <small style="color:#64748b;">NUPTK: {{ $g->nuptk }}</small>
+                                    </div>
+                                @endif
                             @endforeach
                         </div>
                     </div>
@@ -454,14 +466,12 @@
                             <option value="super_admin">Admin (Super Admin)</option>
                         @endif
                         <option value="admin">Admin (Admin Biasa)</option>
-                        <option value="guru_mengajar">Guru Mengajar</option>
-                        <option value="wali_kelas">Wali Kelas</option>
-                        <option value="guru_piket">Guru Piket</option>
-                        <option value="kepala_sekolah">Kepala Sekolah</option>
-                        <option value="waka">Waka</option>
-                        <option value="waka_sdm">Waka SDM</option>
+                        <option value="guru_mengajar">Guru (Mengajar, Wali Kelas & Piket otomatis)</option>
                         <option value="satpam">Satpam</option>
                     </select>
+                    <small style="color: #0284c7; background: #e0f2fe; border: 1px solid #bae6fd; padding: 6px 10px; border-radius: 6px; display: block; margin-top: 6px; font-weight: 500; font-size: 0.78rem;">
+                        💡 <strong>Info Role Guru:</strong> Cukup pilih <strong>Guru</strong>. Fitur <strong>Wali Kelas</strong> dan <strong>Guru Piket</strong> akan otomatis aktif secara dinamis apabila guru ditugaskan di Master Kelas atau Jadwal Piket.
+                    </small>
                 </div>
 
                 <!-- Relasi Profil Guru (Wajib untuk role non-admin) -->
@@ -472,8 +482,15 @@
                         <input type="text" class="form-field-input ss-input" id="edit_guru_input" placeholder="Ketik nama guru atau NUPTK..." autocomplete="off" onclick="openDropdown('edit')" onkeyup="filterDropdown('edit')">
                         <div class="ss-dropdown" id="edit_guru_dropdown">
                             @foreach($guruList as $g)
-                                <div class="ss-option" data-value="{{ $g->id_guru }}" onclick="pickGuru('edit','{{ $g->id_guru }}','{{ addslashes($g->nama_guru) }} ({{ $g->nuptk }})')">
-                                    <strong>{{ $g->nama_guru }}</strong>
+                                @php
+                                    $hasUser = (bool) $g->user;
+                                    $linkedUserId = optional($g->user)->id;
+                                @endphp
+                                <div class="ss-option edit-guru-opt" data-value="{{ $g->id_guru }}" data-user-id="{{ $linkedUserId }}" onclick="pickGuru('edit','{{ $g->id_guru }}','{{ addslashes($g->nama_guru) }} ({{ $g->nuptk }})')">
+                                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                                        <strong class="opt-nama" style="color: #0f172a;">{{ $g->nama_guru }}</strong>
+                                        <span class="opt-badge" style="font-size: 0.68rem; font-weight: 800; padding: 2px 8px; border-radius: 6px;"></span>
+                                    </div>
                                     <small style="color:#64748b;">NUPTK: {{ $g->nuptk }}</small>
                                 </div>
                             @endforeach
@@ -710,8 +727,51 @@
             const guru = GURU_DATA.find(g => g.id == idGuru);
             document.getElementById('edit_guru_input').value = guru ? guru.label : '';
 
+            updateEditGuruDropdown(id);
             handleRoleChange('edit');
             document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function updateEditGuruDropdown(currentUserId) {
+            const options = document.querySelectorAll('#edit_guru_dropdown .edit-guru-opt');
+            options.forEach(opt => {
+                const linkedUserId = opt.getAttribute('data-user-id');
+                const badgeEl = opt.querySelector('.opt-badge');
+                const namaEl = opt.querySelector('.opt-nama');
+
+                if (linkedUserId && linkedUserId != currentUserId) {
+                    opt.style.pointerEvents = 'none';
+                    opt.style.opacity = '0.5';
+                    opt.style.background = '#f8fafc';
+                    opt.style.cursor = 'not-allowed';
+                    if (namaEl) namaEl.style.color = '#64748b';
+                    if (badgeEl) {
+                        badgeEl.style.background = '#f1f5f9';
+                        badgeEl.style.color = '#64748b';
+                        badgeEl.style.border = '1px solid #cbd5e1';
+                        badgeEl.innerText = 'Sudah Memiliki Akun';
+                    }
+                } else {
+                    opt.style.pointerEvents = 'auto';
+                    opt.style.opacity = '1';
+                    opt.style.background = '';
+                    opt.style.cursor = 'pointer';
+                    if (namaEl) namaEl.style.color = '#0f172a';
+                    if (badgeEl) {
+                        if (linkedUserId == currentUserId) {
+                            badgeEl.style.background = '#e0f2fe';
+                            badgeEl.style.color = '#0284c7';
+                            badgeEl.style.border = '1px solid #bae6fd';
+                            badgeEl.innerText = 'Terhubung Saat Ini';
+                        } else {
+                            badgeEl.style.background = '#f0fdf4';
+                            badgeEl.style.color = '#16a34a';
+                            badgeEl.style.border = '1px solid #bbf7d0';
+                            badgeEl.innerText = 'Tersedia';
+                        }
+                    }
+                }
+            });
         }
 
         function closeEditModal() {
