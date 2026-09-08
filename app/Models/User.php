@@ -115,17 +115,22 @@ class User extends Authenticatable
 
     public function getRoleLabelAttribute(): string
     {
-        return match ($this->role) {
+        $role = $this->role;
+        if (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::id() === $this->id && session()->has('active_role')) {
+            $role = session('active_role');
+        }
+
+        return match ($role) {
             'super_admin' => 'Admin Super',
             'admin' => 'Admin',
-            'guru_mengajar' => 'Guru Mengajar',
+            'guru_mengajar', 'guru' => 'Guru Mengajar',
             'wali_kelas' => 'Wali Kelas',
             'guru_piket' => 'Guru Piket',
             'kepala_sekolah' => 'Kepala Sekolah',
             'waka' => 'Waka',
             'waka_sdm' => 'Waka SDM',
             'satpam' => 'Satpam',
-            default => ucwords(str_replace('_', ' ', $this->role ?? 'Guru Mengajar')),
+            default => ucwords(str_replace('_', ' ', $role ?? 'Guru Mengajar')),
         };
     }
 
