@@ -1,39 +1,66 @@
-Timeline github/kode
+================================================================================
+                TIMELINE PENGUMPULAN PROJEK (31 AGUSTUS - 8 SEPTEMBER 2026)
+                           JURNAL ABSENSI GURU
+================================================================================
 
-Commits on Sep 3, 2026
-1.Tambah fitur Guru Mengajar: dashboard, jadwal, jurnal, absensi, nilai  (Astiti)
-2.menambahkan ttd di page guru piket  (Fandi)
-3.menambahkan pengaturan whatsapp, menambahkan bot  (Fandi)
-4.menambahkan sijurnalsesion di gitignore  (Fandi)
+[ DAFTAR ANGGOTA TIM & ROLE ]
+--------------------------------------------------------------------------------
+No | Absen | Nama Lengkap            | Role                 | Git Username
+---+-------+-------------------------+----------------------+-------------------
+1  |  (05) | Aiza Hayu Pramudya      | UI/UX Design         | aishypr
+2  |  (11) | Astiti Febiani Sampurna | Frontend             | titipretty12
+3  |  (14) | Aziz Ariansyah          | Backend              | Azizariansyah
+4  |  (18) | Dita Putri Cahyani      | UI/UX Design         | cyadita90 
+5  |  (21) | Fandy Ahmad Riyanto     | Fullstack            | ndyarrr
+--------------------------------------------------------------------------------
 
-Commits on Sep 4, 2026
-1.menambahkan teacher page  (Fandi)
+--------------------------------------------------------------------------------
+I. TIMELINE DESAIN (UI/UX DESIGN)
+--------------------------------------------------------------------------------
+[ 7 September 2026 ]
+ 1. Desain Waka SDM       --> Aiza Hayu Pramudya (05)
+ 2. Desain Waka           --> Dita Putri Cahyani (18)
 
-Commits on Sep 5, 2026 
-1.menambahkan nisn display di profile  (Fandi)
-
-Commits on Sep 6, 2026
-1.fix:run bot for windows  (Fandi)
-
-Commits on Sep 7, 2026
-1.Remove bot/sijurnalsesion from git tracking  (Fandi)
-2.fix:windows linux run pm2 (Fandi)
-3.fix:windows bot platform  (Fandi)
-4.fix:ui uiuix  (Fandi)
-5.feat:add filter color in admin and remove duplicate teacher  (Aziz)
-6.fix:ui fix:custom template chat refactor:role hak akses guru feat:auto chat link persetujuan  (Fandi)
-
-Commits on Sep 8, 2026
-1.fix:dash widget role in guru  (Fandi)
-2.membuat timeline project (Aziz)
+[ 8 September 2026 ]
+ 1. Desain Approval       --> Astiti Febiani Sampurna (11)
 
 
+--------------------------------------------------------------------------------
+II. TIMELINE DEVELOPER / GIT LOG (31 AGUSTUS - 8 SEPTEMBER 2026)
+--------------------------------------------------------------------------------
 
+[ 31 Agustus 2026 ]
+ 1. Peningkatan performa web dan penambahan database (Fandy)
 
+[ 1 September 2026 ]
+ 1. Peningkatan dan penyempurnaan sistem web (Fandy)
 
+[ 3 September 2026 ]
+ 1. Menambahkan fitur Guru Mengajar: Dashboard, Jadwal, Jurnal, Absensi, dan Nilai (Astiti)
+ 2. Menambahkan Tanda Tangan (TTD) pada halaman Guru Piket (Fandy)
+ 3. Menambahkan pengaturan WhatsApp dan Bot (Fandy)
+ 4. Menambahkan konfigurasi gitignore untuk sesi WhatsApp (Fandy)
 
-Timeline design
+[ 4 September 2026 ]
+ 1. Menyesuaikan dan mengoptimalkan halaman Guru (Fandy)
 
-1. 7 september design waka sdm (Aiza)
-2. 7 september design waka (ceya)
-3. 8 september design approval (Astiti)
+[ 5 September 2026 ]
+ 1. Menampilkan nomor NISN pada halaman Profil Siswa (Fandy)
+
+[ 6 September 2026 ]
+ 1. Perbaikan penjalanan Bot WhatsApp untuk sistem operasi Windows (Fandy)
+
+[ 7 September 2026 ]
+ 1. Menghapus lacakan file sesi Bot WhatsApp dari repositori (Fandy)
+ 2. Perbaikan runner PM2 untuk OS Windows dan Linux (Fandy)
+ 3. Perbaikan jalannya Bot WhatsApp pada platform Windows (Fandy)
+ 4. Perbaikan dan penyempurnaan tampilan (Fandy)
+ 5. Menambahkan filter warna admin & hapus data guru ganda (Aziz)
+ 6. Perbaikan tampilan, kustomisasi templat pesan, penyesuaian hak akses guru, & pesan otomatis link persetujuan (Fandy)
+
+[ 8 September 2026 ]
+ 1. Perbaikan widget dashboard untuk hak akses Guru (Fandy)
+ 2. Penyusunan dan dokumentasi timeline projek (Aziz)
+ 3. Fitur penambahan tampilan khusus untuk Waka dan Kepala Sekolah (Fandy)
+
+================================================================================

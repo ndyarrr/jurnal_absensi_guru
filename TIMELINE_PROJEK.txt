@@ -1,0 +1,108 @@
+================================================================================
+                    TIMELINE PENGUMPULAN & PROGRESS PROJEK
+                           JURNAL ABSENSI GURU
+                     PERIODE: 31 AGUSTUS - 8 SEPTEMBER 2026
+================================================================================
+
+[ INFORMASI PROJEK ]
+--------------------------------------------------------------------------------
+Nama Projek   : Jurnal Absensi Guru & Sistem Informasi Sekolah
+File Dokumen  : Timeline Pengumpulan Projek (31 Agustus - 8 September 2026)
+Tanggal Audit : 8 September 2026
+Repository    : https://github.com/ndyarrr/jurnal_absensi_guru.git
+
+
+[ DAFTAR ANGGOTA TIM & ROLE ]
+--------------------------------------------------------------------------------
+No | Absen | Nama Lengkap            | Role                 | Git Username
+---+-------+-------------------------+----------------------+-------------------
+1  |  (05) | Aiza Hayu Pramudya      | UI/UX Design         | aishypr
+2  |  (11) | Astiti Febiani Sampurna | Frontend             | titipretty12
+3  |  (14) | Aziz Ariansyah          | Backend              | Azizariansyah
+4  |  (18) | Dita Putri Cahyani      | UI/UX Design         | cyadita90 
+5  |  (21) | Fandy Ahmad Riyanto     | Fullstack            | ndyarrr
+--------------------------------------------------------------------------------
+
+
+================================================================================
+                     I. TIMELINE DESAIN (UI/UX DESIGN)
+================================================================================
+
+[ 7 September 2026 ]
+--------------------------------------------------------------------------------
+ • Desain Waka SDM                   --> Aiza Hayu Pramudya (05)
+ • Desain Waka                       --> Dita Putri Cahyani (18)
+
+[ 8 September 2026 ]
+--------------------------------------------------------------------------------
+ • Desain Approval                   --> Astiti Febiani Sampurna (11)
+
+
+================================================================================
+          II. TIMELINE PENGEMBANGAN KODE (RIWAYAT DEVELOPER GIT LOG)
+================================================================================
+
+[ 31 Agustus 2026 ]
+--------------------------------------------------------------------------------
+ 1. 14:45 - Peningkatan performa web dan penambahan database        [Fandy (21)]
+
+[ 1 September 2026 ]
+--------------------------------------------------------------------------------
+ 1. 08:25 - Peningkatan dan penyempurnaan sistem web                [Fandy (21)]
+
+[ 3 September 2026 ]
+--------------------------------------------------------------------------------
+ 1. 08:18 - Menambahkan fitur Guru Mengajar: Dashboard, Jadwal,     [Astiti (11)]
+            Jurnal, Absensi, dan Nilai
+ 2. 09:35 - Menambahkan kolom Tanda Tangan (TTD) pada halaman       [Fandy (21)]
+            Guru Piket
+ 3. 09:37 - Konfigurasi gitignore untuk sesi WhatsApp               [Fandy (21)]
+
+[ 4 September 2026 ]
+--------------------------------------------------------------------------------
+ 1. 20:23 - Penyesuaian dan mengoptimalkan halaman Guru             [Fandy (21)]
+
+[ 5 September 2026 ]
+--------------------------------------------------------------------------------
+ 1. 17:46 - Menampilkan data NISN pada halaman profil siswa         [Fandy (21)]
+
+[ 6 September 2026 ]
+--------------------------------------------------------------------------------
+ 1. 20:06 - Perbaikan penjalanan Bot WhatsApp di Windows            [Fandy (21)]
+
+[ 7 September 2026 ]
+--------------------------------------------------------------------------------
+ 1. 10:47 - Menghapus lacakan file sesi Bot WhatsApp dari           [Fandy (21)]
+            repositori
+ 2. 10:54 - Perbaikan runner PM2 untuk OS Windows dan Linux         [Fandy (21)]
+ 3. 13:21 - Perbaikan jalannya Bot WhatsApp pada platform Windows   [Fandy (21)]
+ 4. 14:08 - Perbaikan dan penyempurnaan tampilan                    [Fandy (21)]
+ 5. 14:49 - Menambahkan filter warna admin & hapus data guru ganda  [Aziz (14)]
+ 6. 20:31 - Perbaikan tampilan, kustomisasi templat pesan,          [Fandy (21)]
+            penyesuaian hak akses guru, & pesan otomatis 
+            link persetujuan
+
+[ 8 September 2026 ]
+--------------------------------------------------------------------------------
+ 1. 08:22 - Perbaikan widget dashboard untuk hak akses Guru         [Fandy (21)]
+ 2. 09:45 - Penyusunan timeline projek                              [Aziz (14)]
+ 3. 16:02 - Menambahkan tampilan khusus untuk Waka & Kepala Sekolah [Fandy (21)]
+
+
+================================================================================
+                     III. REKAPITULASI & STATISTIK PROJEK
+================================================================================
+ Periode Timeline                       : 31 Agustus - 8 September 2026
+ Total Catatan Pembaruan Kode (Git Log) : 17 Commits
+ Distribusi Pengkontribusi Kode         :
+   - Fandy Ahmad Riyanto (Fullstack)  : 15 Commits
+   - Astiti Febiani Sampurna (Frontend):  1 Commit (+ 1 Desain)
+   - Aziz Ariansyah (Backend)         :  2 Commits
+ Hasil Desain Tampilan Aplikasi         :
+   - Aiza Hayu Pramudya (UI/UX Design): Desain Waka SDM (7 Sep)
+   - Dita Putri Cahyani (UI/UX Design): Desain Waka (7 Sep)
+   - Astiti Febiani Sampurna (Frontend): Desain Approval (8 Sep)
+
+================================================================================
+                                DOKUMEN TIMELINE
+================================================================================
