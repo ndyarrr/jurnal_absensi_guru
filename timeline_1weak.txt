@@ -1,0 +1,39 @@
+Timeline github/kode
+
+Commits on Sep 3, 2026
+1.Tambah fitur Guru Mengajar: dashboard, jadwal, jurnal, absensi, nilai  (Astiti)
+2.menambahkan ttd di page guru piket  (Fandi)
+3.menambahkan pengaturan whatsapp, menambahkan bot  (Fandi)
+4.menambahkan sijurnalsesion di gitignore  (Fandi)
+
+Commits on Sep 4, 2026
+1.menambahkan teacher page  (Fandi)
+
+Commits on Sep 5, 2026 
+1.menambahkan nisn display di profile  (Fandi)
+
+Commits on Sep 6, 2026
+1.fix:run bot for windows  (Fandi)
+
+Commits on Sep 7, 2026
+1.Remove bot/sijurnalsesion from git tracking  (Fandi)
+2.fix:windows linux run pm2 (Fandi)
+3.fix:windows bot platform  (Fandi)
+4.fix:ui uiuix  (Fandi)
+5.feat:add filter color in admin and remove duplicate teacher  (Aziz)
+6.fix:ui fix:custom template chat refactor:role hak akses guru feat:auto chat link persetujuan  (Fandi)
+
+Commits on Sep 8, 2026
+1.fix:dash widget role in guru  (Fandi)
+2.membuat timeline project (Aziz)
+
+
+
+
+
+
+Timeline design
+
+1. 7 september design waka sdm (Aiza)
+2. 7 september design waka (ceya)
+3. 8 september design approval (Astiti)
