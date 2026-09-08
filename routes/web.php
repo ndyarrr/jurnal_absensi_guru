@@ -65,6 +65,17 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/guru-piket/dispensasi/{id}/ttd-siswa', [\App\Http\Controllers\GuruPiketController::class, 'simpanTtdSiswa'])->name('guru-piket.dispensasi.ttd-siswa');
     Route::post('/guru-piket/dispensasi/{id}/ttd-guru', [\App\Http\Controllers\GuruPiketController::class, 'simpanTtdGuru'])->name('guru-piket.dispensasi.ttd-guru');
 
+    // Dedicated Routes for Waka, Waka SDM, and Kepala Sekolah (Approver Dashboard)
+    Route::middleware([\App\Http\Middleware\EnsureUserIsApprover::class])->prefix('approver')->name('approver.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\ApproverDashboardController::class, 'index'])->name('dashboard');
+        Route::post('/izin/{id}/setujui', [\App\Http\Controllers\ApproverDashboardController::class, 'approveIzin'])->name('izin.approve');
+        Route::post('/izin/{id}/tolak', [\App\Http\Controllers\ApproverDashboardController::class, 'rejectIzin'])->name('izin.reject');
+        Route::post('/izin/{id}/reset', [\App\Http\Controllers\ApproverDashboardController::class, 'resetIzin'])->name('izin.reset');
+        Route::post('/dispensasi/{id}/setujui', [\App\Http\Controllers\ApproverDashboardController::class, 'approveDispensasi'])->name('dispensasi.approve');
+        Route::post('/dispensasi/{id}/tolak', [\App\Http\Controllers\ApproverDashboardController::class, 'rejectDispensasi'])->name('dispensasi.reject');
+        Route::post('/dispensasi/{id}/reset', [\App\Http\Controllers\ApproverDashboardController::class, 'resetDispensasi'])->name('dispensasi.reset');
+    });
+
     // Jurnal & Jadwal routes for all authenticated users (Guru, Admin, etc.)
     Route::get('/jadwal/export/csv', [JadwalPelajaranController::class, 'exportCsv'])->name('jadwal.export-csv');
     Route::get('/jadwal/export/pdf', [JadwalPelajaranController::class, 'exportPdf'])->name('jadwal.export-pdf');
@@ -129,3 +140,7 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/izin-guru/persetujuan/{id}/{token}', [\App\Http\Controllers\IzinApprovalController::class, 'show'])->name('izin.approval.show');
 Route::post('/izin-guru/persetujuan/{id}/{token}/setujui', [\App\Http\Controllers\IzinApprovalController::class, 'approve'])->name('izin.approval.approve');
 Route::post('/izin-guru/persetujuan/{id}/{token}/tolak', [\App\Http\Controllers\IzinApprovalController::class, 'reject'])->name('izin.approval.reject');
+
+Route::get('/dispensasi/persetujuan/{id}/{token}', [\App\Http\Controllers\IzinApprovalController::class, 'showDispensasi'])->name('dispensasi.approval.show');
+Route::post('/dispensasi/persetujuan/{id}/{token}/setujui', [\App\Http\Controllers\IzinApprovalController::class, 'approveDispensasi'])->name('dispensasi.approval.approve');
+Route::post('/dispensasi/persetujuan/{id}/{token}/tolak', [\App\Http\Controllers\IzinApprovalController::class, 'rejectDispensasi'])->name('dispensasi.approval.reject');

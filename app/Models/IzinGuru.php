@@ -22,6 +22,12 @@ class IzinGuru extends Model
         'alasan_izin',
         'bukti_surat',
         'status_approval',
+        'status_waka',
+        'disetujui_waka_oleh',
+        'tgl_disetujui_waka',
+        'status_kepsek',
+        'disetujui_kepsek_oleh',
+        'tgl_disetujui_kepsek',
         'disetujui_oleh',
         'catatan_approver',
         'approval_token',
@@ -41,6 +47,8 @@ class IzinGuru extends Model
     protected $casts = [
         'tanggal_mulai' => 'date',
         'tanggal_selesai' => 'date',
+        'tgl_disetujui_waka' => 'datetime',
+        'tgl_disetujui_kepsek' => 'datetime',
     ];
 
     public function getRouteKeyName()
@@ -56,6 +64,16 @@ class IzinGuru extends Model
     public function approver()
     {
         return $this->belongsTo(User::class, 'disetujui_oleh');
+    }
+
+    public function approverWaka()
+    {
+        return $this->belongsTo(User::class, 'disetujui_waka_oleh');
+    }
+
+    public function approverKepsek()
+    {
+        return $this->belongsTo(User::class, 'disetujui_kepsek_oleh');
     }
 
     public function getBuktiSuratUrlAttribute(): ?string

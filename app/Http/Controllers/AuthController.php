@@ -40,6 +40,13 @@ class AuthController extends Controller
             ])->onlyInput('username', 'role');
         }
 
+        // Cek jika akun ber-role satpam (Satpam tidak memiliki akses login)
+        if ($user->role === 'satpam' || $user->isSatpam() || $request->input('role') === 'satpam') {
+            return back()->withErrors([
+                'username' => 'Akun Satpam tidak memiliki hak akses untuk login ke sistem ini.',
+            ])->onlyInput('username', 'role');
+        }
+
         // Validasi role jika dipilih pada form login
         if ($request->filled('role')) {
             $selectedRole = $request->input('role');
@@ -99,10 +106,17 @@ class AuthController extends Controller
             }
 
             $selectedRole = $request->input('role');
+            if (in_array($selectedRole, ['waka', 'waka_sdm', 'kepala_sekolah'], true) || in_array($authUser->role, ['waka', 'waka_sdm', 'kepala_sekolah'], true)) {
+                if (!in_array($selectedRole, ['guru_mengajar', 'wali_kelas', 'guru_piket'], true)) {
+                    session()->forget('active_role');
+                    return redirect()->intended(route('approver.dashboard'));
+                }
+            }
+
             if (in_array($selectedRole, ['guru_mengajar', 'wali_kelas', 'guru_piket'], true)) {
                 session(['active_role' => $selectedRole]);
             } else {
-                session(['active_role' => 'guru_mengajar']);
+                session()->forget('active_role');
             }
 
             if ($selectedRole === 'guru_piket') {

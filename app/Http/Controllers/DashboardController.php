@@ -162,7 +162,12 @@ class DashboardController extends Controller
             return redirect()->route('dashboard');
         }
 
-        // 0. If user explicitly switched role via session('active_role')
+        // 0. Check if user is Waka, Waka SDM, or Kepala Sekolah
+        if (in_array($user->role, ['waka', 'waka_sdm', 'kepala_sekolah'], true) && !in_array(session('active_role'), ['guru_mengajar', 'wali_kelas', 'guru_piket'], true)) {
+            return redirect()->route('approver.dashboard');
+        }
+
+        // 1. If user explicitly switched role via session('active_role')
         if (session()->has('active_role')) {
             $active = session('active_role');
             if ($active === 'guru_mengajar') {
@@ -174,17 +179,17 @@ class DashboardController extends Controller
             }
         }
 
-        // 1. Default for Guru / Guru Mengajar
+        // 2. Default for Guru / Guru Mengajar
         if ($user->isGuruMengajar() || $user->id_guru || $user->guru) {
             return redirect()->route('guru-mengajar.dashboard');
         }
 
-        // 2. Check if user is assigned as Guru Piket or scheduled for Piket Duty today
+        // 3. Check if user is assigned as Guru Piket or scheduled for Piket Duty today
         if ($user->isGuruPiket() || $this->isTeacherDutyToday($user)) {
             return redirect()->route('guru-piket.dashboard');
         }
 
-        // 3. Check if user is assigned as Wali Kelas
+        // 4. Check if user is assigned as Wali Kelas
         if ($user->isWaliKelas()) {
             $guru = $user->guru;
             if ($guru && \App\Models\Kelas::where('id_guru_wali', $guru->id_guru)->exists()) {
@@ -192,7 +197,7 @@ class DashboardController extends Controller
             }
         }
 
-        // 4. Fallback for roles that do not have a dedicated dashboard implemented yet
+        // 5. Fallback for roles that do not have a dedicated dashboard implemented yet
         return view('admin.dashboard.role-coming-soon');
     }
 

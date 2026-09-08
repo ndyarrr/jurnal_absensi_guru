@@ -28,6 +28,13 @@ class SuratDispensasi extends Model
         'alasan_dispensasi',
         'file_surat',
         'status_approval',
+        'status_waka',
+        'disetujui_waka_oleh',
+        'tgl_disetujui_waka',
+        'status_kepsek',
+        'disetujui_kepsek_oleh',
+        'tgl_disetujui_kepsek',
+        'catatan_approver',
         'disetujui_oleh',
         'barcode_token',
         'ttd_siswa_path',
@@ -41,6 +48,8 @@ class SuratDispensasi extends Model
     protected $casts = [
         'ttd_siswa_signed_at' => 'datetime',
         'ttd_guru_signed_at'  => 'datetime',
+        'tgl_disetujui_waka'  => 'datetime',
+        'tgl_disetujui_kepsek' => 'datetime',
     ];
 
     protected static function boot()
@@ -79,6 +88,16 @@ class SuratDispensasi extends Model
         return $this->belongsTo(User::class, 'disetujui_oleh');
     }
 
+    public function approverWaka()
+    {
+        return $this->belongsTo(User::class, 'disetujui_waka_oleh');
+    }
+
+    public function approverKepsek()
+    {
+        return $this->belongsTo(User::class, 'disetujui_kepsek_oleh');
+    }
+
     public function getFileSuratUrlAttribute(): ?string
     {
         if (!$this->file_surat) {
@@ -104,5 +123,13 @@ class SuratDispensasi extends Model
         }
 
         return asset('storage/' . ltrim($this->ttd_guru_path, '/'));
+    }
+
+    public function getApprovalUrlAttribute(): string
+    {
+        if (!$this->barcode_token) {
+            return '#';
+        }
+        return route('dispensasi.approval.show', ['id' => $this->id_dispen, 'token' => $this->barcode_token]);
     }
 }

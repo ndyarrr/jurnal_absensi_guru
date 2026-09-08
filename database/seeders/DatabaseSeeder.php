@@ -58,49 +58,48 @@ class DatabaseSeeder extends Seeder
         $usersData = [
             [
                 'name' => 'Administrator',
-                'email' => 'admin@gmail.com',
                 'password' => Hash::make('password'),
                 'role' => 'admin',
                 'id_guru' => null,
             ],
             [
                 'name' => 'Trisno Wibowo (Guru)',
-                'email' => 'trisno@gmail.com',
                 'password' => Hash::make('password'),
                 'role' => 'guru_mengajar',
                 'id_guru' => $gurus[0]->id_guru,
             ],
             [
                 'name' => 'Kurnila (Wali Kelas)',
-                'email' => 'kurnila@gmail.com',
                 'password' => Hash::make('password'),
                 'role' => 'wali_kelas',
                 'id_guru' => $gurus[1]->id_guru,
             ],
             [
                 'name' => 'Budi Santoso (Guru Piket)',
-                'email' => 'budi@gmail.com',
                 'password' => Hash::make('password'),
                 'role' => 'guru_piket',
                 'id_guru' => $gurus[2]->id_guru,
             ],
             [
                 'name' => 'Kepala Sekolah',
-                'email' => 'kepsek@gmail.com',
                 'password' => Hash::make('password'),
                 'role' => 'kepala_sekolah',
                 'id_guru' => $gurus[3]->id_guru,
             ],
             [
                 'name' => 'Waka SDM',
-                'email' => 'wakasdm@gmail.com',
                 'password' => Hash::make('password'),
                 'role' => 'waka_sdm',
                 'id_guru' => $gurus[4]->id_guru,
             ],
             [
+                'name' => 'Waka Kurikulum',
+                'password' => Hash::make('password'),
+                'role' => 'waka',
+                'id_guru' => $gurus[5]->id_guru,
+            ],
+            [
                 'name' => 'Satpam Gerbang',
-                'email' => 'satpam@gmail.com',
                 'password' => Hash::make('password'),
                 'role' => 'satpam',
                 'id_guru' => null,
@@ -108,7 +107,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($usersData as $u) {
-            User::updateOrCreate(['email' => $u['email']], $u);
+            User::updateOrCreate(['name' => $u['name']], $u);
         }
 
         // 4. Seed Jurusan
