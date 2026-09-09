@@ -93,7 +93,7 @@
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
-                    <input type="text" name="search" id="guruSearchInput" class="guru-search-input" placeholder="Cari Guru NUPTK/NAMA..." value="{{ request('search') }}" autocomplete="off">
+                    <input type="text" name="search" id="guruSearchInput" class="guru-search-input" placeholder="Cari Guru NIP/NAMA..." value="{{ request('search') }}" autocomplete="off">
                 </form>
 
                 <!-- Action Controls Group -->
@@ -158,7 +158,7 @@
                         <thead>
                             <tr>
                                 <th style="width: 5%;">No</th>
-                                <th style="width: 22%;">NUPTK</th>
+                                <th style="width: 22%;">NIP</th>
                                 <th style="width: 28%;">Nama</th>
                                 <th style="width: 20%;">Mapel Diampu</th>
                                 <th style="width: 15%;">No Telp</th>
@@ -169,8 +169,8 @@
                             @forelse($guru as $index => $g)
                                 <tr>
                                     <td class="td-guru-no">{{ $loop->iteration + ($guru->currentPage() - 1) * $guru->perPage() }}</td>
-                                    <td class="td-guru-nuptk">
-                                        <span class="nuptk-badge">{{ $g->nuptk ?? '-' }}</span>
+                                    <td class="td-guru-nip">
+                                        <span class="nip-badge">{{ $g->nip ?? '-' }}</span>
                                     </td>
                                     <td class="td-guru-nama">
                                         <div style="display: flex; align-items: center; gap: 12px;">
@@ -208,7 +208,7 @@
                                             </button>
 
                                             <!-- Edit Action -->
-                                            <button type="button" class="action-btn-icon edit" title="Edit Data Guru" onclick="openEditModal({{ $g->id_guru }}, '{{ addslashes($g->nuptk ?? '') }}', '{{ addslashes($g->nama_guru) }}', '{{ addslashes($g->no_hp ?? '') }}')">
+                                            <button type="button" class="action-btn-icon edit" title="Edit Data Guru" onclick="openEditModal({{ $g->id_guru }}, '{{ addslashes($g->nip ?? '') }}', '{{ addslashes($g->nama_guru) }}', '{{ addslashes($g->no_hp ?? '') }}')">
                                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -269,8 +269,8 @@
             <form action="{{ route('guru.store') }}" method="POST" class="modal-form-grid">
                 @csrf
                 <div class="form-field-group">
-                    <label for="create_nuptk">NUPTK / NIP</label>
-                    <input type="text" name="nuptk" id="create_nuptk" class="form-field-input" placeholder="Masukkan 16 digit NUPTK atau 18 digit NIP" maxlength="18" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')" required>
+                    <label for="create_nip">NIP</label>
+                    <input type="text" name="nip" id="create_nip" class="form-field-input" placeholder="Masukkan 18 digit NIP" maxlength="20" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')" required>
                 </div>
 
                 <div class="form-field-group">
@@ -319,8 +319,8 @@
                 @method('PUT')
 
                 <div class="form-field-group">
-                    <label for="edit_nuptk">NUPTK / NIP</label>
-                    <input type="text" name="nuptk" id="edit_nuptk" class="form-field-input" placeholder="Masukkan 16 digit NUPTK atau 18 digit NIP" maxlength="18" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')" required>
+                    <label for="edit_nip">NIP</label>
+                    <input type="text" name="nip" id="edit_nip" class="form-field-input" placeholder="Masukkan 18 digit NIP" maxlength="20" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')" required>
                 </div>
 
                 <div class="form-field-group">
@@ -366,8 +366,8 @@
 
             <div class="modal-form-grid">
                 <div class="form-field-group">
-                    <label>NUPTK / NIP:</label>
-                    <div id="view_nuptk" style="font-family: monospace; font-weight: 700; font-size: 1rem; color: #1e2538;">-</div>
+                    <label>NIP:</label>
+                    <div id="view_nip" style="font-family: monospace; font-weight: 700; font-size: 1rem; color: #1e2538;">-</div>
                 </div>
                 <div class="form-field-group">
                     <label>Nama Lengkap Guru:</label>
@@ -447,9 +447,9 @@
             document.getElementById('createModal').style.display = 'none';
         }
 
-        function openEditModal(id, nuptk, nama, noHp) {
+        function openEditModal(id, nip, nama, noHp) {
             document.getElementById('editForm').action = '/guru/' + id;
-            document.getElementById('edit_nuptk').value = nuptk;
+            document.getElementById('edit_nip').value = nip;
             document.getElementById('edit_nama_guru').value = nama;
             document.getElementById('edit_no_hp').value = noHp;
 
@@ -482,7 +482,7 @@
             fetch('/guru/' + id)
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById('view_nuptk').innerText = data.nuptk;
+                    document.getElementById('view_nip').innerText = data.nip;
                     document.getElementById('view_nama_guru').innerText = data.nama_guru;
                     document.getElementById('view_no_hp').innerText = data.no_hp;
                     document.getElementById('view_mapel_names').innerText = data.mapel_names;
@@ -508,11 +508,11 @@
                 const q = this.value.toLowerCase().trim();
 
                 rows.forEach(function(row) {
-                    const nuptk = (row.querySelector('.td-guru-nuptk') || {}).textContent || '';
+                    const nip = (row.querySelector('.td-guru-nip') || {}).textContent || '';
                     const nama = (row.querySelector('.td-guru-nama') || {}).textContent || '';
                     const mapel = (row.querySelector('.td-guru-mapel') || {}).textContent || '';
                     const telp = (row.querySelector('.td-guru-telp') || {}).textContent || '';
-                    const text = (nuptk + ' ' + nama + ' ' + mapel + ' ' + telp).toLowerCase();
+                    const text = (nip + ' ' + nama + ' ' + mapel + ' ' + telp).toLowerCase();
 
                     if (q === '' || text.includes(q)) {
                         row.style.display = '';
@@ -528,8 +528,8 @@
             });
         })();
 
-        /* ---- Real-time NUPTK/NIP Digit Counter & Validator ---- */
-        function setupNuptkDigitListener(inputId) {
+        /* ---- Real-time NIP Digit Counter & Validator ---- */
+        function setupNipDigitListener(inputId) {
             const el = document.getElementById(inputId);
             if (!el) return;
 
@@ -541,7 +541,7 @@
             function updateBadge() {
                 const len = el.value.length;
                 if (len === 16) {
-                    badge.textContent = '16 / 16 (NUPTK Pas)';
+                    badge.textContent = '16 / 16 (NIP Pas)';
                     badge.style.background = '#dcfce7';
                     badge.style.color = '#15803d';
                 } else if (len === 18) {
@@ -563,15 +563,15 @@
                     const len = el.value.trim().length;
                     if (len !== 16 && len !== 18) {
                         e.preventDefault();
-                        alert('NUPTK harus berisi tepat 16 digit atau NIP 18 digit angka.');
+                        alert('NIP harus berisi tepat 16 atau 18 digit angka.');
                         el.focus();
                     }
                 });
             }
         }
 
-        setupNuptkDigitListener('create_nuptk');
-        setupNuptkDigitListener('edit_nuptk');
+        setupNipDigitListener('create_nip');
+        setupNipDigitListener('edit_nip');
 
         /* ---- Auto-fade Flash Feedback Alerts after 3 seconds ---- */
         setTimeout(function() {

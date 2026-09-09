@@ -412,7 +412,7 @@
                                 <span class="panduan-icon-circle" style="background:#dcfce7;color:#15803d;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg></span>
                                 Guru
                             </div>
-                            <div class="feature-tile-desc">Profil guru (nama, NUPTK, mapel diampu, no. WhatsApp). Bisa unduh CSV.</div>
+                            <div class="feature-tile-desc">Profil guru (nama, NIP, mapel diampu, no. WhatsApp). Bisa unduh CSV.</div>
                         </div>
                         <div class="feature-tile">
                             <div class="feature-tile-title">

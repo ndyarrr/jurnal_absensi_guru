@@ -25,6 +25,9 @@ class IzinGuru extends Model
         'status_waka',
         'disetujui_waka_oleh',
         'tgl_disetujui_waka',
+        'status_waka_kurikulum',
+        'disetujui_waka_kurikulum_oleh',
+        'tgl_disetujui_waka_kurikulum',
         'status_kepsek',
         'disetujui_kepsek_oleh',
         'tgl_disetujui_kepsek',
@@ -48,6 +51,7 @@ class IzinGuru extends Model
         'tanggal_mulai' => 'date',
         'tanggal_selesai' => 'date',
         'tgl_disetujui_waka' => 'datetime',
+        'tgl_disetujui_waka_kurikulum' => 'datetime',
         'tgl_disetujui_kepsek' => 'datetime',
     ];
 
@@ -69,6 +73,11 @@ class IzinGuru extends Model
     public function approverWaka()
     {
         return $this->belongsTo(User::class, 'disetujui_waka_oleh');
+    }
+
+    public function approverWakaKurikulum()
+    {
+        return $this->belongsTo(User::class, 'disetujui_waka_kurikulum_oleh');
     }
 
     public function approverKepsek()

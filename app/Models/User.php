@@ -16,9 +16,11 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name',
+        'username',
         'password',
         'role',
         'id_guru',
+        'no_hp',
         'avatar',
     ];
 
@@ -80,9 +82,14 @@ class User extends Authenticatable
         return $this->role === 'waka';
     }
 
+    public function isWakaKurikulum(): bool
+    {
+        return $this->role === 'waka_kurikulum';
+    }
+
     public function isWakaSdm(): bool
     {
-        return $this->role === 'waka_sdm';
+        return $this->role === 'waka_kurikulum';
     }
 
     public function isSatpam(): bool
@@ -127,8 +134,8 @@ class User extends Authenticatable
             'wali_kelas' => 'Wali Kelas',
             'guru_piket' => 'Guru Piket',
             'kepala_sekolah' => 'Kepala Sekolah',
-            'waka' => 'Waka',
-            'waka_sdm' => 'Waka SDM',
+            'waka' => 'Waka Kesiswaan',
+            'waka_kurikulum', 'waka_sdm' => 'Waka Kurikulum',
             'satpam' => 'Satpam',
             default => ucwords(str_replace('_', ' ', $role ?? 'Guru Mengajar')),
         };
@@ -149,8 +156,8 @@ class User extends Authenticatable
             'wali_kelas' => 'Wali Kelas',
             'guru_piket' => 'Guru Piket',
             'kepala_sekolah' => 'Kepsek',
-            'waka' => 'Waka',
-            'waka_sdm' => 'Waka SDM',
+            'waka' => 'Waka Kesiswaan',
+            'waka_kurikulum', 'waka_sdm' => 'Waka Kurikulum',
             'satpam' => 'Satpam',
             default => 'Guru Mapel',
         };

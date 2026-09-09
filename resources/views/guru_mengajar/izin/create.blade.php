@@ -40,8 +40,8 @@
                     <span style="font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Pemohon Izin:</span>
                     <div style="font-size: 1rem; font-weight: 800; color: #1e293b; margin-top: 2px;">
                         {{ $guru->nama_guru ?? auth()->user()->name }}
-                        @if($guru && $guru->nuptk)
-                            <span style="font-size: 0.8rem; font-weight: 600; color: #64748b; margin-left: 6px;">(NUPTK/NIP: {{ $guru->nuptk }})</span>
+                        @if($guru && $guru->nip)
+                            <span style="font-size: 0.8rem; font-weight: 600; color: #64748b; margin-left: 6px;">(NIP: {{ $guru->nip }})</span>
                         @endif
                     </div>
                 </div>

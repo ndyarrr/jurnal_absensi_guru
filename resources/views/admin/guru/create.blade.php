@@ -31,8 +31,8 @@
 
             <div class="form-grid">
                 <div class="form-group col-6">
-                    <label for="nuptk">NUPTK / NIP <span class="required">*</span></label>
-                    <input type="text" name="nuptk" id="nuptk" class="form-control" value="{{ old('nuptk') }}" placeholder="16 digit NUPTK atau 18 digit NIP" maxlength="18" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')" required>
+                    <label for="nip">NIP <span class="required">*</span></label>
+                    <input type="text" name="nip" id="nip" class="form-control" value="{{ old('nip') }}" placeholder="18 digit NIP" maxlength="20" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')" required>
                 </div>
 
                 <div class="form-group col-6">
@@ -71,18 +71,18 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const nuptkInput = document.getElementById('nuptk');
-    if (!nuptkInput) return;
+    const nipInput = document.getElementById('nip');
+    if (!nipInput) return;
 
     const badge = document.createElement('span');
     badge.style.cssText = 'font-size: 0.75rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; margin-left: 8px; font-family: monospace; transition: all 0.2s ease;';
-    const label = nuptkInput.parentNode.querySelector('label');
+    const label = nipInput.parentNode.querySelector('label');
     if (label) label.appendChild(badge);
 
     function updateBadge() {
-        const len = nuptkInput.value.length;
+        const len = nipInput.value.length;
         if (len === 16) {
-            badge.textContent = '16 / 16 (NUPTK Pas)';
+            badge.textContent = '16 / 16 (NIP Pas)';
             badge.style.background = '#dcfce7';
             badge.style.color = '#15803d';
         } else if (len === 18) {
@@ -96,15 +96,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    nuptkInput.addEventListener('input', updateBadge);
+    nipInput.addEventListener('input', updateBadge);
     updateBadge();
 
-    nuptkInput.closest('form').addEventListener('submit', function(e) {
-        const len = nuptkInput.value.trim().length;
+    nipInput.closest('form').addEventListener('submit', function(e) {
+        const len = nipInput.value.trim().length;
         if (len !== 16 && len !== 18) {
             e.preventDefault();
-            alert('NUPTK harus tepat 16 digit atau NIP 18 digit angka.');
-            nuptkInput.focus();
+            alert('NIP harus tepat 16 atau 18 digit angka.');
+            nipInput.focus();
         }
     });
 });

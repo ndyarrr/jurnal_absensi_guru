@@ -59,8 +59,8 @@
 
                     <!-- Username Input -->
                     <div class="form-group">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" name="username" id="username" class="form-input" value="{{ old('username') }}" required autofocus>
+                        <label for="username" class="form-label">NIP <span style="font-weight: 400; color: #94a3b8; font-size: 0.8rem;">(Guru) / Username (Admin)</span></label>
+                        <input type="text" name="username" id="username" class="form-input" value="{{ old('username') }}" placeholder="Masukkan NIP atau username" required autofocus>
                     </div>
 
                     <!-- Password Input -->
@@ -86,8 +86,8 @@
                                 <option value="super_admin" {{ old('role') == 'super_admin' ? 'selected' : '' }}>Admin Super</option>
                                 <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
                                 <option value="guru_mengajar" {{ old('role') == 'guru_mengajar' || old('role') == 'guru' ? 'selected' : '' }}>Guru</option>
-                                <option value="waka" {{ old('role') == 'waka' ? 'selected' : '' }}>Waka</option>
-                                <option value="waka_sdm" {{ old('role') == 'waka_sdm' ? 'selected' : '' }}>Waka SDM</option>
+                                <option value="waka" {{ old('role') == 'waka' ? 'selected' : '' }}>Waka Kesiswaan</option>
+                                <option value="waka_kurikulum" {{ old('role') == 'waka_kurikulum' || old('role') == 'waka_sdm' ? 'selected' : '' }}>Waka Kurikulum</option>
                                 <option value="kepala_sekolah" {{ old('role') == 'kepala_sekolah' ? 'selected' : '' }}>Kepala Sekolah</option>
                             </select>
                         </div>
@@ -106,10 +106,10 @@
                         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </button>
                     <div class="demo-tags-dropdown" id="demoDropdown">
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Administrator', 'password', 'super_admin')">Admin Super</button>
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Trisno Wibowo (Guru)', 'password', 'guru_mengajar')">Guru (Mapel / Sub-Role)</button>
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Waka Kurikulum', 'password', 'waka')">Waka Kurikulum</button>
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Waka SDM', 'password', 'waka_sdm')">Waka SDM</button>
+                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Administrator', 'password', 'admin')">Administrator (Admin)</button>
+                        <button type="button" class="demo-tag" onclick="fillQuickAccount('198101152003121003', '198101152003121003', 'guru_mengajar')">Guru (NIP: 198101152003121003)</button>
+                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Waka Kesiswaan', 'password', 'waka')">Waka Kesiswaan</button>
+                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Waka Kurikulum', 'password', 'waka_kurikulum')">Waka Kurikulum</button>
                         <button type="button" class="demo-tag" onclick="fillQuickAccount('Kepala Sekolah', 'password', 'kepala_sekolah')">Kepala Sekolah</button>
                     </div>
                 </div>

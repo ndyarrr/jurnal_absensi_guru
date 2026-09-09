@@ -197,7 +197,7 @@
                                     <div>
                                         <div style="font-weight: 800; font-size: 0.9rem; color: #1e2538;">{{ optional($item->guru)->nama_guru ?? 'Guru Piket' }}</div>
                                         <div style="font-size: 0.75rem; color: #64748b;">
-                                            NUPTK: {{ optional($item->guru)->nuptk ?? '-' }} . {{ $item->keterangan ?? 'Petugas Piket' }}
+                                            NIP: {{ optional($item->guru)->nip ?? '-' }} . {{ $item->keterangan ?? 'Petugas Piket' }}
                                         </div>
                                     </div>
                                 </div>
@@ -250,9 +250,9 @@
                         <input type="text" class="form-field-input ss-input" id="assign_piket_input" placeholder="Ketik untuk cari" autocomplete="off" onclick="openPiketDropdown()" onkeyup="filterPiketDropdown()" required>
                         <div class="ss-dropdown" id="assign_piket_dropdown">
                             @foreach($guruList as $g)
-                                <div class="ss-option" data-value="{{ $g->id_guru }}" onclick="pickPiketGuru('{{ $g->id_guru }}','{{ addslashes($g->nama_guru) }} (NUPTK: {{ $g->nuptk ?? '-' }})')">
+                                <div class="ss-option" data-value="{{ $g->id_guru }}" onclick="pickPiketGuru('{{ $g->id_guru }}','{{ addslashes($g->nama_guru) }} (NIP: {{ $g->nip ?? '-' }})')">
                                     <strong>{{ $g->nama_guru }}</strong>
-                                    <small style="color: #64748b;">NUPTK: {{ $g->nuptk ?? '-' }}</small>
+                                    <small style="color: #64748b;">NIP: {{ $g->nip ?? '-' }}</small>
                                 </div>
                             @endforeach
                         </div>

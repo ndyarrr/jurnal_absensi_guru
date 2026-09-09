@@ -29,7 +29,10 @@ class PengaturanWaController extends Controller
         $templates = WaTemplate::orderBy('id', 'asc')->get();
         $recipients = WaRecipient::orderBy('id', 'asc')->get();
 
-        return view('admin.pengaturan_wa.index', compact('activeTab', 'botInfo', 'settings', 'templates', 'recipients'));
+        $wakaUsers = \App\Models\User::whereIn('role', ['waka', 'waka_kurikulum', 'kepala_sekolah'])->with('guru')->get();
+        $allGurus  = \App\Models\Guru::whereNotNull('no_hp')->orderBy('nama_guru')->get();
+
+        return view('admin.pengaturan_wa.index', compact('activeTab', 'botInfo', 'settings', 'templates', 'recipients', 'wakaUsers', 'allGurus'));
     }
 
     /**
@@ -139,14 +142,20 @@ class PengaturanWaController extends Controller
             'reminder_before_minutes' => 'required|integer|min:1|max:120',
             'target_roles' => 'array',
             'wa_nomor_waka' => 'nullable|string',
+            'wa_nomor_waka_kurikulum' => 'nullable|string',
             'wa_nomor_kepsek' => 'nullable|string',
         ]);
 
         WaSetting::setKey('wa_enabled', $request->has('wa_enabled') ? '1' : '0', 'general', 'Aktifkan/Nonaktifkan Notifikasi WA');
         WaSetting::setKey('reminder_jurnal_enabled', $request->has('reminder_jurnal_enabled') ? '1' : '0', 'reminder', 'Aktifkan Pengingat Jurnal');
         WaSetting::setKey('reminder_before_minutes', $request->reminder_before_minutes, 'reminder', 'Waktu pengingat sebelum jam selesai');
-        WaSetting::setKey('wa_nomor_waka', $request->wa_nomor_waka ?? '', 'contact', 'Nomor WhatsApp Waka');
-        WaSetting::setKey('wa_nomor_kepsek', $request->wa_nomor_kepsek ?? '', 'contact', 'Nomor WhatsApp Kepsek');
+
+        // Normalize phone numbers: 08xxx → 62xxx
+        $normalizePhone = fn($num) => $num ? preg_replace('/^0/', '62', preg_replace('/\D/', '', $num)) : '';
+
+        WaSetting::setKey('wa_nomor_waka', $normalizePhone($request->wa_nomor_waka), 'contact', 'Nomor WhatsApp Waka Kesiswaan');
+        WaSetting::setKey('wa_nomor_waka_kurikulum', $normalizePhone($request->wa_nomor_waka_kurikulum), 'contact', 'Nomor WhatsApp Waka Kurikulum');
+        WaSetting::setKey('wa_nomor_kepsek', $normalizePhone($request->wa_nomor_kepsek), 'contact', 'Nomor WhatsApp Kepsek');
         
         if ($request->has('target_roles')) {
             WaSetting::setKey('notification_target_roles', $request->target_roles, 'general', 'Role target penerima default');

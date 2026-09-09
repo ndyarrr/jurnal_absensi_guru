@@ -79,10 +79,10 @@ class UserController extends Controller
     {
         $isSuper = auth()->user()->isSuperAdmin();
         $rolesAllowed = $isSuper
-            ? 'admin,super_admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_sdm,satpam'
-            : 'admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_sdm,satpam';
+            ? 'admin,super_admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_kurikulum,satpam'
+            : 'admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_kurikulum,satpam';
 
-        $nonGuruRoles = ['admin', 'super_admin', 'satpam', 'kepala_sekolah', 'waka', 'waka_sdm'];
+        $nonGuruRoles = ['admin', 'super_admin', 'satpam', 'kepala_sekolah', 'waka', 'waka_kurikulum'];
         $isNonGuruRole = in_array($request->input('role'), $nonGuruRoles, true);
 
         $validated = $request->validate([
@@ -114,6 +114,18 @@ class UserController extends Controller
             $validated['id_guru'] = null;
         }
 
+        // Roles yang hanya boleh 1 user
+        $singletonRoles = ['waka', 'waka_kurikulum', 'kepala_sekolah'];
+        if (in_array($validated['role'], $singletonRoles)) {
+            $roleLabels = ['waka' => 'Waka Kesiswaan', 'waka_kurikulum' => 'Waka Kurikulum', 'kepala_sekolah' => 'Kepala Sekolah'];
+            $exists = User::where('role', $validated['role'])->exists();
+            if ($exists) {
+                return back()->withInput()->withErrors([
+                    'role' => 'Role ' . ($roleLabels[$validated['role']] ?? $validated['role']) . ' sudah memiliki akun. Hanya boleh 1 akun per role ini.',
+                ]);
+            }
+        }
+
         // Handle avatar upload
         if ($request->hasFile('avatar')) {
             $validated['avatar'] = $request->file('avatar')->store('avatars', 'public');
@@ -140,7 +152,7 @@ class UserController extends Controller
             'role_label'  => $user->role_label,
             'id_guru'     => $user->id_guru,
             'nama_guru'   => optional($user->guru)->nama_guru ?? '-',
-            'nuptk'       => optional($user->guru)->nuptk ?? '',
+            'nip'       => optional($user->guru)->nip ?? '',
             'created_at'  => $user->created_at ? $user->created_at->format('d-m-Y H:i') : '-',
             'avatar_url'  => $user->avatar_url,
             'avatar_initial' => $user->avatar_initial,
@@ -174,10 +186,10 @@ class UserController extends Controller
 
         $isSuper = auth()->user()->isSuperAdmin();
         $rolesAllowed = $isSuper
-            ? 'admin,super_admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_sdm,satpam'
-            : 'admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_sdm,satpam';
+            ? 'admin,super_admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_kurikulum,satpam'
+            : 'admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_kurikulum,satpam';
 
-        $nonGuruRoles = ['admin', 'super_admin', 'satpam', 'kepala_sekolah', 'waka', 'waka_sdm'];
+        $nonGuruRoles = ['admin', 'super_admin', 'satpam', 'kepala_sekolah', 'waka', 'waka_kurikulum'];
         $isNonGuruRole = in_array($request->input('role'), $nonGuruRoles, true);
 
         $validated = $request->validate([
@@ -208,6 +220,20 @@ class UserController extends Controller
 
         if ($isNonGuruRole) {
             $validated['id_guru'] = null;
+        }
+
+        // Roles yang hanya boleh 1 user — cek jika role BERUBAH ke singleton role
+        $singletonRoles = ['waka', 'waka_kurikulum', 'kepala_sekolah'];
+        if (in_array($validated['role'], $singletonRoles) && $validated['role'] !== $user->role) {
+            $roleLabels = ['waka' => 'Waka Kesiswaan', 'waka_kurikulum' => 'Waka Kurikulum', 'kepala_sekolah' => 'Kepala Sekolah'];
+            $exists = User::where('role', $validated['role'])->where('id', '!=', $user->id)->exists();
+            if ($exists) {
+                $errMsg = 'Role ' . ($roleLabels[$validated['role']] ?? $validated['role']) . ' sudah memiliki akun. Hanya boleh 1 akun per role ini.';
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['error' => $errMsg], 422);
+                }
+                return back()->withInput()->withErrors(['role' => $errMsg]);
+            }
         }
 
         // Handle avatar upload

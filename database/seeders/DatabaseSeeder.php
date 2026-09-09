@@ -36,23 +36,9 @@ class DatabaseSeeder extends Seeder
             JamPelajaran::updateOrCreate(['jam_ke' => $j['jam_ke']], $j);
         }
 
-        // 2. Seed Guru
-        $guruData = [
-            ['nuptk' => '198501152010011001', 'nama_guru' => 'Trisno Wibowo, S.Pd., M.M.', 'no_hp' => '081234567801'],
-            ['nuptk' => '199002202015022002', 'nama_guru' => 'Kurnila Putri Islamawati, S.Pd', 'no_hp' => '081234567802'],
-            ['nuptk' => '198803102012011003', 'nama_guru' => 'Budi Santoso, S.Kom', 'no_hp' => '081234567803'],
-            ['nuptk' => '199204052018022004', 'nama_guru' => 'Rina Amelia, S.Pd', 'no_hp' => '081234567804'],
-            ['nuptk' => '198605122011011005', 'nama_guru' => 'Agus Prasetyo, S.T', 'no_hp' => '081234567805'],
-            ['nuptk' => '199106182017022006', 'nama_guru' => 'Dewi Lestari, S.Pd', 'no_hp' => '081234567806'],
-            ['nuptk' => '198907252014011007', 'nama_guru' => 'Hendra Wijaya, S.Kom', 'no_hp' => '081234567807'],
-            ['nuptk' => '199308302019022008', 'nama_guru' => 'Siti Nurhaliza, S.Pd', 'no_hp' => '081234567808'],
-            ['nuptk' => '199409142020022009', 'nama_guru' => 'Anisa Kusumawati, S.Pd', 'no_hp' => '081234567809'],
-        ];
-
-        $gurus = [];
-        foreach ($guruData as $g) {
-            $gurus[] = Guru::updateOrCreate(['nuptk' => $g['nuptk']], $g);
-        }
+        // 2. Seed Guru (128 Guru SMK Negeri 1 Boyolangu 2026/2027)
+        $this->call(GuruSmk1BoyolanguSeeder::class);
+        $gurus = Guru::all();
 
         // 3. Seed Users with Roles & Link to Guru
         $usersData = [

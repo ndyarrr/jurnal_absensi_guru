@@ -120,7 +120,7 @@ class JadwalPiketController extends Controller
         if (!$user) {
             \App\Models\User::create([
                 'name'     => $guru->nama_guru,
-                'password' => \Illuminate\Support\Facades\Hash::make($guru->nuptk ?? ('guru' . $guru->id_guru)),
+                'password' => \Illuminate\Support\Facades\Hash::make($guru->nip ?? ('guru' . $guru->id_guru)),
                 'role'     => 'guru_mengajar',
                 'id_guru'  => $guru->id_guru,
             ]);

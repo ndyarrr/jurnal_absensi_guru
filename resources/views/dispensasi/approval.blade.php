@@ -73,9 +73,9 @@
             </div>
         @endif
 
-        <!-- Progress 3-Tingkat Track -->
+        <!-- Progress 2-Tingkat Track -->
         <div class="track-box">
-            <div class="track-title">Progress Persetujuan 3 Pihak:</div>
+            <div class="track-title">Progress Persetujuan 2 Pihak:</div>
             
             <div class="track-step-item">
                 <span>1. Verification Guru Piket</span>
@@ -86,15 +86,8 @@
                 <span>2. Konfirmasi Waka / Waka SDM</span>
                 @if($dispen->status_waka === 'disetujui')
                     <span class="track-status-ok"><i class="fa-solid fa-circle-check"></i> Disetujui ({{ optional($dispen->approverWaka)->name ?? 'Waka' }})</span>
-                @else
-                    <span class="track-status-wait"><i class="fa-solid fa-clock"></i> Menunggu Persetujuan</span>
-                @endif
-            </div>
-
-            <div class="track-step-item">
-                <span>3. Konfirmasi Kepala Sekolah</span>
-                @if($dispen->status_kepsek === 'disetujui')
-                    <span class="track-status-ok"><i class="fa-solid fa-circle-check"></i> Disetujui ({{ optional($dispen->approverKepsek)->name ?? 'Kepsek' }})</span>
+                @elseif($dispen->status_waka === 'ditolak' || $dispen->status_approval === 'ditolak')
+                    <span class="track-status-wait" style="color: #dc2626;"><i class="fa-solid fa-circle-xmark"></i> Ditolak</span>
                 @else
                     <span class="track-status-wait"><i class="fa-solid fa-clock"></i> Menunggu Persetujuan</span>
                 @endif
@@ -152,15 +145,14 @@
             @endif
         </div>
 
-        @if($dispen->status_approval !== 'ditolak' && ($dispen->status_waka !== 'disetujui' || $dispen->status_kepsek !== 'disetujui'))
+        @if($dispen->status_approval !== 'ditolak' && $dispen->status_waka !== 'disetujui')
             <div class="btn-action-group">
                 @php
                     $user = auth()->user();
-                    $isWaka = $user && in_array($user->role, ['waka', 'waka_sdm'], true);
                     $isKepsek = $user && $user->role === 'kepala_sekolah';
                 @endphp
 
-                @if(!$isKepsek && $dispen->status_waka !== 'disetujui')
+                @if(!$isKepsek)
                     <form action="{{ route('dispensasi.approval.approve', ['id' => $dispen->id_dispen, 'token' => $dispen->barcode_token]) }}" method="POST">
                         @csrf
                         <input type="hidden" name="as_role" value="waka">
@@ -168,24 +160,18 @@
                             <i class="fa-solid fa-check-circle"></i> Setujui
                         </button>
                     </form>
-                @endif
 
-                @if(!$isWaka && $dispen->status_kepsek !== 'disetujui')
-                    <form action="{{ route('dispensasi.approval.approve', ['id' => $dispen->id_dispen, 'token' => $dispen->barcode_token]) }}" method="POST">
+                    <form action="{{ route('dispensasi.approval.reject', ['id' => $dispen->id_dispen, 'token' => $dispen->barcode_token]) }}" method="POST">
                         @csrf
-                        <input type="hidden" name="as_role" value="kepala_sekolah">
-                        <button type="submit" class="btn-action btn-approve-kepsek" onclick="return confirm('Setujui surat dispensasi ini?')">
-                            <i class="fa-solid fa-check-circle"></i> Setujui
+                        <button type="submit" class="btn-action btn-reject" onclick="return confirm('Apakah Anda yakin ingin MENOLAK surat dispensasi siswa ini?')">
+                            <i class="fa-solid fa-xmark-circle"></i> Tolak Permohonan
                         </button>
                     </form>
+                @else
+                    <div style="text-align: center; padding: 12px; background: #fff7ed; border: 1px solid #ffedd5; border-radius: 12px; color: #c2410c; font-weight: 700;">
+                        <i class="fa-solid fa-info-circle"></i> Persetujuan Dispensasi Siswa dilakukan oleh Guru Piket & Waka.
+                    </div>
                 @endif
-
-                <form action="{{ route('dispensasi.approval.reject', ['id' => $dispen->id_dispen, 'token' => $dispen->barcode_token]) }}" method="POST">
-                    @csrf
-                    <button type="submit" class="btn-action btn-reject" onclick="return confirm('Apakah Anda yakin ingin MENOLAK surat dispensasi siswa ini?')">
-                        <i class="fa-solid fa-xmark-circle"></i> Tolak Permohonan
-                    </button>
-                </form>
             </div>
         @else
             <div style="text-align: center; padding: 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; color: #166534; font-weight: 800;">

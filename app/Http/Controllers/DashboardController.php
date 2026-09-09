@@ -162,8 +162,8 @@ class DashboardController extends Controller
             return redirect()->route('dashboard');
         }
 
-        // 0. Check if user is Waka, Waka SDM, or Kepala Sekolah
-        if (in_array($user->role, ['waka', 'waka_sdm', 'kepala_sekolah'], true) && !in_array(session('active_role'), ['guru_mengajar', 'wali_kelas', 'guru_piket'], true)) {
+        // 0. Check if user is Waka, Waka Kurikulum, or Kepala Sekolah
+        if (in_array($user->role, ['waka', 'waka_kurikulum', 'waka_sdm', 'kepala_sekolah'], true) && !in_array(session('active_role'), ['guru_mengajar', 'wali_kelas', 'guru_piket'], true)) {
             return redirect()->route('approver.dashboard');
         }
 

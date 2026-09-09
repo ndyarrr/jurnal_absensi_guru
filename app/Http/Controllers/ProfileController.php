@@ -38,7 +38,8 @@ class ProfileController extends Controller
             $user->password = Hash::make($request->new_password);
         }
 
-        $user->name = $validated['name'];
+        $user->name  = $validated['name'];
+        $user->no_hp = $request->input('no_hp');
 
         if ($request->boolean('remove_avatar') && $user->avatar) {
             Storage::disk('public')->delete($user->avatar);
@@ -55,10 +56,22 @@ class ProfileController extends Controller
 
         $user->save();
 
-        if ($user->guru && !$user->isAdmin()) {
+        if ($user->guru) {
             $user->guru->update([
                 'no_hp' => $request->input('no_hp'),
             ]);
+        }
+
+        // Sync with WA Settings if user is Waka or Kepsek
+        if ($request->filled('no_hp')) {
+            $formattedHp = preg_replace('/^0/', '62', preg_replace('/\D/', '', $request->input('no_hp')));
+            if ($user->role === 'waka') {
+                \App\Models\WaSetting::setKey('wa_nomor_waka', $formattedHp, 'contact', 'Nomor WhatsApp Waka Kesiswaan');
+            } elseif ($user->role === 'waka_kurikulum' || $user->role === 'waka_sdm') {
+                \App\Models\WaSetting::setKey('wa_nomor_waka_kurikulum', $formattedHp, 'contact', 'Nomor WhatsApp Waka Kurikulum');
+            } elseif ($user->role === 'kepala_sekolah') {
+                \App\Models\WaSetting::setKey('wa_nomor_kepsek', $formattedHp, 'contact', 'Nomor WhatsApp Kepsek');
+            }
         }
 
         return back()->with('profile_success', 'Profil & password berhasil diperbarui.');

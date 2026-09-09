@@ -31,6 +31,9 @@ class SuratDispensasi extends Model
         'status_waka',
         'disetujui_waka_oleh',
         'tgl_disetujui_waka',
+        'status_waka_kurikulum',
+        'disetujui_waka_kurikulum_oleh',
+        'tgl_disetujui_waka_kurikulum',
         'status_kepsek',
         'disetujui_kepsek_oleh',
         'tgl_disetujui_kepsek',
@@ -49,6 +52,7 @@ class SuratDispensasi extends Model
         'ttd_siswa_signed_at' => 'datetime',
         'ttd_guru_signed_at'  => 'datetime',
         'tgl_disetujui_waka'  => 'datetime',
+        'tgl_disetujui_waka_kurikulum' => 'datetime',
         'tgl_disetujui_kepsek' => 'datetime',
     ];
 
@@ -91,6 +95,11 @@ class SuratDispensasi extends Model
     public function approverWaka()
     {
         return $this->belongsTo(User::class, 'disetujui_waka_oleh');
+    }
+
+    public function approverWakaKurikulum()
+    {
+        return $this->belongsTo(User::class, 'disetujui_waka_kurikulum_oleh');
     }
 
     public function approverKepsek()

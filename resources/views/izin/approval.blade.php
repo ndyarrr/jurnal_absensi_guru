@@ -73,7 +73,7 @@
             <div class="info-item">
                 <span class="info-label">Nama Guru Pemohon</span>
                 <span class="info-value">{{ $izin->guru->nama_guru ?? 'Guru' }}</span>
-                <small style="color: #64748b;">NUPTK: {{ $izin->guru->nuptk ?? '-' }}</small>
+                <small style="color: #64748b;">NIP: {{ $izin->guru->nip ?? '-' }}</small>
             </div>
 
             <div class="info-item">

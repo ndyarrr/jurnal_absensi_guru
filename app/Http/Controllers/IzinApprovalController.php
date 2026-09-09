@@ -33,34 +33,38 @@ class IzinApprovalController extends Controller
         $user = auth()->user();
         $asRole = $request->input('as_role') ?: ($user ? $user->role : 'waka');
 
-        if (in_array($asRole, ['waka', 'waka_sdm'], true)) {
-            $statusApproval = ($izin->status_kepsek === 'disetujui') ? 'disetujui' : 'disetujui_waka';
-            $izin->update([
-                'status_waka' => 'disetujui',
-                'disetujui_waka_oleh' => $user ? $user->id : null,
-                'tgl_disetujui_waka' => now(),
-                'status_approval' => $statusApproval,
-                'disetujui_oleh' => $user ? $user->id : null,
-            ]);
-            return back()->with('success', 'Permohonan izin guru berhasil DISETUJUI oleh Waka.');
+        if ($asRole === 'waka') {
+            $izin->status_waka = 'disetujui';
+            $izin->disetujui_waka_oleh = $user ? $user->id : null;
+            $izin->tgl_disetujui_waka = now();
+            $msg = 'Permohonan izin guru berhasil DISETUJUI oleh Waka Kesiswaan.';
+        } elseif ($asRole === 'waka_kurikulum' || $asRole === 'waka_sdm') {
+            $izin->status_waka_kurikulum = 'disetujui';
+            $izin->disetujui_waka_kurikulum_oleh = $user ? $user->id : null;
+            $izin->tgl_disetujui_waka_kurikulum = now();
+            $msg = 'Permohonan izin guru berhasil DISETUJUI oleh Waka Kurikulum.';
         } elseif ($asRole === 'kepala_sekolah') {
-            $statusApproval = ($izin->status_waka === 'disetujui') ? 'disetujui' : 'disetujui_kepsek';
-            $izin->update([
-                'status_kepsek' => 'disetujui',
-                'disetujui_kepsek_oleh' => $user ? $user->id : null,
-                'tgl_disetujui_kepsek' => now(),
-                'status_approval' => $statusApproval,
-                'disetujui_oleh' => $user ? $user->id : null,
-            ]);
-            return back()->with('success', 'Permohonan izin guru berhasil DISETUJUI oleh Kepala Sekolah.');
+            $izin->status_kepsek = 'disetujui';
+            $izin->disetujui_kepsek_oleh = $user ? $user->id : null;
+            $izin->tgl_disetujui_kepsek = now();
+            $msg = 'Permohonan izin guru berhasil DISETUJUI oleh Kepala Sekolah.';
+        } else {
+            $izin->status_waka = 'disetujui';
+            $izin->status_waka_kurikulum = 'disetujui';
+            $izin->status_kepsek = 'disetujui';
+            $msg = 'Permohonan izin guru berhasil DISETUJUI.';
         }
 
-        $izin->update([
-            'status_approval' => 'disetujui',
-            'disetujui_oleh' => $user ? $user->id : null,
-        ]);
+        if ($izin->status_waka === 'disetujui' && $izin->status_waka_kurikulum === 'disetujui' && $izin->status_kepsek === 'disetujui') {
+            $izin->status_approval = 'disetujui';
+        } else {
+            $izin->status_approval = 'pending';
+        }
 
-        return back()->with('success', 'Permohonan izin berhasil DISETUJUI.');
+        $izin->disetujui_oleh = $user ? $user->id : null;
+        $izin->save();
+
+        return back()->with('success', $msg);
     }
 
     /**
@@ -109,34 +113,36 @@ class IzinApprovalController extends Controller
         $user = auth()->user();
         $asRole = $request->input('as_role') ?: ($user ? $user->role : 'waka');
 
-        if (in_array($asRole, ['waka', 'waka_sdm'], true)) {
-            $statusApproval = ($dispen->status_kepsek === 'disetujui') ? 'disetujui' : 'disetujui_waka';
-            $dispen->update([
-                'status_waka' => 'disetujui',
-                'disetujui_waka_oleh' => $user ? $user->id : null,
-                'tgl_disetujui_waka' => now(),
-                'status_approval' => $statusApproval,
-                'disetujui_oleh' => $user ? $user->id : null,
-            ]);
-            return back()->with('success', 'Surat dispensasi siswa berhasil DISETUJUI oleh Waka.');
-        } elseif ($asRole === 'kepala_sekolah') {
-            $statusApproval = ($dispen->status_waka === 'disetujui') ? 'disetujui' : 'disetujui_kepsek';
-            $dispen->update([
-                'status_kepsek' => 'disetujui',
-                'disetujui_kepsek_oleh' => $user ? $user->id : null,
-                'tgl_disetujui_kepsek' => now(),
-                'status_approval' => $statusApproval,
-                'disetujui_oleh' => $user ? $user->id : null,
-            ]);
-            return back()->with('success', 'Surat dispensasi siswa berhasil DISETUJUI oleh Kepala Sekolah.');
+        if ($asRole === 'kepala_sekolah' || ($user && $user->role === 'kepala_sekolah')) {
+            return back()->with('error', 'Kepala Sekolah tidak memiliki wewenang persetujuan dispensasi siswa.');
         }
 
-        $dispen->update([
-            'status_approval' => 'disetujui',
-            'disetujui_oleh' => $user ? $user->id : null,
-        ]);
+        if ($asRole === 'waka') {
+            $dispen->status_waka = 'disetujui';
+            $dispen->disetujui_waka_oleh = $user ? $user->id : null;
+            $dispen->tgl_disetujui_waka = now();
+            $msg = 'Surat dispensasi siswa berhasil DISETUJUI oleh Waka Kesiswaan.';
+        } elseif ($asRole === 'waka_kurikulum' || $asRole === 'waka_sdm') {
+            $dispen->status_waka_kurikulum = 'disetujui';
+            $dispen->disetujui_waka_kurikulum_oleh = $user ? $user->id : null;
+            $dispen->tgl_disetujui_waka_kurikulum = now();
+            $msg = 'Surat dispensasi siswa berhasil DISETUJUI oleh Waka Kurikulum.';
+        } else {
+            $dispen->status_waka = 'disetujui';
+            $dispen->status_waka_kurikulum = 'disetujui';
+            $msg = 'Surat dispensasi siswa berhasil DISETUJUI.';
+        }
 
-        return back()->with('success', 'Surat dispensasi siswa berhasil DISETUJUI.');
+        if ($dispen->status_waka === 'disetujui' && $dispen->status_waka_kurikulum === 'disetujui') {
+            $dispen->status_approval = 'disetujui';
+        } else {
+            $dispen->status_approval = 'pending';
+        }
+
+        $dispen->disetujui_oleh = $user ? $user->id : null;
+        $dispen->save();
+
+        return back()->with('success', $msg);
     }
 
     /**
@@ -149,8 +155,12 @@ class IzinApprovalController extends Controller
             ->firstOrFail();
 
         $user = auth()->user();
+        if ($user && $user->role === 'kepala_sekolah') {
+            return back()->with('error', 'Kepala Sekolah tidak memiliki wewenang persetujuan dispensasi siswa.');
+        }
 
         $dispen->update([
+            'status_waka' => 'ditolak',
             'status_approval' => 'ditolak',
             'disetujui_oleh' => $user ? $user->id : null,
         ]);

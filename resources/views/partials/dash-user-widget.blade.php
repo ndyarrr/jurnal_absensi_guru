@@ -1,5 +1,22 @@
 @php
-    $profileUser = Auth::user();
+    $profileUser = \App\Models\User::find(Auth::id());
+
+    // Fallback: baca no_hp dari wa_settings untuk role waka/kepsek jika users.no_hp kosong
+    if (empty($profileUser->no_hp) && in_array($profileUser->role, ['waka', 'waka_kurikulum', 'kepala_sekolah'])) {
+        $waKey = match($profileUser->role) {
+            'waka'           => 'wa_nomor_waka',
+            'waka_kurikulum' => 'wa_nomor_waka_kurikulum',
+            'kepala_sekolah' => 'wa_nomor_kepsek',
+            default          => null,
+        };
+        if ($waKey) {
+            $waRow = \DB::table('wa_settings')->where('key', $waKey)->first();
+            if ($waRow && $waRow->value) {
+                // Konversi 628xxx → 08xxx untuk tampilan
+                $profileUser->no_hp = preg_replace('/^62/', '0', $waRow->value);
+            }
+        }
+    }
 @endphp
 
 <div class="dash-user-widget-wrap" id="dashUserWidgetWrap">
@@ -83,12 +100,10 @@
                 <input type="text" name="name" id="profile_name" class="form-field-input" value="{{ old('name', $profileUser->name) }}" required maxlength="255" autocomplete="name">
             </div>
 
-            @if(!method_exists($profileUser, 'isAdmin') || !$profileUser->isAdmin())
             <div class="form-field-group" style="margin-top: 8px;">
                 <label for="profile_no_hp">No. Handphone / WhatsApp</label>
-                <input type="text" name="no_hp" id="profile_no_hp" class="form-field-input" value="{{ old('no_hp', optional($profileUser->guru)->no_hp) }}" placeholder="Contoh: 08123456789" maxlength="30">
+                <input type="text" name="no_hp" id="profile_no_hp" class="form-field-input" value="{{ old('no_hp', $profileUser->no_hp ?? optional($profileUser->guru)->no_hp ?? '') }}" placeholder="Contoh: 08123456789" maxlength="30">
             </div>
-            @endif
 
             <!-- Collapsible Change Password Section -->
             <details class="dash-change-password-wrap" style="margin-top: 10px; border-top: 1px dashed #e2e8f0; padding-top: 8px;" @if(isset($errors) && ($errors->has('current_password') || $errors->has('new_password'))) open @endif>
@@ -120,8 +135,14 @@
 
             <div class="dash-profile-readonly" style="margin-top: 10px; display: flex; flex-direction: column; gap: 4px; background: #f8fafc; padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
                 <small style="font-weight: 700; color: #475569;">Role: {{ $profileUser->role_label }}</small>
-                @if($profileUser->guru && !empty($profileUser->guru->nuptk))
-                    <small style="font-weight: 700; color: #1e293b;">NUPTK / NIP: <span style="color: #2563eb;">{{ $profileUser->guru->nuptk }}</span></small>
+                @if($profileUser->guru && !empty($profileUser->guru->nip))
+                    <small style="font-weight: 700; color: #1e293b;">NIP: <span style="color: #2563eb;">{{ $profileUser->guru->nip }}</span></small>
+                @endif
+                @php
+                    $displayPhone = $profileUser->no_hp ?: optional($profileUser->guru)->no_hp;
+                @endphp
+                @if($displayPhone)
+                    <small style="font-weight: 700; color: #1e293b;">No. HP / WA: <span style="color: #16a34a;">{{ $displayPhone }}</span></small>
                 @endif
             </div>
 

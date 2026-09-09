@@ -63,7 +63,7 @@
                         <option value="">-- Tidak ditautkan --</option>
                         @foreach($guru as $g)
                             <option value="{{ $g->id_guru }}" {{ $selectedGuru == $g->id_guru ? 'selected' : '' }}>
-                                {{ $g->nama_guru }} ({{ $g->nuptk }})
+                                {{ $g->nama_guru }} ({{ $g->nip }})
                             </option>
                         @endforeach
                     </select>

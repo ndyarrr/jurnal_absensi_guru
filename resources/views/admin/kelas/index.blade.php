@@ -278,9 +278,9 @@
                                             <small style="color: #ef4444; font-weight: 700;">Menjadi Wali Kelas di {{ $assignedKelasName }}</small>
                                         </div>
                                     @else
-                                        <div class="ss-option" data-value="{{ $g->id_guru }}" onclick="pickWaliGuru('create','{{ $g->id_guru }}','{{ addslashes($g->nama_guru) }} (NUPTK: {{ $g->nuptk ?? '-' }})')">
+                                        <div class="ss-option" data-value="{{ $g->id_guru }}" onclick="pickWaliGuru('create','{{ $g->id_guru }}','{{ addslashes($g->nama_guru) }} (NIP: {{ $g->nip ?? '-' }})')">
                                             <strong>{{ $g->nama_guru }}</strong>
-                                            <small style="color: #64748b;">NUPTK: {{ $g->nuptk ?? '-' }}</small>
+                                            <small style="color: #64748b;">NIP: {{ $g->nip ?? '-' }}</small>
                                         </div>
                                     @endif
                                 @endforeach
@@ -623,7 +623,7 @@
                     <label>Wali Kelas</label>
                     <input type="hidden" name="id_guru_wali" id="edit_id_guru_wali" value="" required>
                     <div class="searchable-select" id="edit_wali_ss">
-                        <input type="text" class="form-field-input ss-input" id="edit_wali_input" placeholder="🔍 Ketik untuk cari nama/NUPTK wali..." autocomplete="off" onclick="openWaliDropdown('edit')" onkeyup="filterWaliDropdown('edit')" required>
+                        <input type="text" class="form-field-input ss-input" id="edit_wali_input" placeholder="🔍 Ketik untuk cari nama/NIP wali..." autocomplete="off" onclick="openWaliDropdown('edit')" onkeyup="filterWaliDropdown('edit')" required>
                         <div class="ss-dropdown" id="edit_wali_dropdown">
                             <!-- Populated via JS openEditModal -->
                         </div>
@@ -725,8 +725,8 @@
                 {
                     id: '{{ $g->id_guru }}',
                     name: '{{ addslashes($g->nama_guru) }}',
-                    nuptk: '{{ $g->nuptk ?? '-' }}',
-                    label: '{{ addslashes($g->nama_guru) }} (NUPTK: {{ $g->nuptk ?? '-' }})',
+                    nip: '{{ $g->nip ?? '-' }}',
+                    label: '{{ addslashes($g->nama_guru) }} (NIP: {{ $g->nip ?? '-' }})',
                     assigned_kelas_name: '{{ isset($assignedWaliMap[$g->id_guru]) ? addslashes($assignedWaliMap[$g->id_guru]['kelas_name']) : '' }}',
                     assigned_id_kelas: '{{ isset($assignedWaliMap[$g->id_guru]) ? $assignedWaliMap[$g->id_guru]['id_kelas'] : '' }}'
                 },
@@ -814,7 +814,7 @@
                     </div>`;
                 } else {
                     htmlOptions += `<div class="ss-option" data-value="${g.id}" onclick="pickWaliGuru('edit','${g.id}','${g.label.replace(/'/g, "\\'")}')">
-                        <strong>${g.name}</strong> <small style="color: #64748b;">NUPTK: ${g.nuptk}</small>
+                        <strong>${g.name}</strong> <small style="color: #64748b;">NIP: ${g.nip}</small>
                     </div>`;
                 }
             });

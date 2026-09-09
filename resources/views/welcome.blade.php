@@ -36,7 +36,7 @@
         <div class="card-panel" style="padding: 24px; text-align: center;">
             <div style="font-size: 2.2rem; margin-bottom: 8px;"></div>
             <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 6px;">Data Guru</h3>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">Manajemen data NUPTK & pengajar.</p>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">Manajemen data NIP & pengajar.</p>
             <a href="{{ route('guru.index') }}" class="btn btn-secondary" style="width: 100%;">Data Guru</a>
         </div>
     </div>

@@ -672,17 +672,27 @@
                                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
                                     <span>Nomor Kontak WhatsApp Tujuan Notifikasi Izin Guru</span>
                                 </label>
-                                <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 12px 0;">Nomor ini digunakan untuk membuat link langsung (wa.me) dan notifikasi pesan izin guru ke Waka & Kepsek.</p>
+                                <p style="font-size: 0.8rem; color: #64748b; margin: 0 0 12px 0;">Nomor ini digunakan untuk membuat link langsung (wa.me) dan notifikasi izin guru & dispensasi ke Waka Kesiswaan, Waka Kurikulum, dan Kepsek.</p>
                                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+                                    @php
+                                        $displayWaka    = preg_replace('/^62/', '0', $settings['wa_nomor_waka'] ?? '');
+                                        $displayWakaKur = preg_replace('/^62/', '0', $settings['wa_nomor_waka_kurikulum'] ?? '');
+                                        $displayKepsek  = preg_replace('/^62/', '0', $settings['wa_nomor_kepsek'] ?? '');
+                                    @endphp
                                     <div>
-                                        <label style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Nomor WA Waka (Kurikulum / SDM)</label>
-                                        <input type="text" name="wa_nomor_waka" class="form-control" value="{{ $settings['wa_nomor_waka'] ?? '' }}" placeholder="Contoh: 628123456789" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem;">
+                                        <label style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Nomor WA Waka (Kesiswaan)</label>
+                                        <input type="text" id="input_wa_waka" name="wa_nomor_waka" class="form-control" value="{{ $displayWaka }}" placeholder="Contoh: 08123456789" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Nomor WA Waka Kurikulum</label>
+                                        <input type="text" id="input_wa_waka_kurikulum" name="wa_nomor_waka_kurikulum" class="form-control" value="{{ $displayWakaKur }}" placeholder="Contoh: 08123456789" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem;">
                                     </div>
                                     <div>
                                         <label style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Nomor WA Kepala Sekolah</label>
-                                        <input type="text" name="wa_nomor_kepsek" class="form-control" value="{{ $settings['wa_nomor_kepsek'] ?? '' }}" placeholder="Contoh: 628987654321" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem;">
+                                        <input type="text" id="input_wa_kepsek" name="wa_nomor_kepsek" class="form-control" value="{{ $displayKepsek }}" placeholder="Contoh: 08987654321" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem;">
                                     </div>
                                 </div>
+                                <p style="font-size: 0.78rem; color: #94a3b8; margin: 10px 0 0 0;">💡 Format 08xxx atau 628xxx keduanya diterima — sistem otomatis menyesuaikan.</p>
                             </div>
 
                             <div style="background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; margin-bottom: 24px;">

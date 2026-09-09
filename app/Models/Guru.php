@@ -12,7 +12,7 @@ class Guru extends Model
     protected $table = 'guru';
     protected $primaryKey = 'id_guru';
     public $timestamps = false;
-    protected $fillable = ['nuptk', 'nama_guru', 'no_hp'];
+    protected $fillable = ['nip', 'nama_guru', 'no_hp'];
 
     public function jadwal()
     {

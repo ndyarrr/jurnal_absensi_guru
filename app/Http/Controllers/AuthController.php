@@ -27,16 +27,16 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
             'role'     => ['nullable', 'string'],
         ], [
-            'username.required' => 'Username wajib diisi.',
+            'username.required' => 'NIP / Username wajib diisi.',
             'password.required' => 'Password wajib diisi.',
         ]);
 
-        // Cari user berdasarkan kolom 'name' (username)
-        $user = User::where('name', $request->input('username'))->first();
+        // Cari user berdasarkan kolom 'username' (NIP untuk guru, name untuk admin/lainnya)
+        $user = User::where('username', $request->input('username'))->first();
 
         if (! $user) {
             return back()->withErrors([
-                'username' => 'Username, role atau password salah.',
+                'username' => 'NIP/Username, role atau password salah.',
             ])->onlyInput('username', 'role');
         }
 
@@ -58,39 +58,30 @@ class AuthController extends Controller
             } else {
                 // Resolve id_guru for checking active assignments
                 $idGuru = $user->id_guru ?: optional($user->guru)->id_guru;
-                if (!$idGuru && !empty($user->name)) {
-                    $matched = \App\Models\Guru::where('nama_guru', $user->name)->first();
-                    if ($matched) {
-                        $idGuru = $matched->id_guru;
-                    }
-                }
 
                 if ($selectedRole === 'guru_piket') {
-                    // Only allowed IF teacher is currently assigned in JadwalPiket table
                     if ($idGuru && \Illuminate\Support\Facades\Schema::hasTable('jadwal_piket')) {
                         $isValidRole = \App\Models\JadwalPiket::where('id_guru', $idGuru)->exists();
                     }
                 } elseif ($selectedRole === 'wali_kelas') {
-                    // Only allowed IF teacher is currently assigned as Wali Kelas in Kelas table
                     if ($idGuru) {
                         $isValidRole = \App\Models\Kelas::where('id_guru_wali', $idGuru)->exists();
                     }
                 } elseif ($selectedRole === 'guru_mengajar') {
-                    // Any teacher can log in as Guru Mengajar
                     $isValidRole = ($idGuru || $user->isGuruMengajar() || $user->isWaliKelas() || $user->isGuruPiket());
                 }
             }
 
             if (! $isValidRole) {
                 return back()->withErrors([
-                    'username' => 'Username, role atau password salah.',
+                    'username' => 'NIP/Username, role atau password salah.',
                 ])->onlyInput('username', 'role');
             }
         }
 
-        // Auth::attempt langsung menggunakan username (kolom name)
+        // Auth::attempt menggunakan kolom username
         $credentials = [
-            'name'     => $user->name,
+            'username' => $user->username,
             'password' => $request->input('password'),
         ];
 
@@ -106,7 +97,7 @@ class AuthController extends Controller
             }
 
             $selectedRole = $request->input('role');
-            if (in_array($selectedRole, ['waka', 'waka_sdm', 'kepala_sekolah'], true) || in_array($authUser->role, ['waka', 'waka_sdm', 'kepala_sekolah'], true)) {
+            if (in_array($selectedRole, ['waka', 'waka_kurikulum', 'waka_sdm', 'kepala_sekolah'], true) || in_array($authUser->role, ['waka', 'waka_kurikulum', 'waka_sdm', 'kepala_sekolah'], true)) {
                 if (!in_array($selectedRole, ['guru_mengajar', 'wali_kelas', 'guru_piket'], true)) {
                     session()->forget('active_role');
                     return redirect()->intended(route('approver.dashboard'));

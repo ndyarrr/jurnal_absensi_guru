@@ -20,8 +20,8 @@
             <table class="custom-table">
                 <tbody>
                     <tr>
-                        <th style="width: 30%;">NUPTK / NIP</th>
-                        <td><span class="guru-nuptk-pill">{{ $guru->nuptk ?? '-' }}</span></td>
+                        <th style="width: 30%;">NIP</th>
+                        <td><span class="guru-nip-pill">{{ $guru->nip ?? '-' }}</span></td>
                     </tr>
                     <tr>
                         <th>Nama Lengkap</th>

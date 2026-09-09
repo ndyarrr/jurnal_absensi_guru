@@ -29,35 +29,36 @@ class GuruController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nuptk'     => ['required', 'regex:/^([0-9]{16}|[0-9]{18})$/', 'unique:guru,nuptk'],
+            'nip'     => ['required', 'regex:/^([0-9]{16}|[0-9]{18})$/', 'unique:guru,nip'],
             'nama_guru' => ['required', 'string', 'max:255'],
             'no_hp'     => ['nullable', 'string', 'max:20'],
             'mapel'     => ['nullable', 'array'],
             'mapel.*'   => ['exists:mapel,id_mapel'],
         ], [
-            'nuptk.required'     => 'NUPTK / NIP wajib diisi.',
-            'nuptk.regex'        => 'NUPTK harus berisi tepat 16 digit angka (atau NIP 18 digit angka).',
-            'nuptk.unique'       => 'NUPTK / NIP sudah terdaftar.',
+            'nip.required'     => 'NIP wajib diisi.',
+            'nip.regex'        => 'NIP harus berisi tepat 16 atau 18 digit angka.',
+            'nip.unique'       => 'NIP sudah terdaftar.',
             'nama_guru.required' => 'Nama guru wajib diisi.',
         ]);
 
         $guru = Guru::create([
-            'nuptk'     => $validated['nuptk'],
+            'nip'     => $validated['nip'],
             'nama_guru' => $validated['nama_guru'],
             'no_hp'     => $validated['no_hp'] ?? null,
         ]);
 
         $guru->mapel()->sync($request->input('mapel', []));
 
-        // Auto-create User login account for this new Guru (Username = nama_guru, Password = nuptk)
+        // Auto-create User login account for this new Guru (Username = NIP, Password = NIP)
         \App\Models\User::create([
             'name'     => $guru->nama_guru,
-            'password' => \Illuminate\Support\Facades\Hash::make($validated['nuptk']),
+            'username' => $validated['nip'],
+            'password' => \Illuminate\Support\Facades\Hash::make($validated['nip']),
             'role'     => 'guru_mengajar',
             'id_guru'  => $guru->id_guru,
         ]);
 
-        return redirect()->route('guru.index')->with('success', "Data guru & akun login pengguna ({$guru->nama_guru}) berhasil ditambahkan! Password default: {$validated['nuptk']}");
+        return redirect()->route('guru.index')->with('success', "Data guru & akun login pengguna ({$guru->nama_guru}) berhasil ditambahkan! Username: {$validated['nip']} | Password default: {$validated['nip']}");
     }
 
     /**
@@ -76,7 +77,7 @@ class GuruController extends Controller
 
         return response()->json([
             'id_guru'     => $guru->id_guru,
-            'nuptk'       => $guru->nuptk,
+            'nip'       => $guru->nip,
             'nama_guru'   => $guru->nama_guru,
             'no_hp'       => $guru->no_hp ?? '-',
             'mapel_names' => $mapelNames,
@@ -92,19 +93,19 @@ class GuruController extends Controller
     public function update(Request $request, Guru $guru)
     {
         $validated = $request->validate([
-            'nuptk'     => ['required', 'regex:/^([0-9]{16}|[0-9]{18})$/', 'unique:guru,nuptk,' . $guru->id_guru . ',id_guru'],
+            'nip'     => ['required', 'regex:/^([0-9]{16}|[0-9]{18})$/', 'unique:guru,nip,' . $guru->id_guru . ',id_guru'],
             'nama_guru' => ['required', 'string', 'max:255'],
             'no_hp'     => ['nullable', 'string', 'max:20'],
             'mapel'     => ['nullable', 'array'],
             'mapel.*'   => ['exists:mapel,id_mapel'],
         ], [
-            'nuptk.required' => 'NUPTK / NIP wajib diisi.',
-            'nuptk.regex'    => 'NUPTK harus berisi tepat 16 digit angka (atau NIP 18 digit angka).',
-            'nuptk.unique'   => 'NUPTK / NIP ini sudah digunakan oleh guru lain.',
+            'nip.required' => 'NIP wajib diisi.',
+            'nip.regex'    => 'NIP harus berisi tepat 16 atau 18 digit angka.',
+            'nip.unique'   => 'NIP ini sudah digunakan oleh guru lain.',
         ]);
 
         $guru->update([
-            'nuptk'     => $validated['nuptk'],
+            'nip'     => $validated['nip'],
             'nama_guru' => $validated['nama_guru'],
             'no_hp'     => $validated['no_hp'] ?? null,
         ]);
@@ -170,7 +171,7 @@ class GuruController extends Controller
             $mapelNames = $g->mapel->pluck('nama_mapel')->join(', ');
 
             return [
-                $g->nuptk ?? '-',
+                $g->nip ?? '-',
                 $g->nama_guru,
                 $mapelNames ?: '-',
                 $g->no_hp ?? '-',
@@ -182,7 +183,7 @@ class GuruController extends Controller
         $filename = 'data-guru-' . Carbon::now('Asia/Jakarta')->format('Y-m-d') . '.csv';
 
         return CsvExporter::download($filename, [
-            'NUPTK',
+            'NIP',
             'Nama Guru',
             'Mapel Diampu',
             'No Telp',
@@ -198,7 +199,7 @@ class GuruController extends Controller
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
-                $q->where('nuptk', 'like', "%{$search}%")
+                $q->where('nip', 'like', "%{$search}%")
                   ->orWhere('nama_guru', 'like', "%{$search}%");
             });
         }

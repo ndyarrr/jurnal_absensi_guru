@@ -15,7 +15,7 @@ class EnsureUserIsApprover
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        if (! $user || ! in_array($user->role, ['waka', 'waka_sdm', 'kepala_sekolah'], true)) {
+        if (! $user || ! in_array($user->role, ['waka', 'waka_kurikulum', 'waka_sdm', 'kepala_sekolah'], true)) {
             return redirect()->route('role.dashboard');
         }
 

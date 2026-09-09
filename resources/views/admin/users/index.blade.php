@@ -247,7 +247,7 @@
                                                     <line x1="1" y1="1" x2="23" y2="23"></line>
                                                 </svg>
                                             </button>
-                                            <span id="table_pwd_{{ $user->id }}" class="pwd-dots" data-nuptk="{{ $user->guru->nuptk ?? '' }}" style="letter-spacing: 2px;">••••••••••••</span>
+                                            <span id="table_pwd_{{ $user->id }}" class="pwd-dots" data-nip="{{ $user->guru->nip ?? '' }}" style="letter-spacing: 2px;">••••••••••••</span>
                                         </div>
                                     </td>
                                     <td>
@@ -386,7 +386,7 @@
                     <label>Relasi Profil Guru <span style="color: #dc2626;">*</span> <small style="color:#64748b; font-weight:400;">(wajib diisi)</small></label>
                     <input type="hidden" name="id_guru" id="create_id_guru" value="">
                     <div class="searchable-select" id="create_guru_ss">
-                        <input type="text" class="form-field-input ss-input" id="create_guru_input" placeholder="Ketik nama guru atau NUPTK..." autocomplete="off" onclick="openDropdown('create')" onkeyup="filterDropdown('create')">
+                        <input type="text" class="form-field-input ss-input" id="create_guru_input" placeholder="Ketik nama guru atau NIP..." autocomplete="off" onclick="openDropdown('create')" onkeyup="filterDropdown('create')">
                         <div class="ss-dropdown" id="create_guru_dropdown">
                             @foreach($guruList as $g)
                                 @php $hasUser = (bool) $g->user; @endphp
@@ -396,15 +396,15 @@
                                             <strong style="color: #64748b;">{{ $g->nama_guru }}</strong>
                                             <span style="background: #f1f5f9; color: #64748b; font-size: 0.68rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; border: 1px solid #cbd5e1;">Sudah Punya Akun ({{ $g->user->name }})</span>
                                         </div>
-                                        <small style="color:#94a3b8;">NUPTK: {{ $g->nuptk }}</small>
+                                        <small style="color:#94a3b8;">NIP: {{ $g->nip }}</small>
                                     </div>
                                 @else
-                                    <div class="ss-option" data-value="{{ $g->id_guru }}" onclick="pickGuru('create','{{ $g->id_guru }}','{{ addslashes($g->nama_guru) }} ({{ $g->nuptk }})')">
+                                    <div class="ss-option" data-value="{{ $g->id_guru }}" onclick="pickGuru('create','{{ $g->id_guru }}','{{ addslashes($g->nama_guru) }} ({{ $g->nip }})')">
                                         <div style="display: flex; align-items: center; justify-content: space-between;">
                                             <strong style="color: #0f172a;">{{ $g->nama_guru }}</strong>
                                             <span style="background: #f0fdf4; color: #16a34a; font-size: 0.68rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; border: 1px solid #bbf7d0;">Tersedia</span>
                                         </div>
-                                        <small style="color:#64748b;">NUPTK: {{ $g->nuptk }}</small>
+                                        <small style="color:#64748b;">NIP: {{ $g->nip }}</small>
                                     </div>
                                 @endif
                             @endforeach
@@ -479,19 +479,19 @@
                     <label>Relasi Profil Guru <span style="color: #dc2626;">*</span> <small style="color:#64748b; font-weight:400;">(wajib diisi)</small></label>
                     <input type="hidden" name="id_guru" id="edit_id_guru" value="">
                     <div class="searchable-select" id="edit_guru_ss">
-                        <input type="text" class="form-field-input ss-input" id="edit_guru_input" placeholder="Ketik nama guru atau NUPTK..." autocomplete="off" onclick="openDropdown('edit')" onkeyup="filterDropdown('edit')">
+                        <input type="text" class="form-field-input ss-input" id="edit_guru_input" placeholder="Ketik nama guru atau NIP..." autocomplete="off" onclick="openDropdown('edit')" onkeyup="filterDropdown('edit')">
                         <div class="ss-dropdown" id="edit_guru_dropdown">
                             @foreach($guruList as $g)
                                 @php
                                     $hasUser = (bool) $g->user;
                                     $linkedUserId = optional($g->user)->id;
                                 @endphp
-                                <div class="ss-option edit-guru-opt" data-value="{{ $g->id_guru }}" data-user-id="{{ $linkedUserId }}" onclick="pickGuru('edit','{{ $g->id_guru }}','{{ addslashes($g->nama_guru) }} ({{ $g->nuptk }})')">
+                                <div class="ss-option edit-guru-opt" data-value="{{ $g->id_guru }}" data-user-id="{{ $linkedUserId }}" onclick="pickGuru('edit','{{ $g->id_guru }}','{{ addslashes($g->nama_guru) }} ({{ $g->nip }})')">
                                     <div style="display: flex; align-items: center; justify-content: space-between;">
                                         <strong class="opt-nama" style="color: #0f172a;">{{ $g->nama_guru }}</strong>
                                         <span class="opt-badge" style="font-size: 0.68rem; font-weight: 800; padding: 2px 8px; border-radius: 6px;"></span>
                                     </div>
-                                    <small style="color:#64748b;">NUPTK: {{ $g->nuptk }}</small>
+                                    <small style="color:#64748b;">NIP: {{ $g->nip }}</small>
                                 </div>
                             @endforeach
                         </div>
@@ -529,7 +529,7 @@
                 <div class="form-field-group">
                     <label>Password Akun:</label>
                     <div style="display: flex; align-items: center; justify-content: space-between; background-color: #f7f3eb; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--dash-cream-border);">
-                        <span id="view_password" data-nuptk="" style="font-family: monospace; font-size: 1rem; font-weight: 700; color: #1e2538; letter-spacing: 2px;">••••••••••••</span>
+                        <span id="view_password" data-nip="" style="font-family: monospace; font-size: 1rem; font-weight: 700; color: #1e2538; letter-spacing: 2px;">••••••••••••</span>
                         <button type="button" id="btn_toggle_view_pwd" onclick="toggleViewPassword()" style="background: none; border: none; cursor: pointer; padding: 4px; color: #64748b; display: flex; align-items: center;" title="Tampilkan / Sembunyikan Password">
                             <svg id="icon_eye_open" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <circle cx="12" cy="12" r="3"></circle>
@@ -567,7 +567,7 @@
         /* ---- Guru data for JS lookup ---- */
         const GURU_DATA = [
             @foreach($guruList as $g)
-                { id: '{{ $g->id_guru }}', label: '{{ addslashes($g->nama_guru) }} ({{ $g->nuptk }})' },
+                { id: '{{ $g->id_guru }}', label: '{{ addslashes($g->nama_guru) }} ({{ $g->nip }})' },
             @endforeach
         ];
 
@@ -790,7 +790,7 @@
                 eyeOpen.style.display = 'block';
                 eyeClosed.style.display = 'none';
             } else {
-                pwdEl.innerText = pwdEl.getAttribute('data-nuptk') || 'password';
+                pwdEl.innerText = pwdEl.getAttribute('data-nip') || 'password';
                 pwdEl.style.letterSpacing = 'normal';
                 pwdEl.setAttribute('data-shown', 'true');
                 eyeOpen.style.display = 'none';
@@ -807,7 +807,7 @@
             const eyeClosed = document.getElementById('icon_eye_closed');
 
             if (isPasswordVisible) {
-                pwdEl.innerText = pwdEl.getAttribute('data-nuptk') || 'password';
+                pwdEl.innerText = pwdEl.getAttribute('data-nip') || 'password';
                 pwdEl.style.letterSpacing = 'normal';
                 eyeOpen.style.display = 'none';
                 eyeClosed.style.display = 'block';
@@ -830,11 +830,10 @@
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('view_name').innerText = data.name;
-                    document.getElementById('view_email').innerText = data.email;
                     document.getElementById('view_role').innerText = data.role_label;
                     document.getElementById('view_guru').innerText = data.nama_guru;
                     document.getElementById('view_created_at').innerText = data.created_at;
-                    document.getElementById('view_password').setAttribute('data-nuptk', data.nuptk || '');
+                    document.getElementById('view_password').setAttribute('data-nip', data.nip || '');
                     document.getElementById('view_password').innerText = '••••••••••••';
                     document.getElementById('view_password').style.letterSpacing = '2px';
 
