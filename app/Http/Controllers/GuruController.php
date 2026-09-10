@@ -82,7 +82,7 @@ class GuruController extends Controller
             'no_hp'       => $guru->no_hp ?? '-',
             'mapel_names' => $mapelNames,
             'mapel_ids'   => $mapelIds,
-            'user_email'  => optional($guru->user)->email ?? '-',
+            'username'    => optional($guru->user)->username ?? '-',
             'user_role'   => optional($guru->user)->role_label ?? 'Belum Punya Akun',
         ]);
     }
@@ -175,7 +175,7 @@ class GuruController extends Controller
                 $g->nama_guru,
                 $mapelNames ?: '-',
                 $g->no_hp ?? '-',
-                optional($g->user)->email ?? '-',
+                optional($g->user)->username ?? '-',
                 optional($g->user)->role_label ?? 'Belum Punya Akun',
             ];
         });
@@ -187,7 +187,7 @@ class GuruController extends Controller
             'Nama Guru',
             'Mapel Diampu',
             'No Telp',
-            'Email',
+            'Username',
             'Status Akun',
         ], $rows);
     }

@@ -77,6 +77,65 @@
                 </div>
             @endif
 
+            @if(session('import_summary'))
+                <div class="flash-alert persistent-alert" id="importSummaryCard" style="background-color: #ffffff; border: 1.5px solid #cbd5e1; box-shadow: 0 4px 14px rgba(0,0,0,0.06); padding: 16px 20px; border-radius: 14px; font-size: 0.88rem; margin-bottom: 16px; position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div style="font-weight: 700; color: #0f172a; font-size: 0.98rem; display: flex; align-items: center; gap: 8px;">
+                            <svg width="20" height="20" fill="none" stroke="#2563eb" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                            <span>Ringkasan Hasil Import Siswa</span>
+                        </div>
+                        <button type="button" onclick="document.getElementById('importSummaryCard').remove()" style="background: #2563eb; color: #ffffff; border: none; padding: 6px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 5px rgba(37,99,235,0.2);">
+                            Oke
+                        </button>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+                        <span style="background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; padding: 6px 14px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px;">
+                            ✓ {{ session('import_summary')['success'] }} Siswa Baru
+                        </span>
+                        <span style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 6px 14px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px;">
+                            ↻ {{ session('import_summary')['updated'] }} Ditimpa/Diperbarui
+                        </span>
+                        @if(session('import_summary')['skipped'] > 0)
+                            <span style="background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 6px 14px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px;">
+                                ⚠ {{ session('import_summary')['skipped'] }} Dilewati / Gagal
+                            </span>
+                        @endif
+                    </div>
+
+                    @if(session('import_errors') && count(session('import_errors')) > 0)
+                        <div style="margin-top: 12px; border-top: 1px solid #e2e8f0; padding-top: 10px; color: #92400e;">
+                            <strong style="font-size: 0.85rem; display: block; margin-bottom: 6px; color: #78350f;">Detail Peringatan / Error per Baris:</strong>
+                            <ul style="margin: 0; padding-left: 18px; font-size: 0.83rem; max-height: 150px; overflow-y: auto; background: #fffbe8; border: 1px solid #fef08a; border-radius: 8px; padding-top: 8px; padding-bottom: 8px;">
+                                @foreach(session('import_errors') as $err)
+                                    <li style="margin-bottom: 3px;">{{ $err }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                        <button type="button" onclick="document.getElementById('importSummaryCard').remove()" style="background: #059669; color: #ffffff; border: none; padding: 8px 24px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; cursor: pointer; box-shadow: 0 2px 6px rgba(5,150,105,0.25);">
+                            Oke, Mengerti
+                        </button>
+                    </div>
+                </div>
+            @elseif(session('import_errors') && count(session('import_errors')) > 0)
+                <div class="flash-alert persistent-alert" id="importErrorCard" style="background-color: #fffbebfb; border: 1px solid #fde68a; color: #92400e; padding: 14px 18px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 12px; position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <strong style="font-weight: 700; color: #78350f;">Catatan/Peringatan Baris Dilewati saat Import:</strong>
+                        <button type="button" onclick="document.getElementById('importErrorCard').remove()" style="background: #d97706; color: #fff; border: none; padding: 4px 14px; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer;">
+                            Oke
+                        </button>
+                    </div>
+                    <ul style="margin: 0; padding-left: 18px;">
+                        @foreach(session('import_errors') as $err)
+                            <li>{{ $err }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <!-- ---------------------------------------------------------------
                  Controls Bar: Search & Action Buttons (Matching Mockup)
                  --------------------------------------------------------------- -->
@@ -96,6 +155,16 @@
 
                 <!-- Action Controls Group -->
                 <div class="siswa-action-group">
+                    <!-- Import Button -->
+                    <button type="button" class="btn-export-pill" onclick="openImportModal()" style="background-color: #f0fdf4; color: #16a34a; border-color: #bbf7d0;" title="Import Siswa dari file CSV atau XLSX">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <span>Import</span>
+                    </button>
+
                     <button type="button" class="btn-export-pill" onclick="exportSiswaCsv()">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -373,6 +442,62 @@
         </div>
     </div>
 
+    <!-- ===================================================================
+         Import Siswa Modal Popup
+         =================================================================== -->
+    <div class="modal-overlay" id="importModal" style="display: none;">
+        <div class="modal-content-card" style="max-width: 520px;">
+            <div class="modal-header-bar">
+                <h3 class="modal-title-text">Import Data Siswa (CSV / XLSX)</h3>
+                <button type="button" class="btn-close-modal" onclick="closeImportModal()">&times;</button>
+            </div>
+
+            <form action="{{ route('siswa.import') }}" method="POST" enctype="multipart/form-data" class="modal-form-grid">
+                @csrf
+
+                <div class="form-field-group">
+                    <label for="import_file">File Spreadsheet (CSV / XLSX) <span style="color: #dc2626;">*</span></label>
+                    <input type="file" name="file" id="import_file" class="form-field-input" accept=".csv,.xlsx,.xls,.txt" required>
+                    <small style="color: #64748b; margin-top: 4px;">Format yang didukung: <strong>.csv</strong>, <strong>.xlsx</strong>, <strong>.xls</strong> (Maksimal 10MB)</small>
+                </div>
+
+                <div class="form-field-group">
+                    <label for="import_id_kelas">Pilih Kelas Default (Opsional)</label>
+                    <select name="id_kelas" id="import_id_kelas" class="form-field-input">
+                        <option value="">-- Otomatis Deteksi dari Kolom File --</option>
+                        @foreach($kelasList as $k)
+                            <option value="{{ $k->id_kelas }}">
+                                {{ $k->tingkat }} {{ optional($k->jurusan)->kode_jurusan }} {{ $k->rombel }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <small style="color: #64748b; margin-top: 4px;">Digunakan jika kolom Kelas pada file kosong atau nama kelas tidak terdeteksi.</small>
+                </div>
+
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; font-size: 0.8rem; color: #334155; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="font-weight: 700; color: #0f172a; display: flex; align-items: center; justify-content: space-between;">
+                        <span>💡 Deteksi Otomatis Indikator:</span>
+                        <a href="{{ route('siswa.template') }}" style="font-size: 0.78rem; font-weight: 700; color: #2563eb; text-decoration: underline; display: inline-flex; align-items: center; gap: 4px;">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            <span>Download Template CSV</span>
+                        </a>
+                    </div>
+                    <ul style="margin: 0; padding-left: 18px; line-height: 1.5; color: #475569;">
+                        <li><strong>Header Kolom:</strong> Otomatis mendeteksi kolom (<code>NISN</code>, <code>Nama</code>, <code>L/P</code>, <code>No HP</code>, <code>Kelas</code>).</li>
+                        <li><strong>Jenis Kelamin (L/P):</strong> Terdeteksi otomatis dari huruf besar/kecil (<code>L</code> / <code>l</code> / <code>P</code> / <code>p</code> / <em>Laki-laki</em> / <em>Perempuan</em>).</li>
+                        <li><strong>NISN:</strong> Harus tepat 10 digit angka.</li>
+                        <li><strong>Kelas:</strong> Dapat berisi nama kelas seperti <em>X RPL 1</em> atau ID kelas.</li>
+                    </ul>
+                </div>
+
+                <div class="modal-actions-footer">
+                    <button type="button" class="btn-modal-cancel" onclick="closeImportModal()">Batal</button>
+                    <button type="submit" class="btn-modal-submit" style="background: linear-gradient(135deg, #10b981, #059669);">Upload & Import Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- (Pop-up modal removed in favor of direct inline table row edit) -->
 
     <!-- ===================================================================
@@ -465,6 +590,14 @@
 
         function closeCreateModal() {
             document.getElementById('createModal').style.display = 'none';
+        }
+
+        function openImportModal() {
+            document.getElementById('importModal').style.display = 'flex';
+        }
+
+        function closeImportModal() {
+            document.getElementById('importModal').style.display = 'none';
         }
 
         /* ---- Inline Table Row Edit for Siswa ---- */
@@ -598,37 +731,60 @@
         function closeViewModal() {
             document.getElementById('viewModal').style.display = 'none';
         }
-        /* ---- Real-time Client-side Search (No Refresh) ---- */
+        /* ---- Server-side Search with Debounce & AJAX Pagination ---- */
         (function() {
             const input = document.getElementById('siswaSearchInput');
             if (!input) return;
 
-            const tbody = document.querySelector('.siswa-table tbody');
-            if (!tbody) return;
+            let searchTimer = null;
 
-            const rows = Array.from(tbody.querySelectorAll('tr'));
+            function performSearch() {
+                const q = input.value.trim();
+                const container = input.closest('[data-ajax-pagination]') || document.querySelector('[data-ajax-pagination="main"]');
+                const form = input.closest('form');
+                const url = new URL(form ? form.action : window.location.href, window.location.origin);
 
-            input.addEventListener('input', function() {
-                const q = this.value.toLowerCase().trim();
+                if (q) {
+                    url.searchParams.set('search', q);
+                } else {
+                    url.searchParams.delete('search');
+                }
 
-                rows.forEach(function(row) {
-                    const nisn = (row.querySelector('.td-siswa-nisn') || {}).textContent || '';
-                    const nama = (row.querySelector('.td-siswa-nama') || {}).textContent || '';
-                    const kelas = (row.querySelector('.td-siswa-kelas') || {}).textContent || '';
-                    const text = (nisn + ' ' + nama + ' ' + kelas).toLowerCase();
-
-                    if (q === '' || text.includes(q)) {
-                        row.style.display = '';
+                // Preserve active filters
+                const paramsToKeep = ['tingkat', 'id_jurusan', 'rombel', 'jenis_kelamin'];
+                paramsToKeep.forEach(p => {
+                    const el = form ? form.querySelector(`input[name="${p}"]`) : null;
+                    if (el && el.value) {
+                        url.searchParams.set(p, el.value);
                     } else {
-                        row.style.display = 'none';
+                        const pageUrl = new URL(window.location.href);
+                        if (pageUrl.searchParams.has(p)) {
+                            url.searchParams.set(p, pageUrl.searchParams.get(p));
+                        }
                     }
                 });
+
+                if (typeof window.loadPaginatedContent === 'function' && container) {
+                    window.loadPaginatedContent(url.toString(), container).catch(function() {
+                        window.location.href = url.toString();
+                    });
+                } else {
+                    window.location.href = url.toString();
+                }
+            }
+
+            input.addEventListener('input', function() {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(performSearch, 350);
             });
 
-            // Prevent form submit on Enter key
-            input.closest('form').addEventListener('submit', function(e) {
-                e.preventDefault();
-            });
+            if (input.closest('form')) {
+                input.closest('form').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    clearTimeout(searchTimer);
+                    performSearch();
+                });
+            }
         })();
 
         /* ---- Real-time NISN Digit Counter & Validator ---- */
@@ -663,9 +819,9 @@
             });
         }
 
-        /* ---- Auto-fade Flash Feedback Alerts after 3 seconds ---- */
+        /* ---- Auto-fade Flash Feedback Alerts after 3 seconds (excludes persistent summary alerts) ---- */
         setTimeout(function() {
-            document.querySelectorAll('.flash-alert').forEach(function(el) {
+            document.querySelectorAll('.flash-alert:not(.persistent-alert)').forEach(function(el) {
                 el.style.opacity = '0';
                 el.style.transform = 'translateY(-10px)';
                 setTimeout(() => el.remove(), 500);

@@ -18,6 +18,7 @@ class User extends Authenticatable
         'name',
         'username',
         'password',
+        'plain_password',
         'role',
         'id_guru',
         'no_hp',
@@ -128,13 +129,13 @@ class User extends Authenticatable
         }
 
         return match ($role) {
-            'super_admin' => 'Admin Super',
+            'super_admin' => 'Super Admin',
             'admin' => 'Admin',
             'guru_mengajar', 'guru' => 'Guru Mengajar',
             'wali_kelas' => 'Wali Kelas',
             'guru_piket' => 'Guru Piket',
             'kepala_sekolah' => 'Kepala Sekolah',
-            'waka' => 'Waka Kesiswaan',
+            'waka' => 'Waka',
             'waka_kurikulum', 'waka_sdm' => 'Waka Kurikulum',
             'satpam' => 'Satpam',
             default => ucwords(str_replace('_', ' ', $role ?? 'Guru Mengajar')),
@@ -150,13 +151,13 @@ class User extends Authenticatable
 
         // 1. Primary Role Badge
         $primaryLabel = match ($this->role) {
-            'super_admin' => 'Admin Super',
+            'super_admin' => 'Super Admin',
             'admin' => 'Admin',
             'guru_mengajar' => 'Guru Mapel',
             'wali_kelas' => 'Wali Kelas',
             'guru_piket' => 'Guru Piket',
             'kepala_sekolah' => 'Kepsek',
-            'waka' => 'Waka Kesiswaan',
+            'waka' => 'Waka',
             'waka_kurikulum', 'waka_sdm' => 'Waka Kurikulum',
             'satpam' => 'Satpam',
             default => 'Guru Mapel',
@@ -168,6 +169,10 @@ class User extends Authenticatable
             'guru_mengajar' => 'background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe;',
             'wali_kelas' => 'background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;',
             'guru_piket' => 'background: #faf5ff; color: #9333ea; border: 1px solid #e9d5ff;',
+            'kepala_sekolah' => 'background: #fef3c7; color: #b45309; border: 1px solid #fcd34d;',
+            'waka' => 'background: #ffedd5; color: #c2410c; border: 1px solid #fdba74;',
+            'waka_kurikulum', 'waka_sdm' => 'background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe;',
+            'satpam' => 'background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;',
             default => 'background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;',
         };
 

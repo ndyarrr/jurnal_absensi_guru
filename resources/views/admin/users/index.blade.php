@@ -200,6 +200,10 @@
                             <a href="{{ route('users.index', ['role' => 'guru_mengajar']) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Guru Mapel</a>
                             <a href="{{ route('users.index', ['role' => 'wali_kelas']) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Wali Kelas</a>
                             <a href="{{ route('users.index', ['role' => 'guru_piket']) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Guru Piket</a>
+                            <a href="{{ route('users.index', ['role' => 'waka']) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Waka</a>
+                            <a href="{{ route('users.index', ['role' => 'waka_kurikulum']) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Waka Kurikulum</a>
+                            <a href="{{ route('users.index', ['role' => 'kepala_sekolah']) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Kepala Sekolah</a>
+                            <a href="{{ route('users.index', ['role' => 'satpam']) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Satpam</a>
                         </div>
                     </div>
                 </div>
@@ -247,7 +251,7 @@
                                                     <line x1="1" y1="1" x2="23" y2="23"></line>
                                                 </svg>
                                             </button>
-                                            <span id="table_pwd_{{ $user->id }}" class="pwd-dots" data-nip="{{ $user->guru->nip ?? '' }}" style="letter-spacing: 2px;">••••••••••••</span>
+                                            <span id="table_pwd_{{ $user->id }}" class="pwd-dots" data-pwd="{{ $user->plain_password ?? optional($user->guru)->nip ?? '' }}" style="letter-spacing: 2px;">••••••••••••</span>
                                         </div>
                                     </td>
                                     <td>
@@ -374,6 +378,9 @@
                         @endif
                         <option value="admin">Admin (Admin Biasa)</option>
                         <option value="guru_mengajar">Guru (Mengajar, Wali Kelas & Piket otomatis)</option>
+                        <option value="waka">Waka</option>
+                        <option value="waka_kurikulum">Waka Kurikulum</option>
+                        <option value="kepala_sekolah">Kepala Sekolah</option>
                         <option value="satpam">Satpam</option>
                     </select>
                     <small style="color: #0284c7; background: #e0f2fe; border: 1px solid #bae6fd; padding: 6px 10px; border-radius: 6px; display: block; margin-top: 6px; font-weight: 500; font-size: 0.78rem;">
@@ -381,9 +388,9 @@
                     </small>
                 </div>
 
-                <!-- Relasi Profil Guru (Wajib untuk role non-admin) -->
+                <!-- Relasi Profil Guru -->
                 <div class="form-field-group" id="create_guru_group" style="display: none;">
-                    <label>Relasi Profil Guru <span style="color: #dc2626;">*</span> <small style="color:#64748b; font-weight:400;">(wajib diisi)</small></label>
+                    <label>Relasi Profil Guru <span style="color: #dc2626;" id="create_guru_star">*</span> <small style="color:#64748b; font-weight:400;" id="create_guru_hint">(opsional, jika terdaftar di Data Guru)</small></label>
                     <input type="hidden" name="id_guru" id="create_id_guru" value="">
                     <div class="searchable-select" id="create_guru_ss">
                         <input type="text" class="form-field-input ss-input" id="create_guru_input" placeholder="Ketik nama guru atau NIP..." autocomplete="off" onclick="openDropdown('create')" onkeyup="filterDropdown('create')">
@@ -467,6 +474,9 @@
                         @endif
                         <option value="admin">Admin (Admin Biasa)</option>
                         <option value="guru_mengajar">Guru (Mengajar, Wali Kelas & Piket otomatis)</option>
+                        <option value="waka">Waka</option>
+                        <option value="waka_kurikulum">Waka Kurikulum</option>
+                        <option value="kepala_sekolah">Kepala Sekolah</option>
                         <option value="satpam">Satpam</option>
                     </select>
                     <small style="color: #0284c7; background: #e0f2fe; border: 1px solid #bae6fd; padding: 6px 10px; border-radius: 6px; display: block; margin-top: 6px; font-weight: 500; font-size: 0.78rem;">
@@ -474,9 +484,9 @@
                     </small>
                 </div>
 
-                <!-- Relasi Profil Guru (Wajib untuk role non-admin) -->
+                <!-- Relasi Profil Guru -->
                 <div class="form-field-group" id="edit_guru_group" style="display: none;">
-                    <label>Relasi Profil Guru <span style="color: #dc2626;">*</span> <small style="color:#64748b; font-weight:400;">(wajib diisi)</small></label>
+                    <label>Relasi Profil Guru <span style="color: #dc2626;" id="edit_guru_star">*</span> <small style="color:#64748b; font-weight:400;" id="edit_guru_hint">(opsional, jika terdaftar di Data Guru)</small></label>
                     <input type="hidden" name="id_guru" id="edit_id_guru" value="">
                     <div class="searchable-select" id="edit_guru_ss">
                         <input type="text" class="form-field-input ss-input" id="edit_guru_input" placeholder="Ketik nama guru atau NIP..." autocomplete="off" onclick="openDropdown('edit')" onkeyup="filterDropdown('edit')">
@@ -529,7 +539,7 @@
                 <div class="form-field-group">
                     <label>Password Akun:</label>
                     <div style="display: flex; align-items: center; justify-content: space-between; background-color: #f7f3eb; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--dash-cream-border);">
-                        <span id="view_password" data-nip="" style="font-family: monospace; font-size: 1rem; font-weight: 700; color: #1e2538; letter-spacing: 2px;">••••••••••••</span>
+                        <span id="view_password" data-pwd="" style="font-family: monospace; font-size: 1rem; font-weight: 700; color: #1e2538; letter-spacing: 2px;">••••••••••••</span>
                         <button type="button" id="btn_toggle_view_pwd" onclick="toggleViewPassword()" style="background: none; border: none; cursor: pointer; padding: 4px; color: #64748b; display: flex; align-items: center;" title="Tampilkan / Sembunyikan Password">
                             <svg id="icon_eye_open" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <circle cx="12" cy="12" r="3"></circle>
@@ -571,30 +581,36 @@
             @endforeach
         ];
 
-        const TEACHER_ROLES = ['guru_mengajar', 'wali_kelas', 'guru_piket'];
+        const REQUIRED_TEACHER_ROLES = ['guru_mengajar', 'wali_kelas', 'guru_piket'];
 
         function validateUserForm(prefix) {
             const roleVal = document.getElementById(prefix + '_role').value;
             const idGuruVal = document.getElementById(prefix + '_id_guru').value;
 
-            if (TEACHER_ROLES.includes(roleVal) && (!idGuruVal || idGuruVal.trim() === '')) {
-                alert('Relasi Profil Guru wajib dipilih untuk role ini! Silakan klik dan pilih nama guru dari daftar dropdown.');
+            if (REQUIRED_TEACHER_ROLES.includes(roleVal) && (!idGuruVal || idGuruVal.trim() === '')) {
+                alert('Relasi Profil Guru wajib dipilih untuk role Guru! Silakan klik dan pilih nama guru dari daftar dropdown.');
                 document.getElementById(prefix + '_guru_input').focus();
                 return false;
             }
             return true;
         }
 
-        /* ---- Role change: show/hide guru field ---- */
+        /* ---- Role change: update teacher profile requirement & hint ---- */
         function handleRoleChange(prefix) {
             const roleVal = document.getElementById(prefix + '_role').value;
             const guruGroup = document.getElementById(prefix + '_guru_group');
-            if (TEACHER_ROLES.includes(roleVal)) {
-                guruGroup.style.display = 'flex';
+            const starEl = document.getElementById(prefix + '_guru_star');
+            const hintEl = document.getElementById(prefix + '_guru_hint');
+
+            // Guru profile relation field is visible for ALL roles (Kepala Sekolah, Waka, Guru, etc.)
+            if (guruGroup) guruGroup.style.display = 'flex';
+
+            if (REQUIRED_TEACHER_ROLES.includes(roleVal)) {
+                if (starEl) starEl.style.display = 'inline';
+                if (hintEl) hintEl.textContent = '(wajib diisi)';
             } else {
-                guruGroup.style.display = 'none';
-                document.getElementById(prefix + '_id_guru').value = '';
-                document.getElementById(prefix + '_guru_input').value = '';
+                if (starEl) starEl.style.display = 'none';
+                if (hintEl) hintEl.textContent = '(opsional, jika terdaftar di Data Guru)';
             }
         }
 
@@ -790,7 +806,7 @@
                 eyeOpen.style.display = 'block';
                 eyeClosed.style.display = 'none';
             } else {
-                pwdEl.innerText = pwdEl.getAttribute('data-nip') || 'password';
+                pwdEl.innerText = pwdEl.getAttribute('data-pwd') || 'password';
                 pwdEl.style.letterSpacing = 'normal';
                 pwdEl.setAttribute('data-shown', 'true');
                 eyeOpen.style.display = 'none';
@@ -807,7 +823,7 @@
             const eyeClosed = document.getElementById('icon_eye_closed');
 
             if (isPasswordVisible) {
-                pwdEl.innerText = pwdEl.getAttribute('data-nip') || 'password';
+                pwdEl.innerText = pwdEl.getAttribute('data-pwd') || 'password';
                 pwdEl.style.letterSpacing = 'normal';
                 eyeOpen.style.display = 'none';
                 eyeClosed.style.display = 'block';
@@ -833,7 +849,7 @@
                     document.getElementById('view_role').innerText = data.role_label;
                     document.getElementById('view_guru').innerText = data.nama_guru;
                     document.getElementById('view_created_at').innerText = data.created_at;
-                    document.getElementById('view_password').setAttribute('data-nip', data.nip || '');
+                    document.getElementById('view_password').setAttribute('data-pwd', data.plain_password || data.nip || '');
                     document.getElementById('view_password').innerText = '••••••••••••';
                     document.getElementById('view_password').style.letterSpacing = '2px';
 
@@ -856,36 +872,56 @@
         function closeViewModal() {
             document.getElementById('viewModal').style.display = 'none';
         }
-        /* ---- Real-time Client-side Search (No Refresh) ---- */
+        /* ---- Real-time Debounced Server Search (AJAX) ---- */
         (function() {
             const input = document.getElementById('userSearchInput');
             if (!input) return;
 
-            const tbody = document.querySelector('.pengguna-table tbody');
-            if (!tbody) return;
+            const container = document.querySelector('[data-ajax-pagination="main"]');
+            let searchTimer = null;
 
-            const rows = Array.from(tbody.querySelectorAll('tr'));
+            function performSearch() {
+                const q = input.value.trim();
+                const form = input.closest('form');
+                const url = new URL(form ? form.action : window.location.href, window.location.origin);
+
+                if (q) {
+                    url.searchParams.set('search', q);
+                } else {
+                    url.searchParams.delete('search');
+                }
+
+                const roleInput = form ? form.querySelector('input[name="role"]') : null;
+                if (roleInput && roleInput.value) {
+                    url.searchParams.set('role', roleInput.value);
+                } else {
+                    const pageUrl = new URL(window.location.href);
+                    if (pageUrl.searchParams.has('role')) {
+                        url.searchParams.set('role', pageUrl.searchParams.get('role'));
+                    }
+                }
+
+                if (typeof window.loadPaginatedContent === 'function' && container) {
+                    window.loadPaginatedContent(url.toString(), container).catch(function() {
+                        window.location.href = url.toString();
+                    });
+                } else {
+                    window.location.href = url.toString();
+                }
+            }
 
             input.addEventListener('input', function() {
-                const q = this.value.toLowerCase().trim();
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(performSearch, 350);
+            });
 
-                rows.forEach(function(row) {
-                    const name = (row.querySelector('.td-nama') || {}).textContent || '';
-                    const role = (row.querySelector('.role-badge-cell') || {}).textContent || '';
-                    const text = (name + ' ' + role).toLowerCase();
-
-                    if (q === '' || text.includes(q)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
+            if (input.closest('form')) {
+                input.closest('form').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    clearTimeout(searchTimer);
+                    performSearch();
                 });
-            });
-
-            // Prevent form submit on Enter key
-            input.closest('form').addEventListener('submit', function(e) {
-                e.preventDefault();
-            });
+            }
         })();
 
         /* ---- Auto-fade Flash Feedback Alerts after 3 seconds ---- */

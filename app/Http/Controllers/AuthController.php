@@ -40,20 +40,19 @@ class AuthController extends Controller
             ])->onlyInput('username', 'role');
         }
 
-        // Cek jika akun ber-role satpam (Satpam tidak memiliki akses login)
-        if ($user->role === 'satpam' || $user->isSatpam() || $request->input('role') === 'satpam') {
-            return back()->withErrors([
-                'username' => 'Akun Satpam tidak memiliki hak akses untuk login ke sistem ini.',
-            ])->onlyInput('username', 'role');
-        }
+
 
         // Validasi role jika dipilih pada form login
         if ($request->filled('role')) {
             $selectedRole = $request->input('role');
             $isValidRole = false;
 
-            // 1. Direct primary role match or Admin bypass
-            if ($user->role === $selectedRole || $user->isAdmin()) {
+            // 1. Akun Admin/Super Admin wajib memilih role 'admin' atau 'super_admin' saat login
+            if ($user->isAdmin()) {
+                if (in_array($selectedRole, ['admin', 'super_admin'], true)) {
+                    $isValidRole = true;
+                }
+            } elseif ($user->role === $selectedRole) {
                 $isValidRole = true;
             } else {
                 // Resolve id_guru for checking active assignments

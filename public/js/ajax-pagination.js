@@ -60,6 +60,8 @@
             });
     }
 
+    window.loadPaginatedContent = loadPaginatedContent;
+
     document.addEventListener('click', function (e) {
         const link = e.target.closest('[data-ajax-pagination] .pagination-nav-group a.page-link');
         if (!link) return;

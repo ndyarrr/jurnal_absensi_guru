@@ -97,12 +97,18 @@
 
             <div class="form-field-group" style="margin-top: 4px;">
                 <label for="profile_name">Nama tampilan</label>
-                <input type="text" name="name" id="profile_name" class="form-field-input" value="{{ old('name', $profileUser->name) }}" required maxlength="255" autocomplete="name">
+                <input type="text" name="name" id="profile_name" class="form-field-input profile-dirty-watch"
+                    value="{{ old('name', $profileUser->name) }}"
+                    data-original="{{ $profileUser->name }}"
+                    required maxlength="255" autocomplete="name">
             </div>
 
             <div class="form-field-group" style="margin-top: 8px;">
                 <label for="profile_no_hp">No. Handphone / WhatsApp</label>
-                <input type="text" name="no_hp" id="profile_no_hp" class="form-field-input" value="{{ old('no_hp', $profileUser->no_hp ?? optional($profileUser->guru)->no_hp ?? '') }}" placeholder="Contoh: 08123456789" maxlength="30">
+                <input type="text" name="no_hp" id="profile_no_hp" class="form-field-input profile-dirty-watch"
+                    value="{{ old('no_hp', $profileUser->no_hp ?? optional($profileUser->guru)->no_hp ?? '') }}"
+                    data-original="{{ $profileUser->no_hp ?? optional($profileUser->guru)->no_hp ?? '' }}"
+                    placeholder="Contoh: 08123456789" maxlength="30">
             </div>
 
             <!-- Collapsible Change Password Section -->
@@ -146,7 +152,7 @@
                 @endif
             </div>
 
-            <button type="submit" class="btn-modal-submit dash-profile-save" style="margin-top: 12px;">Simpan Profil & Password</button>
+            <button type="submit" id="profileSaveBtn" class="btn-modal-submit dash-profile-save" style="margin-top: 12px; display: none;">Simpan Perubahan</button>
         </form>
 
         @include('partials.dash-role-switcher')

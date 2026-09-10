@@ -2,13 +2,14 @@
     'use strict';
 
     function initProfileDropdown() {
-        const wrap = document.getElementById('dashUserWidgetWrap');
-        const btn = document.getElementById('dashUserWidgetBtn');
-        const dropdown = document.getElementById('dashProfileDropdown');
-        const fileInput = document.getElementById('profileAvatarInput');
-        const btnOpenFull = document.getElementById('btnOpenFullAvatar');
-        const avatarModal = document.getElementById('profileAvatarModal');
+        const wrap              = document.getElementById('dashUserWidgetWrap');
+        const btn               = document.getElementById('dashUserWidgetBtn');
+        const dropdown          = document.getElementById('dashProfileDropdown');
+        const fileInput         = document.getElementById('profileAvatarInput');
+        const btnOpenFull       = document.getElementById('btnOpenFullAvatar');
+        const avatarModal       = document.getElementById('profileAvatarModal');
         const closeAvatarModalBtn = document.getElementById('closeProfileAvatarModal');
+        const saveBtn           = document.getElementById('profileSaveBtn');
 
         if (!wrap || !btn || !dropdown) {
             return;
@@ -37,6 +38,72 @@
                 document.body.style.overflow = '';
             }
         }
+
+        // ── Dirty checking ─────────────────────────────────────────────────────
+        let avatarDirty = false;
+
+        function checkDirty() {
+            if (!saveBtn) return;
+
+            // 1. Perubahan field teks (name / no_hp)
+            const profileDirty = Array.from(
+                dropdown.querySelectorAll('.profile-dirty-watch')
+            ).some(function(input) {
+                return input.value !== (input.dataset.original || '');
+            });
+
+            // 2. Foto baru dipilih
+            const fileDirty = avatarDirty;
+
+            // 3. Hapus avatar dicentang
+            const removeAvatarEl = dropdown.querySelector('input[name="remove_avatar"]');
+            const removeDirty = removeAvatarEl && removeAvatarEl.checked;
+
+            // 4. Password field terisi
+            const pwCurrent = document.getElementById('profile_current_password');
+            const pwNew     = document.getElementById('profile_new_password');
+            const pwConfirm = document.getElementById('profile_new_password_confirmation');
+            const passwordDirty = (pwCurrent && pwCurrent.value.trim() !== '')
+                               || (pwNew     && pwNew.value.trim()     !== '')
+                               || (pwConfirm && pwConfirm.value.trim() !== '');
+
+            const isDirty = profileDirty || fileDirty || removeDirty || passwordDirty;
+
+            // Tampilkan/sembunyikan tombol
+            saveBtn.style.display = isDirty ? '' : 'none';
+
+            // Update label tombol sesuai yang diubah
+            if (isDirty) {
+                let label = 'Simpan Perubahan';
+                if (passwordDirty && (profileDirty || fileDirty || removeDirty)) {
+                    label = 'Simpan Profil & Password';
+                } else if (passwordDirty) {
+                    label = 'Simpan Password Baru';
+                }
+                saveBtn.textContent = label;
+            }
+        }
+
+        // Pasang listener ke semua field yang bisa dirty
+        if (saveBtn) {
+            // Field teks
+            dropdown.querySelectorAll('.profile-dirty-watch').forEach(function(input) {
+                input.addEventListener('input', checkDirty);
+            });
+
+            // Checkbox hapus avatar
+            const removeAvatarEl = dropdown.querySelector('input[name="remove_avatar"]');
+            if (removeAvatarEl) {
+                removeAvatarEl.addEventListener('change', checkDirty);
+            }
+
+            // Password fields
+            ['profile_current_password', 'profile_new_password', 'profile_new_password_confirmation'].forEach(function(id) {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('input', checkDirty);
+            });
+        }
+        // ───────────────────────────────────────────────────────────────────────
 
         // Open/Close Dropdown
         btn.addEventListener('click', function(e) {
@@ -92,6 +159,9 @@
                 if (!file) {
                     return;
                 }
+
+                avatarDirty = true;
+                checkDirty();
 
                 const reader = new FileReader();
                 reader.onload = function(ev) {
@@ -152,3 +222,4 @@
         initProfileDropdown();
     }
 })();
+

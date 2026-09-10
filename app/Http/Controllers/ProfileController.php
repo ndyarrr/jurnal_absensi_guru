@@ -36,6 +36,7 @@ class ProfileController extends Controller
                 return back()->withErrors(['current_password' => 'Password lama yang Anda masukkan tidak sesuai.'])->withInput();
             }
             $user->password = Hash::make($request->new_password);
+            $user->plain_password = $request->new_password;
         }
 
         $user->name  = $validated['name'];
@@ -74,6 +75,13 @@ class ProfileController extends Controller
             }
         }
 
-        return back()->with('profile_success', 'Profil & password berhasil diperbarui.');
+        $passwordChanged = $request->filled('new_password');
+
+        return back()->with(
+            'profile_success',
+            $passwordChanged
+                ? 'Profil & password berhasil diperbarui.'
+                : 'Profil berhasil diperbarui.'
+        );
     }
 }

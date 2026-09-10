@@ -11,7 +11,7 @@ use Illuminate\Database\Schema\Blueprint;
 class JadwalPiketController extends Controller
 {
     /**
-     * Ensure table & initial seed data exists safely.
+     * Ensure table exists safely.
      */
     private function ensureTableExists()
     {
@@ -25,23 +25,6 @@ class JadwalPiketController extends Controller
 
                 $table->foreign('id_guru')->references('id_guru')->on('guru')->onDelete('cascade');
             });
-        }
-
-        // Seed initial sample data if empty
-        if (JadwalPiket::count() === 0) {
-            $guruList = Guru::take(5)->get();
-            $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
-
-            if ($guruList->isNotEmpty()) {
-                foreach ($hariList as $idx => $hari) {
-                    $guru = $guruList[$idx % $guruList->count()];
-                    JadwalPiket::create([
-                        'hari' => $hari,
-                        'id_guru' => $guru->id_guru,
-                        'keterangan' => 'Petugas Piket Utama ' . $hari,
-                    ]);
-                }
-            }
         }
     }
 

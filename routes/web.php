@@ -98,6 +98,8 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('mapel', MapelController::class);
         Route::resource('ruangan', RuanganController::class);
         Route::get('/siswa/export/csv', [SiswaController::class, 'exportCsv'])->name('siswa.export-csv');
+        Route::get('/siswa/template/download', [SiswaController::class, 'downloadTemplate'])->name('siswa.template');
+        Route::post('/siswa/import', [SiswaController::class, 'import'])->name('siswa.import');
         Route::resource('siswa', SiswaController::class);
         Route::resource('jadwal-piket', JadwalPiketController::class);
         Route::resource('users', UserController::class);

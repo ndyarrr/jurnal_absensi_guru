@@ -103,10 +103,46 @@
             border: 1px solid #e2e8f0;
             margin-bottom: 12px;
         }
+        /* iOS-style toggle switch */
         .form-switch-input {
-            width: 48px;
-            height: 24px;
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+            pointer-events: none;
+        }
+        .form-switch-track {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+            background: #cbd5e1;
+            border-radius: 14px;
+            transition: background 0.25s ease;
             cursor: pointer;
+            flex-shrink: 0;
+        }
+        .form-switch-track::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 20px;
+            height: 20px;
+            background: #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+            transition: transform 0.25s ease;
+        }
+        .form-switch-input:checked + .form-switch-track {
+            background: #1c4469;
+        }
+        .form-switch-input:checked + .form-switch-track::after {
+            transform: translateX(24px);
+        }
+        .form-switch-input:focus + .form-switch-track {
+            outline: 2px solid #234c77;
+            outline-offset: 2px;
         }
         .table-custom {
             width: 100%;
@@ -642,7 +678,10 @@
                                     <strong style="color: #1e293b; font-size: 0.95rem; display: block;">Aktifkan Layanan WhatsApp Notifikasi</strong>
                                     <span style="font-size: 0.85rem; color: #64748b;">Jika dinonaktifkan, seluruh pengiriman pesan otomatis WA akan dihentikan secara global.</span>
                                 </div>
-                                <input type="checkbox" name="wa_enabled" class="form-switch-input" value="1" {{ ($settings['wa_enabled'] ?? '1') === '1' ? 'checked' : '' }}>
+                                <label for="toggle_wa_enabled" style="display: flex; align-items: center; cursor: pointer;">
+                                    <input type="checkbox" id="toggle_wa_enabled" name="wa_enabled" class="form-switch-input" value="1" {{ ($settings['wa_enabled'] ?? '1') === '1' ? 'checked' : '' }}>
+                                    <span class="form-switch-track"></span>
+                                </label>
                             </div>
 
                             <div class="form-switch-label">
@@ -650,7 +689,10 @@
                                     <strong style="color: #1e293b; font-size: 0.95rem; display: block;">Pengingat (Reminder) Jurnal Mengajar Guru</strong>
                                     <span style="font-size: 0.85rem; color: #64748b;">Kirim pesan pengingat ke WhatsApp Guru sebelum jam pelajaran berakhir agar langsung mengabsen & mengisi jurnal.</span>
                                 </div>
-                                <input type="checkbox" name="reminder_jurnal_enabled" class="form-switch-input" value="1" {{ ($settings['reminder_jurnal_enabled'] ?? '1') === '1' ? 'checked' : '' }}>
+                                <label for="toggle_reminder_jurnal_enabled" style="display: flex; align-items: center; cursor: pointer;">
+                                    <input type="checkbox" id="toggle_reminder_jurnal_enabled" name="reminder_jurnal_enabled" class="form-switch-input" value="1" {{ ($settings['reminder_jurnal_enabled'] ?? '1') === '1' ? 'checked' : '' }}>
+                                    <span class="form-switch-track"></span>
+                                </label>
                             </div>
 
                             <div style="background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; margin-bottom: 20px;">
@@ -692,7 +734,7 @@
                                         <input type="text" id="input_wa_kepsek" name="wa_nomor_kepsek" class="form-control" value="{{ $displayKepsek }}" placeholder="Contoh: 08987654321" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem;">
                                     </div>
                                 </div>
-                                <p style="font-size: 0.78rem; color: #94a3b8; margin: 10px 0 0 0;">💡 Format 08xxx atau 628xxx keduanya diterima — sistem otomatis menyesuaikan.</p>
+                                <p style="font-size: 0.78rem; color: #5d6269; margin: 10px 0 0 0;">Format 08xxx atau 628xxx keduanya diterima — sistem otomatis menyesuaikan.</p>
                             </div>
 
                             <div style="background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; margin-bottom: 24px;">

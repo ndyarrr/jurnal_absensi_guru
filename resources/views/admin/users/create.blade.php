@@ -53,6 +53,10 @@
                         <option value="wali_kelas" {{ old('role') == 'wali_kelas' ? 'selected' : '' }}>🏫 Wali Kelas</option>
                         <option value="guru_piket" {{ old('role') == 'guru_piket' ? 'selected' : '' }}>📋 Guru Piket</option>
                         <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                        <option value="waka" {{ old('role') == 'waka' ? 'selected' : '' }}>Waka</option>
+                        <option value="waka_kurikulum" {{ old('role') == 'waka_kurikulum' ? 'selected' : '' }}>Waka Kurikulum</option>
+                        <option value="kepala_sekolah" {{ old('role') == 'kepala_sekolah' ? 'selected' : '' }}>Kepala Sekolah</option>
+                        <option value="satpam" {{ old('role') == 'satpam' ? 'selected' : '' }}>Satpam</option>
                     </select>
                     <span class="help-text">Tentukan peran akses pengguna di dalam aplikasi.</span>
                 </div>

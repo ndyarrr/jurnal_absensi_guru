@@ -180,7 +180,7 @@
                                             <div>
                                                 <div style="font-weight: 700; color: #1e2538;">{{ $g->nama_guru }}</div>
                                                 <small style="color: #64748b; font-weight: 500;">
-                                                    {{ optional($g->user)->email ? optional($g->user)->email : 'ID: GUR-' . str_pad($g->id_guru, 3, '0', STR_PAD_LEFT) }}
+                                                    {{ optional($g->user)->username ? 'User: ' . optional($g->user)->username : 'ID: GUR-' . str_pad($g->id_guru, 3, '0', STR_PAD_LEFT) }}
                                                 </small>
                                             </div>
                                         </div>
@@ -494,38 +494,56 @@
         function closeViewModal() {
             document.getElementById('viewModal').style.display = 'none';
         }
-        /* ---- Real-time Client-side Search (No Refresh) ---- */
+        /* ---- Real-time Debounced Server Search (AJAX) ---- */
         (function() {
             const input = document.getElementById('guruSearchInput');
             if (!input) return;
 
-            const tbody = document.querySelector('.guru-table tbody');
-            if (!tbody) return;
+            const container = document.querySelector('[data-ajax-pagination="main"]');
+            let searchTimer = null;
 
-            const rows = Array.from(tbody.querySelectorAll('tr'));
+            function performSearch() {
+                const q = input.value.trim();
+                const form = input.closest('form');
+                const url = new URL(form ? form.action : window.location.href, window.location.origin);
+
+                if (q) {
+                    url.searchParams.set('search', q);
+                } else {
+                    url.searchParams.delete('search');
+                }
+
+                const mapelInput = form ? form.querySelector('input[name="id_mapel"]') : null;
+                if (mapelInput && mapelInput.value) {
+                    url.searchParams.set('id_mapel', mapelInput.value);
+                } else {
+                    const pageUrl = new URL(window.location.href);
+                    if (pageUrl.searchParams.has('id_mapel')) {
+                        url.searchParams.set('id_mapel', pageUrl.searchParams.get('id_mapel'));
+                    }
+                }
+
+                if (typeof window.loadPaginatedContent === 'function' && container) {
+                    window.loadPaginatedContent(url.toString(), container).catch(function() {
+                        window.location.href = url.toString();
+                    });
+                } else {
+                    window.location.href = url.toString();
+                }
+            }
 
             input.addEventListener('input', function() {
-                const q = this.value.toLowerCase().trim();
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(performSearch, 350);
+            });
 
-                rows.forEach(function(row) {
-                    const nip = (row.querySelector('.td-guru-nip') || {}).textContent || '';
-                    const nama = (row.querySelector('.td-guru-nama') || {}).textContent || '';
-                    const mapel = (row.querySelector('.td-guru-mapel') || {}).textContent || '';
-                    const telp = (row.querySelector('.td-guru-telp') || {}).textContent || '';
-                    const text = (nip + ' ' + nama + ' ' + mapel + ' ' + telp).toLowerCase();
-
-                    if (q === '' || text.includes(q)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
+            if (input.closest('form')) {
+                input.closest('form').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    clearTimeout(searchTimer);
+                    performSearch();
                 });
-            });
-
-            // Prevent form submit on Enter key
-            input.closest('form').addEventListener('submit', function(e) {
-                e.preventDefault();
-            });
+            }
         })();
 
         /* ---- Real-time NIP Digit Counter & Validator ---- */

@@ -53,6 +53,10 @@
                         <option value="wali_kelas" {{ old('role', $user->role) == 'wali_kelas' ? 'selected' : '' }}>🏫 Wali Kelas</option>
                         <option value="guru_piket" {{ old('role', $user->role) == 'guru_piket' ? 'selected' : '' }}>📋 Guru Piket</option>
                         <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Admin</option>
+                        <option value="waka" {{ old('role', $user->role) == 'waka' ? 'selected' : '' }}>Waka</option>
+                        <option value="waka_kurikulum" {{ old('role', $user->role) == 'waka_kurikulum' ? 'selected' : '' }}>Waka Kurikulum</option>
+                        <option value="kepala_sekolah" {{ old('role', $user->role) == 'kepala_sekolah' ? 'selected' : '' }}>Kepala Sekolah</option>
+                        <option value="satpam" {{ old('role', $user->role) == 'satpam' ? 'selected' : '' }}>Satpam</option>
                     </select>
                 </div>
 

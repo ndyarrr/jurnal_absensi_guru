@@ -29,7 +29,12 @@ class UserController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                  ->orWhere('username', 'like', "%{$search}%")
+                  ->orWhere('role', 'like', "%{$search}%")
+                  ->orWhereHas('guru', function ($g) use ($search) {
+                      $g->where('nama_guru', 'like', "%{$search}%")
+                        ->orWhere('nip', 'like', "%{$search}%");
+                  });
             });
         }
 
@@ -107,7 +112,9 @@ class UserController extends Controller
             'avatar.max'        => 'Ukuran foto maksimal 2MB.',
         ]);
 
-        $validated['password'] = Hash::make($validated['password']);
+        $rawPassword = $validated['password'];
+        $validated['password'] = Hash::make($rawPassword);
+        $validated['plain_password'] = $rawPassword;
 
         // Admin & Satpam do not require guru profile mapping
         if ($isNonGuruRole) {
@@ -117,7 +124,7 @@ class UserController extends Controller
         // Roles yang hanya boleh 1 user
         $singletonRoles = ['waka', 'waka_kurikulum', 'kepala_sekolah'];
         if (in_array($validated['role'], $singletonRoles)) {
-            $roleLabels = ['waka' => 'Waka Kesiswaan', 'waka_kurikulum' => 'Waka Kurikulum', 'kepala_sekolah' => 'Kepala Sekolah'];
+            $roleLabels = ['waka' => 'Waka', 'waka_kurikulum' => 'Waka Kurikulum', 'kepala_sekolah' => 'Kepala Sekolah'];
             $exists = User::where('role', $validated['role'])->exists();
             if ($exists) {
                 return back()->withInput()->withErrors([
@@ -145,16 +152,17 @@ class UserController extends Controller
     {
         $user->load('guru.mapel');
         return response()->json([
-            'id'          => $user->id,
-            'name'        => $user->name,
-            'email'       => $user->email,
-            'role'        => $user->role,
-            'role_label'  => $user->role_label,
-            'id_guru'     => $user->id_guru,
-            'nama_guru'   => optional($user->guru)->nama_guru ?? '-',
-            'nip'       => optional($user->guru)->nip ?? '',
-            'created_at'  => $user->created_at ? $user->created_at->format('d-m-Y H:i') : '-',
-            'avatar_url'  => $user->avatar_url,
+            'id'             => $user->id,
+            'name'           => $user->name,
+            'username'       => $user->username,
+            'role'           => $user->role,
+            'role_label'     => $user->role_label,
+            'id_guru'        => $user->id_guru,
+            'nama_guru'      => optional($user->guru)->nama_guru ?? '-',
+            'nip'          => optional($user->guru)->nip ?? '',
+            'plain_password' => $user->plain_password ?? optional($user->guru)->nip ?? '',
+            'created_at'     => $user->created_at ? $user->created_at->format('d-m-Y H:i') : '-',
+            'avatar_url'     => $user->avatar_url,
             'avatar_initial' => $user->avatar_initial,
         ]);
     }
@@ -213,7 +221,9 @@ class UserController extends Controller
         ]);
 
         if (!empty($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
+            $rawPassword = $validated['password'];
+            $validated['password'] = Hash::make($rawPassword);
+            $validated['plain_password'] = $rawPassword;
         } else {
             unset($validated['password']);
         }
@@ -225,7 +235,7 @@ class UserController extends Controller
         // Roles yang hanya boleh 1 user — cek jika role BERUBAH ke singleton role
         $singletonRoles = ['waka', 'waka_kurikulum', 'kepala_sekolah'];
         if (in_array($validated['role'], $singletonRoles) && $validated['role'] !== $user->role) {
-            $roleLabels = ['waka' => 'Waka Kesiswaan', 'waka_kurikulum' => 'Waka Kurikulum', 'kepala_sekolah' => 'Kepala Sekolah'];
+            $roleLabels = ['waka' => 'Waka', 'waka_kurikulum' => 'Waka Kurikulum', 'kepala_sekolah' => 'Kepala Sekolah'];
             $exists = User::where('role', $validated['role'])->where('id', '!=', $user->id)->exists();
             if ($exists) {
                 $errMsg = 'Role ' . ($roleLabels[$validated['role']] ?? $validated['role']) . ' sudah memiliki akun. Hanya boleh 1 akun per role ini.';
