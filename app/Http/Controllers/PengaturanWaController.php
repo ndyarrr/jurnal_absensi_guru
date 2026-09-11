@@ -166,6 +166,35 @@ class PengaturanWaController extends Controller
     }
 
     /**
+     * Toggle status saklar setting (AJAX instant save)
+     */
+    public function toggleSetting(Request $request)
+    {
+        $request->validate([
+            'key' => 'required|string|in:wa_enabled,reminder_jurnal_enabled',
+            'value' => 'required|in:0,1',
+        ]);
+
+        $labels = [
+            'wa_enabled' => 'Aktifkan/Nonaktifkan Notifikasi WA',
+            'reminder_jurnal_enabled' => 'Aktifkan Pengingat Jurnal',
+        ];
+        $groups = [
+            'wa_enabled' => 'general',
+            'reminder_jurnal_enabled' => 'reminder',
+        ];
+
+        WaSetting::setKey($request->key, $request->value, $groups[$request->key], $labels[$request->key]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status berhasil diperbarui.',
+            'key' => $request->key,
+            'value' => $request->value,
+        ]);
+    }
+
+    /**
      * Tambah Template Pesan Baru
      */
     public function storeTemplate(Request $request)

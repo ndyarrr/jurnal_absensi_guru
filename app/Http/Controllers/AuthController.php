@@ -89,6 +89,12 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
 
+            // Clear intended URL if it points to an API endpoint (e.g. /pengaturan-wa/api/status)
+            $intended = session('url.intended');
+            if ($intended && (str_contains($intended, '/api/') || str_contains($intended, '/api-status'))) {
+                session()->forget('url.intended');
+            }
+
             $authUser = Auth::user();
             if ($authUser->isAdmin()) {
                 return redirect()->intended(route('dashboard'))

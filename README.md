@@ -249,7 +249,10 @@ $ tree
 
 ## Tim
 
-**[Nama Tim Kalian]** — *Tugas Akhir.*
-
+**@aishypr**
+**@titipretty12**
+**@Azizariansyah**
+**@cyadita90**
+**@ndyarrr**
 
 </div>

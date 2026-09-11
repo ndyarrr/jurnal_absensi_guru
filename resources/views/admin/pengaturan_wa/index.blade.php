@@ -670,30 +670,32 @@
                         </h3>
                         <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 24px;">Atur saklar utama notifikasi, interval pengingat jurnal mengajar, dan penerima pesan.</p>
 
-                        <form action="{{ route('pengaturan-wa.settings.update') }}" method="POST">
-                            @csrf
+                            <form id="waSettingsForm" action="{{ route('pengaturan-wa.settings.update') }}" method="POST">
+                                @csrf
 
-                            <div class="form-switch-label">
-                                <div>
-                                    <strong style="color: #1e293b; font-size: 0.95rem; display: block;">Aktifkan Layanan WhatsApp Notifikasi</strong>
-                                    <span style="font-size: 0.85rem; color: #64748b;">Jika dinonaktifkan, seluruh pengiriman pesan otomatis WA akan dihentikan secara global.</span>
-                                </div>
-                                <label for="toggle_wa_enabled" style="display: flex; align-items: center; cursor: pointer;">
-                                    <input type="checkbox" id="toggle_wa_enabled" name="wa_enabled" class="form-switch-input" value="1" {{ ($settings['wa_enabled'] ?? '1') === '1' ? 'checked' : '' }}>
-                                    <span class="form-switch-track"></span>
-                                </label>
-                            </div>
+                                <div id="ajaxAlertContainer"></div>
 
-                            <div class="form-switch-label">
-                                <div>
-                                    <strong style="color: #1e293b; font-size: 0.95rem; display: block;">Pengingat (Reminder) Jurnal Mengajar Guru</strong>
-                                    <span style="font-size: 0.85rem; color: #64748b;">Kirim pesan pengingat ke WhatsApp Guru sebelum jam pelajaran berakhir agar langsung mengabsen & mengisi jurnal.</span>
-                                </div>
-                                <label for="toggle_reminder_jurnal_enabled" style="display: flex; align-items: center; cursor: pointer;">
-                                    <input type="checkbox" id="toggle_reminder_jurnal_enabled" name="reminder_jurnal_enabled" class="form-switch-input" value="1" {{ ($settings['reminder_jurnal_enabled'] ?? '1') === '1' ? 'checked' : '' }}>
-                                    <span class="form-switch-track"></span>
+                                <label class="form-switch-label" for="toggle_wa_enabled" style="cursor: pointer; user-select: none;">
+                                    <div>
+                                        <strong style="color: #1e293b; font-size: 0.95rem; display: block;">Aktifkan Layanan WhatsApp Notifikasi</strong>
+                                        <span style="font-size: 0.85rem; color: #64748b;">Jika dinonaktifkan, seluruh pengiriman pesan otomatis WA akan dihentikan secara global.</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center;">
+                                        <input type="checkbox" id="toggle_wa_enabled" name="wa_enabled" class="form-switch-input auto-switch" data-key="wa_enabled" value="1" {{ ($settings['wa_enabled'] ?? '1') === '1' ? 'checked' : '' }}>
+                                        <span class="form-switch-track"></span>
+                                    </div>
                                 </label>
-                            </div>
+
+                                <label class="form-switch-label" for="toggle_reminder_jurnal_enabled" style="cursor: pointer; user-select: none;">
+                                    <div>
+                                        <strong style="color: #1e293b; font-size: 0.95rem; display: block;">Pengingat (Reminder) Jurnal Mengajar Guru</strong>
+                                        <span style="font-size: 0.85rem; color: #64748b;">Kirim pesan pengingat ke WhatsApp Guru sebelum jam pelajaran berakhir agar langsung mengabsen & mengisi jurnal.</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center;">
+                                        <input type="checkbox" id="toggle_reminder_jurnal_enabled" name="reminder_jurnal_enabled" class="form-switch-input auto-switch" data-key="reminder_jurnal_enabled" value="1" {{ ($settings['reminder_jurnal_enabled'] ?? '1') === '1' ? 'checked' : '' }}>
+                                        <span class="form-switch-track"></span>
+                                    </div>
+                                </label>
 
                             <div style="background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; margin-bottom: 20px;">
                                 <label style="font-weight: 700; color: #334155; display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
@@ -761,10 +763,12 @@
                                 </div>
                             </div>
 
-                            <button type="submit" class="btn btn-svg" style="background: var(--dash-navy); color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer;">
-                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                                <span>Simpan Perubahan Pengaturan</span>
-                            </button>
+                            <div id="btnSaveSettingsWrapper" style="display: none; margin-top: 20px; transition: all 0.3s ease;">
+                                <button type="submit" class="btn btn-svg" style="background: var(--dash-navy); color: white; padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer;">
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                                    <span>Simpan Perubahan Pengaturan</span>
+                                </button>
+                            </div>
                         </form>
                     </div>
                 @endif
@@ -1548,6 +1552,104 @@
                 alert('Error: ' + err.message);
             });
         }
+
+        // Auto-Save Toggle Switch & Dynamic Save Button for WA Settings
+        document.addEventListener('DOMContentLoaded', function() {
+            const settingsForm = document.getElementById('waSettingsForm');
+            if (!settingsForm) return;
+
+            // 1. Auto-save for Toggle Switches via AJAX
+            const autoSwitches = settingsForm.querySelectorAll('.auto-switch');
+            autoSwitches.forEach(switchInput => {
+                switchInput.addEventListener('change', function() {
+                    const key = this.getAttribute('data-key');
+                    const value = this.checked ? '1' : '0';
+                    const labelText = this.closest('.form-switch-label')?.querySelector('strong')?.innerText || 'Pengaturan';
+
+                    fetch("{{ route('pengaturan-wa.toggle-setting') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ key: key, value: value })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showAjaxAlert('success', labelText + ' berhasil ' + (value === '1' ? 'diaktifkan' : 'dinonaktifkan') + '.');
+                        } else {
+                            showAjaxAlert('error', 'Gagal mengubah ' + labelText + ': ' + (data.message || 'Error'));
+                            this.checked = !this.checked;
+                        }
+                    })
+                    .catch(err => {
+                        showAjaxAlert('error', 'Koneksi gagal: ' + err.message);
+                        this.checked = !this.checked;
+                    });
+                });
+            });
+
+            function showAjaxAlert(type, message) {
+                const container = document.getElementById('ajaxAlertContainer');
+                if (!container) return;
+                const isSuccess = type === 'success';
+                const bg = isSuccess ? '#dcfce7' : '#fee2e2';
+                const color = isSuccess ? '#15803d' : '#b91c1c';
+                const border = isSuccess ? '#86efac' : '#fca5a5';
+
+                container.innerHTML = `
+                    <div style="background: ${bg}; color: ${color}; border: 1px solid ${border}; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 10px; transition: all 0.3s ease;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                            <span>${message}</span>
+                        </div>
+                        <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: ${color}; cursor: pointer; font-size: 1.1rem;">&times;</button>
+                    </div>
+                `;
+                setTimeout(() => {
+                    if (container.firstElementChild) {
+                        container.firstElementChild.style.opacity = '0';
+                        setTimeout(() => container.innerHTML = '', 300);
+                    }
+                }, 4000);
+            }
+
+            // 2. Dynamic display of "Simpan Perubahan Pengaturan" button when non-switch inputs are edited
+            const saveBtnWrapper = document.getElementById('btnSaveSettingsWrapper');
+            const inputsToTrack = settingsForm.querySelectorAll('input:not(.auto-switch):not([type="hidden"]), select, textarea');
+            
+            const initialValues = new Map();
+            inputsToTrack.forEach((input) => {
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    initialValues.set(input, input.checked);
+                } else {
+                    initialValues.set(input, input.value);
+                }
+            });
+
+            function checkFormDirty() {
+                let isDirty = false;
+                inputsToTrack.forEach(input => {
+                    const initial = initialValues.get(input);
+                    if (input.type === 'checkbox' || input.type === 'radio') {
+                        if (input.checked !== initial) isDirty = true;
+                    } else {
+                        if (input.value !== initial) isDirty = true;
+                    }
+                });
+
+                if (saveBtnWrapper) {
+                    saveBtnWrapper.style.display = isDirty ? 'block' : 'none';
+                }
+            }
+
+            inputsToTrack.forEach(input => {
+                input.addEventListener('input', checkFormDirty);
+                input.addEventListener('change', checkFormDirty);
+            });
+        });
 
         // Modal Helpers for Templates
         function showAddTemplateModal() {
