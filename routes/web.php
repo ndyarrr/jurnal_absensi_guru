@@ -132,6 +132,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/start', [\App\Http\Controllers\PengaturanWaController::class, 'startBot'])->name('start');
             Route::post('/stop', [\App\Http\Controllers\PengaturanWaController::class, 'stopBot'])->name('stop');
             Route::post('/settings', [\App\Http\Controllers\PengaturanWaController::class, 'updateSettings'])->name('settings.update');
+            Route::post('/toggle-setting', [\App\Http\Controllers\PengaturanWaController::class, 'toggleSetting'])->name('toggle-setting');
             Route::post('/test-send', [\App\Http\Controllers\PengaturanWaController::class, 'sendTestMessage'])->name('test-send');
             
             // Templates

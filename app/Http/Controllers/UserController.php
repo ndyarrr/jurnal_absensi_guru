@@ -87,15 +87,15 @@ class UserController extends Controller
             ? 'admin,super_admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_kurikulum,satpam'
             : 'admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_kurikulum,satpam';
 
-        $nonGuruRoles = ['admin', 'super_admin', 'satpam', 'kepala_sekolah', 'waka', 'waka_kurikulum'];
-        $isNonGuruRole = in_array($request->input('role'), $nonGuruRoles, true);
+        $requiredGuruRoles = ['guru_mengajar', 'wali_kelas', 'guru_piket'];
+        $isRequiredGuruRole = in_array($request->input('role'), $requiredGuruRoles, true);
 
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
             'password' => 'required|string|min:6',
             'role'     => 'required|in:' . $rolesAllowed,
             'id_guru'  => [
-                $isNonGuruRole ? 'nullable' : 'required',
+                $isRequiredGuruRole ? 'required' : 'nullable',
                 'integer',
                 'exists:guru,id_guru',
                 Rule::unique('users', 'id_guru')->whereNotNull('id_guru'),
@@ -116,8 +116,7 @@ class UserController extends Controller
         $validated['password'] = Hash::make($rawPassword);
         $validated['plain_password'] = $rawPassword;
 
-        // Admin & Satpam do not require guru profile mapping
-        if ($isNonGuruRole) {
+        if (empty($validated['id_guru'])) {
             $validated['id_guru'] = null;
         }
 
@@ -197,15 +196,15 @@ class UserController extends Controller
             ? 'admin,super_admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_kurikulum,satpam'
             : 'admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_kurikulum,satpam';
 
-        $nonGuruRoles = ['admin', 'super_admin', 'satpam', 'kepala_sekolah', 'waka', 'waka_kurikulum'];
-        $isNonGuruRole = in_array($request->input('role'), $nonGuruRoles, true);
+        $requiredGuruRoles = ['guru_mengajar', 'wali_kelas', 'guru_piket'];
+        $isRequiredGuruRole = in_array($request->input('role'), $requiredGuruRoles, true);
 
         $validated = $request->validate([
             'name'     => 'required|string|max:255',
             'password' => 'nullable|string|min:6',
             'role'     => 'required|in:' . $rolesAllowed,
             'id_guru'  => [
-                $isNonGuruRole ? 'nullable' : 'required',
+                $isRequiredGuruRole ? 'required' : 'nullable',
                 'integer',
                 'exists:guru,id_guru',
                 Rule::unique('users', 'id_guru')->ignore($user->id)->whereNotNull('id_guru'),
@@ -228,7 +227,7 @@ class UserController extends Controller
             unset($validated['password']);
         }
 
-        if ($isNonGuruRole) {
+        if (empty($validated['id_guru'])) {
             $validated['id_guru'] = null;
         }
 
