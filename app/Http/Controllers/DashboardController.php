@@ -184,6 +184,10 @@ class DashboardController extends Controller
             return redirect()->route('guru-mengajar.dashboard');
         }
 
+        if ($user->isSatpam()) {
+            return redirect()->route('satpam.dashboard');
+        }
+
         // 3. Check if user is assigned as Guru Piket or scheduled for Piket Duty today
         if ($user->isGuruPiket() || $this->isTeacherDutyToday($user)) {
             return redirect()->route('guru-piket.dashboard');
