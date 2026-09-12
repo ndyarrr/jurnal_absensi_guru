@@ -657,10 +657,11 @@
 
         /* ---- Delete Jurnal via AJAX ---- */
         function deleteJurnalAjax(id) {
-            if (!confirm('Apakah Anda yakin ingin menghapus data jurnal mengajar ini?')) {
-                return;
-            }
-
+            showConfirmModal({
+                type: 'delete',
+                title: 'Hapus Jurnal Mengajar',
+                message: 'Apakah Anda yakin ingin menghapus data jurnal mengajar ini?',
+                onConfirm: function() {
             fetch('/jurnal/' + id, {
                 method: 'DELETE',
                 headers: {
@@ -677,6 +678,8 @@
             .catch(err => {
                 console.error('Error deleting jurnal:', err);
                 showToast('Gagal menghapus jurnal mengajar.', 'error');
+            });
+                }
             });
         }
     </script>

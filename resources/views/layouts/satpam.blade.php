@@ -53,7 +53,7 @@
             </div>
 
             <div class="dash-sidebar-footer">
-                <form action="{{ route('logout') }}" method="POST" style="width: 100%;">
+                <form action="{{ route('logout') }}" method="POST" style="width: 100%;" data-confirm-type="logout">
                     @csrf
                     <button type="submit" style="background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; width: 100%; padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem;">
                         <span>Keluar Akun</span>
@@ -115,5 +115,6 @@
 
     <script src="/js/live-clock.js"></script>
     @stack('scripts')
+    @include('partials.confirm-modal')
 </body>
 </html>

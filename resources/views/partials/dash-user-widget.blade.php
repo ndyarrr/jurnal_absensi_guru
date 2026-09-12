@@ -157,7 +157,7 @@
 
         @include('partials.dash-role-switcher')
 
-        <form action="{{ route('logout') }}" method="POST" class="dash-profile-logout-form">
+        <form action="{{ route('logout') }}" method="POST" class="dash-profile-logout-form" data-confirm-type="logout">
             @csrf
             <button type="submit" class="dash-profile-logout-btn">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

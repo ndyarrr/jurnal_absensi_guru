@@ -38,7 +38,7 @@
                                     <a href="{{ route('jurusan.show', $j) }}" class="btn btn-sm btn-action-show" title="Detail"> Detail</a>
                                     <a href="{{ route('jurusan.edit', $j) }}" class="btn btn-sm btn-action-edit" title="Edit"> Edit</a>
                                     <form action="{{ route('jurusan.destroy', $j) }}" method="POST" style="display:inline;"
-                                          onsubmit="return confirm('Yakin hapus jurusan ini?')">
+                                          data-confirm-type="delete" data-confirm="Yakin hapus jurusan {{ $j->kode_jurusan }} - {{ $j->nama_jurusan }}?">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-action-delete" title="Hapus">Hapus</button>

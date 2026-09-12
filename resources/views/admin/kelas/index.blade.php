@@ -362,7 +362,7 @@
                                             </button>
 
                                             <!-- Delete Action -->
-                                            <form action="{{ route('kelas.destroy', $k) }}" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data kelas Tingkat {{ $k->tingkat }} {{ optional($k->jurusan)->kode_jurusan }} {{ $k->rombel }}?')">
+                                            <form action="{{ route('kelas.destroy', $k) }}" method="POST" style="display: inline;" data-confirm-type="delete" data-confirm="Apakah Anda yakin ingin menghapus data kelas Tingkat {{ $k->tingkat }} {{ optional($k->jurusan)->kode_jurusan }} {{ $k->rombel }}?">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="action-btn-icon delete" title="Hapus Kelas">
@@ -460,7 +460,7 @@
                                             </button>
 
                                             <form action="{{ route('jurusan.destroy', $j) }}" method="POST" style="display: inline;"
-                                                onsubmit="return confirm(@if($j->kelas_count > 0)'Jurusan {{ $j->kode_jurusan }} masih memiliki {{ $j->kelas_count }} kelas terkait dan tidak dapat dihapus.'@else'Apakah Anda yakin ingin menghapus jurusan {{ $j->kode_jurusan }} - {{ $j->nama_jurusan }}?'@endif)">
+                                                data-confirm-type="delete" data-confirm="Apakah Anda yakin ingin menghapus jurusan {{ $j->kode_jurusan }} - {{ $j->nama_jurusan }}?" @if($j->kelas_count > 0) data-confirm-disabled="Jurusan {{ $j->kode_jurusan }} masih memiliki {{ $j->kelas_count }} kelas terkait dan tidak dapat dihapus." @endif>
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="action-btn-icon delete" title="{{ $j->kelas_count > 0 ? 'Tidak dapat dihapus — masih ada kelas terkait' : 'Hapus Jurusan' }}" @if($j->kelas_count > 0) disabled @endif>

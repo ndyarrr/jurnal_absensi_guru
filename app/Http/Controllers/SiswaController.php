@@ -110,10 +110,32 @@ class SiswaController extends Controller
     /**
      * Remove the specified Siswa.
      */
-    public function destroy(Siswa $siswa)
+    public function destroy(Request $request, Siswa $siswa)
     {
         $siswa->delete();
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => 'Data siswa berhasil dihapus']);
+        }
         return redirect()->route('siswa.index')->with('success', 'Data siswa berhasil dihapus');
+    }
+
+    /**
+     * Remove multiple siswa records from database at once.
+     */
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        if (!is_array($ids) || empty($ids)) {
+            return response()->json(['error' => 'Tidak ada siswa yang dipilih untuk dihapus.'], 400);
+        }
+
+        $deletedCount = Siswa::whereIn('id_siswa', $ids)->delete();
+
+        return response()->json([
+            'success' => "{$deletedCount} data siswa berhasil dihapus.",
+            'deleted_count' => $deletedCount,
+            'deleted_ids' => $ids,
+        ]);
     }
 
     /**
@@ -410,6 +432,9 @@ class SiswaController extends Controller
                 $successCount++;
             }
 
+            // Sync kelas pagu so pagu is never 0 or lower than actual student count
+            $this->syncKelasPagu();
+
             $summaryParts = [];
             if ($successCount > 0) $summaryParts[] = "{$successCount} siswa baru";
             if ($updatedCount > 0) $summaryParts[] = "{$updatedCount} diperbarui/ditimpa";
@@ -582,28 +607,32 @@ class SiswaController extends Controller
             return $defaultIdKelas ? (int)$defaultIdKelas : null;
         }
 
-        $matchedId = null;
-        if (is_numeric($raw) && isset($kelasMap[$raw])) {
-            $matchedId = (int)$kelasMap[$raw];
-        } else {
-            $norm = strtolower(preg_replace('/[^a-z0-9]/i', '', $raw));
-            if (isset($kelasMap[$norm])) {
+        // Clean up parenthetical/bracketed notes like "( AXIOO CLASS )", "[AXIOO]", etc.
+        $cleaned = trim(preg_replace('/\s*[\(\[\{].*?[\)\]\}]\s*/', ' ', $raw));
+        $cleaned = preg_replace('/\s+/', ' ', $cleaned);
+
+        $candidates = array_unique(array_filter([$raw, $cleaned]));
+
+        foreach ($candidates as $cand) {
+            if (is_numeric($cand) && isset($kelasMap[$cand])) {
+                return (int)$kelasMap[$cand];
+            }
+            $norm = strtolower(preg_replace('/[^a-z0-9]/i', '', $cand));
+            if (!empty($norm) && isset($kelasMap[$norm])) {
                 $matchedId = (int)$kelasMap[$norm];
+                $targetKelas = Kelas::withTrashed()->find($matchedId);
+                if ($targetKelas && $targetKelas->trashed()) {
+                    $targetKelas->restore();
+                }
+                return $matchedId;
             }
         }
 
-        if ($matchedId) {
-            $targetKelas = Kelas::withTrashed()->find($matchedId);
-            if ($targetKelas && $targetKelas->trashed()) {
-                $targetKelas->restore();
+        foreach ($candidates as $cand) {
+            $autoId = $this->autoCreateKelas($cand, $kelasMap);
+            if ($autoId) {
+                return $autoId;
             }
-            return $matchedId;
-        }
-
-        // Try auto-creating / restoring missing class from string like "XII DKV 2", "X RPL 1", "10 PPLG 3"
-        $autoId = $this->autoCreateKelas($raw, $kelasMap);
-        if ($autoId) {
-            return $autoId;
         }
 
         return $defaultIdKelas ? (int)$defaultIdKelas : null;
@@ -611,11 +640,14 @@ class SiswaController extends Controller
 
     private function autoCreateKelas(string $rawKelas, array &$kelasMap): ?int
     {
-        // Pattern: "XII DKV 2", "X PPLG 1", "10 RPL 3", "XI TKJ 2"
-        if (preg_match('/^(X|XI|XII|10|11|12)[\s\-]+([A-Z0-9]+)(?:[\s\-]+([0-9]+))?$/i', trim($rawKelas), $matches)) {
+        $clean = trim(preg_replace('/\s*[\(\[\{].*?[\)\]\}]\s*/', ' ', $rawKelas));
+        $clean = preg_replace('/\s+/', ' ', $clean);
+
+        // Pattern: "XII DKV 2", "X PPLG 1", "10 RPL 3", "XI TKJ 1 ( AXIOO CLASS )"
+        if (preg_match('/^(X|XI|XII|10|11|12)[\s\-]+([A-Z0-9]+)(?:[\s\-]+([0-9]+))?(?:\s+.*)?$/i', $clean, $matches)) {
             $tingkatRaw  = strtoupper($matches[1]);
             $kodeJurusan = strtoupper($matches[2]);
-            $rombel      = isset($matches[3]) ? (int)$matches[3] : 1;
+            $rombel      = isset($matches[3]) && $matches[3] !== '' ? (int)$matches[3] : 1;
 
             $tingkat = match($tingkatRaw) {
                 '10' => 'X',
@@ -653,7 +685,7 @@ class SiswaController extends Controller
                     'tingkat'      => $tingkat,
                     'id_jurusan'   => $jurusan->id_jurusan,
                     'rombel'       => $rombel,
-                    'jumlah_siswa' => 0,
+                    'jumlah_siswa' => 36,
                 ]);
             }
 
@@ -661,12 +693,29 @@ class SiswaController extends Controller
 
             // Register newly created class into lookup map so next rows pick it up instantly
             $kelasMap[strtolower(preg_replace('/[^a-z0-9]/i', '', $rawKelas))] = $id;
+            $kelasMap[strtolower(preg_replace('/[^a-z0-9]/i', '', $clean))] = $id;
             $kelasMap[(string)$id] = $id;
 
             return $id;
         }
 
         return null;
+    }
+
+    private function syncKelasPagu(): void
+    {
+        $kelases = Kelas::withCount('siswa')->get();
+        foreach ($kelases as $k) {
+            $siswaCount = (int)$k->siswa_count;
+            $currentPagu = (int)($k->jumlah_siswa ?? 0);
+
+            if ($currentPagu <= 0 || $currentPagu < $siswaCount) {
+                $newPagu = max(36, $siswaCount);
+                if ($newPagu !== $currentPagu) {
+                    $k->update(['jumlah_siswa' => $newPagu]);
+                }
+            }
+        }
     }
 
     private function buildFilteredQuery(Request $request)

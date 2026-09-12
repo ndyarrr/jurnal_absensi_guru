@@ -393,8 +393,11 @@
         });
 
         function deleteRuanganAjax(id, nama) {
-            if (!confirm('Apakah Anda yakin ingin menghapus ruangan "' + nama + '"?')) return;
-
+            showConfirmModal({
+                type: 'delete',
+                title: 'Hapus Ruangan',
+                message: 'Apakah Anda yakin ingin menghapus ruangan <strong>"' + nama + '"</strong>',
+                onConfirm: function() {
             fetch('/ruangan/' + id, {
                 method: 'POST',
                 headers: {
@@ -411,6 +414,8 @@
                     fetchRuanganAjax();
                 } else if (data.error) {
                     showToast(data.error, 'error');
+                }
+            });
                 }
             });
         }

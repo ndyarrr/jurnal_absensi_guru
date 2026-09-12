@@ -1864,8 +1864,11 @@
 
         /* ---- Delete Jadwal via AJAX ---- */
         function deleteJadwalAjax(id) {
-            if (!confirm('Apakah Anda yakin ingin menghapus jadwal pelajaran ini?')) return;
-
+            showConfirmModal({
+                type: 'delete',
+                title: 'Hapus Jadwal Pelajaran',
+                message: 'Apakah Anda yakin ingin menghapus jadwal pelajaran ini?',
+                onConfirm: function() {
             fetch('/jadwal/' + id, {
                 method: 'DELETE',
                 headers: {
@@ -1878,6 +1881,8 @@
             .then(data => {
                 showToast(data.success || 'Jadwal pelajaran berhasil dihapus.');
                 setTimeout(() => window.location.reload(), 400);
+            });
+                }
             });
         }
 

@@ -107,6 +107,12 @@
                         <span>Export</span>
                     </button>
 
+                    <!-- Bulk Delete Button -->
+                    <button type="button" id="btnBulkDeleteGuru" class="btn-bulk-delete" style="display: none; background: #dc2626; color: white; border: none; padding: 0 16px; height: 42px; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; align-items: center; gap: 8px; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.2s;" onclick="executeBulkDeleteGuru()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        <span>Hapus Terpilih (<span id="selectedCountTextGuru">0</span>)</span>
+                    </button>
+
                     <!-- + Tambah Button -->
                     <button type="button" class="btn-guru-tambah" onclick="openCreateModal()">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -157,6 +163,9 @@
                     <table class="guru-table">
                         <thead>
                             <tr>
+                                <th style="width: 40px; text-align: center;">
+                                    <input type="checkbox" id="selectAllGuru" onclick="toggleSelectAllGuru(this)" style="width: 16px; height: 16px; cursor: pointer; accent-color: #dc2626;" title="Pilih Semua di Halaman Ini">
+                                </th>
                                 <th style="width: 5%;">No</th>
                                 <th style="width: 22%;">NIP</th>
                                 <th style="width: 28%;">Nama</th>
@@ -167,7 +176,10 @@
                         </thead>
                         <tbody>
                             @forelse($guru as $index => $g)
-                                <tr>
+                                <tr id="row-guru-{{ $g->id_guru }}">
+                                    <td style="text-align: center;">
+                                        <input type="checkbox" class="guru-row-checkbox" value="{{ $g->id_guru }}" onchange="onGuruCheckboxChange(this)" style="width: 16px; height: 16px; cursor: pointer; accent-color: #dc2626;">
+                                    </td>
                                     <td class="td-guru-no">{{ $loop->iteration + ($guru->currentPage() - 1) * $guru->perPage() }}</td>
                                     <td class="td-guru-nip">
                                         <span class="nip-badge">{{ $g->nip ?? '-' }}</span>
@@ -191,11 +203,11 @@
                                                 {{ $m->nama_mapel }}
                                             </span>
                                         @empty
-                                            <span style="color: #94a3b8; font-size: 0.85rem;">Bahasa Inggris</span>
+                                            <span style="color: #94a3b8; font-size: 0.85rem;">-</span>
                                         @endforelse
                                     </td>
                                     <td class="td-guru-telp">
-                                        {{ $g->no_hp ?? '08123456789' }}
+                                        {{ $g->no_hp ?? '-' }}
                                     </td>
                                     <td>
                                         <div class="action-icons-cell">
@@ -215,23 +227,19 @@
                                                 </svg>
                                             </button>
 
-                                            <!-- Delete Action -->
-                                            <form action="{{ route('guru.destroy', $g) }}" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data guru {{ $g->nama_guru }}?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="action-btn-icon delete" title="Hapus Guru">
-                                                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                        <polyline points="3 6 5 6 21 6"></polyline>
-                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                                    </svg>
-                                                </button>
-                                            </form>
+                                            <!-- Delete Action (AJAX - No Page Refresh) -->
+                                            <button type="button" class="action-btn-icon delete" title="Hapus Guru" onclick="deleteGuruAjax({{ $g->id_guru }}, '{{ addslashes($g->nama_guru) }}')">
+                                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                </svg>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" style="text-align: center; padding: 40px; color: #847e73;">
+                                    <td colspan="7" style="text-align: center; padding: 40px; color: #847e73;">
                                         Belum ada data guru.
                                     </td>
                                 </tr>
@@ -590,6 +598,155 @@
 
         setupNipDigitListener('create_nip');
         setupNipDigitListener('edit_nip');
+
+        /* ---- Multi-Select & Bulk Delete with Page Slide Persistence (Guru) ---- */
+        const selectedGuruIds = new Set();
+        const csrfTokenGuru = '{{ csrf_token() }}';
+
+        function onGuruCheckboxChange(cb) {
+            const val = parseInt(cb.value);
+            if (cb.checked) {
+                selectedGuruIds.add(val);
+            } else {
+                selectedGuruIds.delete(val);
+            }
+            updateBulkDeleteUIGuru();
+        }
+
+        function toggleSelectAllGuru(masterCb) {
+            const rowCbs = document.querySelectorAll('.guru-row-checkbox:not(:disabled)');
+            rowCbs.forEach(cb => {
+                cb.checked = masterCb.checked;
+                const val = parseInt(cb.value);
+                if (masterCb.checked) {
+                    selectedGuruIds.add(val);
+                } else {
+                    selectedGuruIds.delete(val);
+                }
+            });
+            updateBulkDeleteUIGuru();
+        }
+
+        function updateBulkDeleteUIGuru() {
+            const btn = document.getElementById('btnBulkDeleteGuru');
+            const countText = document.getElementById('selectedCountTextGuru');
+            const masterCb = document.getElementById('selectAllGuru');
+            const totalRowCbs = document.querySelectorAll('.guru-row-checkbox:not(:disabled)');
+
+            if (countText) countText.textContent = selectedGuruIds.size;
+
+            if (btn) {
+                btn.style.display = selectedGuruIds.size > 0 ? 'inline-flex' : 'none';
+            }
+
+            if (masterCb && totalRowCbs.length > 0) {
+                const checkedCount = Array.from(totalRowCbs).filter(cb => cb.checked).length;
+                masterCb.checked = checkedCount === totalRowCbs.length;
+            }
+        }
+
+        function syncCheckboxesWithSetGuru() {
+            const rowCbs = document.querySelectorAll('.guru-row-checkbox');
+            rowCbs.forEach(cb => {
+                const val = parseInt(cb.value);
+                cb.checked = selectedGuruIds.has(val);
+            });
+            updateBulkDeleteUIGuru();
+        }
+
+        document.addEventListener('ajaxPagination:updated', function() {
+            syncCheckboxesWithSetGuru();
+        });
+
+        /* ---- Single Delete via AJAX (Guru - No Web Refresh) ---- */
+        function deleteGuruAjax(id, name) {
+            showConfirmModal({
+                type: 'delete',
+                title: 'Hapus Data Guru',
+                message: 'Apakah Anda yakin ingin menghapus data guru <strong>"' + name + '"</strong> beserta akun penggunanya?',
+                onConfirm: function() {
+                    fetch('/guru/' + id, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfTokenGuru
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast(data.success, 'success');
+                            const row = document.getElementById('row-guru-' + id);
+                            if (row) {
+                                row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                                row.style.opacity = '0';
+                                row.style.transform = 'translateY(-10px)';
+                                setTimeout(() => {
+                                    row.remove();
+                                    selectedGuruIds.delete(id);
+                                    updateBulkDeleteUIGuru();
+                                }, 300);
+                            }
+                        } else if (data.error) {
+                            showToast(data.error, 'error');
+                        }
+                    })
+                    .catch(() => showToast('Gagal menghapus data guru.', 'error'));
+                }
+            });
+        }
+
+        /* ---- Bulk Delete via AJAX (Guru - No Web Refresh) ---- */
+        function executeBulkDeleteGuru() {
+            if (selectedGuruIds.size === 0) return;
+
+            const count = selectedGuruIds.size;
+            showConfirmModal({
+                type: 'delete',
+                title: 'Hapus Multiple Data Guru',
+                message: 'Apakah Anda yakin ingin menghapus <strong>' + count + ' data guru</strong> terpilih beserta akun penggunanya?',
+                onConfirm: function() {
+                    fetch('{{ route("guru.bulk-delete") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfTokenGuru
+                        },
+                        body: JSON.stringify({ ids: Array.from(selectedGuruIds) })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast(data.success, 'success');
+                            const deletedIds = data.deleted_ids || Array.from(selectedGuruIds);
+                            deletedIds.forEach(id => {
+                                const row = document.getElementById('row-guru-' + id);
+                                if (row) {
+                                    row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                                    row.style.opacity = '0';
+                                    row.style.transform = 'translateY(-10px)';
+                                    setTimeout(() => row.remove(), 300);
+                                }
+                                selectedGuruIds.delete(id);
+                            });
+                            setTimeout(() => {
+                                updateBulkDeleteUIGuru();
+                                const container = document.querySelector('[data-ajax-pagination="main"]');
+                                if (container && typeof window.loadPaginatedContent === 'function') {
+                                    window.loadPaginatedContent(window.location.href, container);
+                                }
+                            }, 350);
+                        } else if (data.error) {
+                            showToast(data.error, 'error');
+                        }
+                    })
+                    .catch(() => showToast('Gagal menghapus beberapa data guru.', 'error'));
+                }
+            });
+        }
 
         /* ---- Auto-fade Flash Feedback Alerts after 3 seconds ---- */
         setTimeout(function() {

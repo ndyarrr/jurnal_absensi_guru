@@ -204,6 +204,12 @@
                     </a>
                 </li>
                 <li>
+                    <a href="{{ route('guru-piket.surat-izin-masuk') }}" class="pk-nav-link">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line></svg>
+                        <span>Surat Ijin Masuk</span>
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('guru-piket.digital-surat') }}" class="pk-nav-link">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
                         <span>Surat Piket Digital</span>
@@ -213,7 +219,7 @@
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 16px;">
-            <form action="{{ route('logout') }}" method="POST">
+            <form action="{{ route('logout') }}" method="POST" data-confirm-type="logout">
                 @csrf
                 <button type="submit" style="background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; width: 100%; padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem;">
                     <span>Keluar Akun</span>

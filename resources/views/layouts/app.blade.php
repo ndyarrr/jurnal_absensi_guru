@@ -76,8 +76,8 @@
             </div>
         @endif
 
-        @yield('content')
     </main>
 
+    @include('partials.confirm-modal')
 </body>
 </html>

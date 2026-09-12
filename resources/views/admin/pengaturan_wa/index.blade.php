@@ -548,7 +548,7 @@
                                         </button>
                                     </form>
 
-                                    <form action="{{ route('pengaturan-wa.stop') }}" method="POST" style="margin: 0; display: inline-flex;" onsubmit="return confirm('Matikan proses bot via PM2? Bot akan benar-benar berhenti (tidak auto-reconnect).')">
+                                    <form action="{{ route('pengaturan-wa.stop') }}" method="POST" style="margin: 0; display: inline-flex;" data-confirm-type="warning" data-confirm="Matikan proses bot via PM2? Bot akan benar-benar berhenti (tidak auto-reconnect).">
                                         @csrf
                                         <button type="submit" {{ !$procOnline ? 'disabled' : '' }} style="{{ !$procOnline ? 'opacity: 0.5; cursor: not-allowed;' : '' }} background: #dc2626; color: white; border-radius: 10px; height: 42px; padding: 0 20px; font-weight: 700; font-size: 0.85rem; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.2s;">
                                             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink: 0;"><rect x="6" y="6" width="12" height="12" rx="1"></rect></svg>
@@ -596,7 +596,7 @@
                                         </button>
                                     </form>
 
-                                    <form action="{{ route('pengaturan-wa.logout') }}" method="POST" style="margin: 0; display: inline-flex;" onsubmit="return confirm('Apakah Anda yakin ingin logout dari bot WA?')">
+                                    <form action="{{ route('pengaturan-wa.logout') }}" method="POST" style="margin: 0; display: inline-flex;" data-confirm-type="warning" data-confirm="Apakah Anda yakin ingin logout dari bot WA? Sesi akan dihapus dan perlu scan ulang QR.">
                                         @csrf
                                         <button type="submit" style="background: #ef4444; color: white; border-radius: 10px; height: 40px; padding: 0 18px; font-weight: 700; font-size: 0.85rem; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.2s;">
                                             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink: 0;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -959,7 +959,7 @@
                                                 <button type="button" onclick="editRecipient({{ json_encode($rec) }})" style="background: #e2e8f0; color: #1e293b; border-radius: 6px; padding: 6px 12px; font-weight: 700; font-size: 0.8rem; border: none; cursor: pointer; margin-right: 4px;">
                                                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                                 </button>
-                                                <form action="{{ route('pengaturan-wa.recipients.destroy', $rec->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Hapus penerima ini?')">
+                                                <form action="{{ route('pengaturan-wa.recipients.destroy', $rec->id) }}" method="POST" style="display: inline;" data-confirm-type="delete" data-confirm="Apakah Anda yakin ingin menghapus penerima ini?">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" style="background: #fee2e2; color: #dc2626; border-radius: 6px; padding: 6px 12px; font-weight: 700; font-size: 0.8rem; border: none; cursor: pointer;">
@@ -1429,11 +1429,24 @@
             // Check for invalid variables before saving
             const invalidVars = checkVariablesInTemplate(id);
             if (invalidVars && invalidVars.length > 0) {
-                if (!confirm(`⚠️ Peringatan: Terdapat variabel yang tidak dikenal (${invalidVars.join(', ')}).\nApakah Anda yakin ingin tetap menyimpan template ini?`)) {
-                    return;
-                }
+                showConfirmModal({
+                    type: 'warning',
+                    title: 'Variabel Tidak Dikenal',
+                    message: `⚠️ Terdapat variabel yang tidak dikenal: <strong>${invalidVars.join(', ')}</strong>.<br>Apakah Anda yakin ingin tetap menyimpan template ini?`,
+                    onConfirm: function() {
+                        _doSaveInlineEdit(id, nama, kode, formatPesan);
+                    }
+                });
+                return;
             }
 
+            _doSaveInlineEdit(id, nama, kode, formatPesan);
+        }
+
+        function _doSaveInlineEdit(id, nama, kode, formatPesan) {
+            const namaEl  = document.getElementById('nama-' + id);
+            const kodeEl  = document.getElementById('kode-' + id);
+            const pesanEl = document.getElementById('pesan-' + id);
             const btn = document.getElementById('edit-actions-' + id).querySelector('button[onclick*="saveInlineEdit"]');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<span>Menyimpan...</span>';

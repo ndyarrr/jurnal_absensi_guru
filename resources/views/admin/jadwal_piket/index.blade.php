@@ -202,7 +202,7 @@
                                     </div>
                                 </div>
 
-                                <form action="{{ route('jadwal-piket.destroy', $item->id_piket) }}" method="POST" onsubmit="return confirm('Hapus penugasan piket ini?');">
+                                <form action="{{ route('jadwal-piket.destroy', $item->id_piket) }}" method="POST" data-confirm-type="delete" data-confirm="Apakah Anda yakin ingin menghapus penugasan piket ini?">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" style="background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 0.8rem;" title="Hapus Tugas">

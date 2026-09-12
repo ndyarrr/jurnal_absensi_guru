@@ -61,6 +61,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/guru-piket/input-dispensasi', [\App\Http\Controllers\GuruPiketController::class, 'inputDispensasi'])->name('guru-piket.input-dispensasi');
     Route::post('/guru-piket/input-dispensasi', [\App\Http\Controllers\GuruPiketController::class, 'storeDispensasi'])->name('guru-piket.store-dispensasi');
     Route::get('/guru-piket/digital-surat', [\App\Http\Controllers\GuruPiketController::class, 'digitalisasiSurat'])->name('guru-piket.digital-surat');
+    Route::get('/guru-piket/surat-izin-masuk', [\App\Http\Controllers\GuruPiketController::class, 'suratIzinMasuk'])->name('guru-piket.surat-izin-masuk');
+    Route::post('/guru-piket/surat-izin-masuk', [\App\Http\Controllers\GuruPiketController::class, 'storeSuratIzinMasuk'])->name('guru-piket.store-surat-izin-masuk');
+    Route::delete('/guru-piket/surat-izin-masuk/{id}', [\App\Http\Controllers\GuruPiketController::class, 'destroySuratIzinMasuk'])->name('guru-piket.destroy-surat-izin-masuk');
     Route::get('/guru-piket/export/csv', [\App\Http\Controllers\GuruPiketController::class, 'exportCsv'])->name('guru-piket.export-csv');
     Route::post('/guru-piket/dispensasi/{id}/ttd-siswa', [\App\Http\Controllers\GuruPiketController::class, 'simpanTtdSiswa'])->name('guru-piket.dispensasi.ttd-siswa');
     Route::post('/guru-piket/dispensasi/{id}/ttd-guru', [\App\Http\Controllers\GuruPiketController::class, 'simpanTtdGuru'])->name('guru-piket.dispensasi.ttd-guru');
@@ -96,16 +99,20 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/guru/export/csv', [GuruController::class, 'exportCsv'])->name('guru.export-csv');
         Route::post('/guru/deduplicate', [GuruController::class, 'deduplicate'])->name('guru.deduplicate');
+        Route::post('/guru/bulk-delete', [GuruController::class, 'bulkDelete'])->name('guru.bulk-delete');
         Route::resource('guru', GuruController::class);
         Route::resource('jurusan', JurusanController::class);
         Route::resource('kelas', KelasController::class)->parameters(['kelas' => 'kelas']);
+        Route::post('/mapel/bulk-delete', [MapelController::class, 'bulkDelete'])->name('mapel.bulk-delete');
         Route::resource('mapel', MapelController::class);
         Route::resource('ruangan', RuanganController::class);
         Route::get('/siswa/export/csv', [SiswaController::class, 'exportCsv'])->name('siswa.export-csv');
         Route::get('/siswa/template/download', [SiswaController::class, 'downloadTemplate'])->name('siswa.template');
         Route::post('/siswa/import', [SiswaController::class, 'import'])->name('siswa.import');
+        Route::post('/siswa/bulk-delete', [SiswaController::class, 'bulkDelete'])->name('siswa.bulk-delete');
         Route::resource('siswa', SiswaController::class);
         Route::resource('jadwal-piket', JadwalPiketController::class);
+        Route::post('/users/bulk-delete', [UserController::class, 'bulkDelete'])->name('users.bulk-delete');
         Route::resource('users', UserController::class);
         Route::get('/pengguna', [UserController::class, 'index'])->name('pengguna.index');
 

@@ -587,7 +587,19 @@ class GuruPiketController extends Controller
         }
         $dispensasiList = $dispenQuery->orderBy('id_dispen', 'desc')->get();
 
-        return view('guru_piket.digital_surat', compact('user', 'namaGuruPiket', 'permohonanList', 'dispensasiList'));
+        // Query for SuratIzinMasuk
+        $suratMasukQuery = \App\Models\SuratIzinMasuk::with(['siswa.kelas.jurusan']);
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $suratMasukQuery->where(function($q) use ($search) {
+                $q->where('nama_siswa', 'like', "%{$search}%")
+                  ->orWhere('kelas_str', 'like', "%{$search}%")
+                  ->orWhere('nomor_surat', 'like', "%{$search}%");
+            });
+        }
+        $suratMasukList = $suratMasukQuery->orderBy('id_surat_izin_masuk', 'desc')->paginate(15);
+
+        return view('guru_piket.digital_surat', compact('user', 'namaGuruPiket', 'permohonanList', 'dispensasiList', 'suratMasukList'));
     }
 
     /**
@@ -642,6 +654,24 @@ class GuruPiketController extends Controller
                 $d->tanggal_mulai . ' s/d ' . $d->tanggal_selesai,
                 $d->jam_mulai . ' - ' . $d->jam_selesai,
                 ucfirst($d->status_approval),
+            ];
+        }
+
+        $rows[] = [];
+        $rows[] = ['Daftar Surat Ijin Masuk / Meninggalkan Kelas'];
+        $rows[] = ['No', 'Nomor Surat', 'Tanggal', 'Nama Siswa', 'Kelas', 'Jam Ke', 'Alasan', 'Guru Piket'];
+
+        $suratMasukAll = \App\Models\SuratIzinMasuk::orderBy('id_surat_izin_masuk', 'desc')->get();
+        foreach ($suratMasukAll as $idx => $s) {
+            $rows[] = [
+                $idx + 1,
+                $s->nomor_surat,
+                $s->tanggal ? $s->tanggal->format('d/m/Y') : '-',
+                $s->nama_siswa,
+                $s->kelas_str,
+                $s->jam_pelajaran_ke,
+                $s->alasan,
+                $s->nama_guru_piket ?? '-',
             ];
         }
 
@@ -811,5 +841,122 @@ class GuruPiketController extends Controller
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::warning('Gagal kirim pengumuman gerbang satpam: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Halaman Surat Ijin Masuk / Meninggalkan Kelas
+     */
+    public function suratIzinMasuk(Request $request)
+    {
+        $this->ensureDataExist();
+
+        $user = auth()->user();
+        $guru = $user ? $user->guru : null;
+        $namaGuruPiket = $guru ? $guru->nama_guru : ($user->name ?? 'Guru Piket Hari Ini');
+
+        Carbon::setLocale('id');
+        $todayName = Carbon::now('Asia/Jakarta')->translatedFormat('l');
+        $todayFormatted = Carbon::now('Asia/Jakarta')->translatedFormat('l, d F Y');
+        $isDutyToday = $this->isTeacherDutyToday($user);
+
+        $kelasList = Kelas::with('jurusan')->orderBy('tingkat')->orderBy('rombel')->get();
+        $siswaList = Siswa::with('kelas.jurusan')->orderBy('nama_siswa')->get();
+
+        $todayJadwals = \App\Models\JadwalPelajaran::with(['mapel'])
+            ->where('hari', $todayName)
+            ->get();
+
+        $jamSlots = \App\Models\JamPelajaran::where('is_istirahat', 0)
+            ->orderBy('jam_ke')
+            ->get();
+
+        $suratMasukList = \App\Models\SuratIzinMasuk::with(['siswa.kelas.jurusan'])
+            ->orderBy('id_surat_izin_masuk', 'desc')
+            ->paginate(15);
+
+        return view('guru_piket.surat_izin_masuk', compact(
+            'user',
+            'namaGuruPiket',
+            'todayFormatted',
+            'todayName',
+            'isDutyToday',
+            'kelasList',
+            'siswaList',
+            'suratMasukList',
+            'todayJadwals',
+            'jamSlots'
+        ));
+    }
+
+    /**
+     * Simpan Surat Ijin Masuk Kelas / Meninggalkan Kelas
+     */
+    public function storeSuratIzinMasuk(Request $request)
+    {
+        $user = auth()->user();
+        Carbon::setLocale('id');
+        $todayName = Carbon::now('Asia/Jakarta')->translatedFormat('l');
+
+        if (!$this->isTeacherDutyToday($user)) {
+            return back()->with('error', "Akses Ditolak: Anda tidak terdaftar sebagai Guru Piket bertugas untuk hari {$todayName}.");
+        }
+
+        $request->validate([
+            'id_siswa'         => 'nullable|exists:siswa,id_siswa',
+            'nama_siswa'       => 'required|string|max:255',
+            'kelas_str'        => 'required|string|max:255',
+            'jam_pelajaran_ke' => 'required|string|max:100',
+            'alasan'           => 'required|string',
+            'nama_piket_wakasek' => 'nullable|string|max:255',
+            'nama_guru_piket'   => 'nullable|string|max:255',
+        ]);
+
+        $todayNow = Carbon::now('Asia/Jakarta');
+        $todayStr = $todayNow->toDateString();
+
+        // Generate Nomor Surat: SIM/Y/m/count+1
+        $countToday = \App\Models\SuratIzinMasuk::whereYear('tanggal', $todayNow->year)->count() + 1;
+        $nomorSurat = sprintf("SIM/%s/%s/%03d", $todayNow->format('Y'), $todayNow->format('m'), $countToday);
+
+        $guru = $user ? $user->guru : null;
+        $namaGuruPiket = $request->nama_guru_piket ?: ($guru ? $guru->nama_guru : ($user->name ?? 'Guru Piket'));
+
+        $idKelas = null;
+        if ($request->id_siswa) {
+            $siswa = Siswa::find($request->id_siswa);
+            if ($siswa) {
+                $idKelas = $siswa->id_kelas;
+            }
+        }
+
+        $surat = \App\Models\SuratIzinMasuk::create([
+            'nomor_surat'        => $nomorSurat,
+            'id_siswa'           => $request->id_siswa,
+            'id_kelas'           => $idKelas,
+            'nama_siswa'         => $request->nama_siswa,
+            'kelas_str'          => $request->kelas_str,
+            'jam_pelajaran_ke'   => $request->jam_pelajaran_ke,
+            'alasan'             => $request->alasan,
+            'jenis_surat'        => 'SURAT IJIN MASUK KELAS / MENINGGALKAN KELAS',
+            'tanggal'            => $todayStr,
+            'nama_piket_wakasek' => $request->nama_piket_wakasek,
+            'nama_guru_piket'    => $namaGuruPiket,
+            'id_user_piket'      => $user->id ?? null,
+        ]);
+
+        return back()
+            ->with('success', 'Surat Ijin Masuk berhasil diterbitkan dan dicatat.')
+            ->with('auto_print_surat_id', $surat->id_surat_izin_masuk);
+    }
+
+    /**
+     * Hapus Data Surat Ijin Masuk
+     */
+    public function destroySuratIzinMasuk($id)
+    {
+        $surat = \App\Models\SuratIzinMasuk::findOrFail($id);
+        $surat->delete();
+
+        return back()->with('success', 'Data Surat Ijin Masuk berhasil dihapus.');
     }
 }

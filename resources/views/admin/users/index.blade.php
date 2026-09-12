@@ -177,6 +177,11 @@
 
                 <!-- Right Action Buttons -->
                 <div class="pengguna-action-group">
+                    <button type="button" id="btnBulkDeleteUsers" class="btn-bulk-delete" style="display: none; background: #dc2626; color: white; border: none; padding: 0 16px; height: 42px; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; align-items: center; gap: 8px; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.2s;" onclick="executeBulkDeleteUsers()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        <span>Hapus Terpilih (<span id="selectedCountText">0</span>)</span>
+                    </button>
+
                     <button type="button" class="btn-tambah-pengguna" onclick="openCreateModal()">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -217,6 +222,9 @@
                     <table class="pengguna-table">
                         <thead>
                             <tr>
+                                <th style="width: 40px; text-align: center;">
+                                    <input type="checkbox" id="selectAllUsers" onclick="toggleSelectAllUsers(this)" style="width: 16px; height: 16px; cursor: pointer; accent-color: #dc2626;" title="Pilih Semua di Halaman Ini">
+                                </th>
                                 <th style="width: 5%;">No</th>
                                 <th style="width: 25%;">Nama</th>
                                 <th style="width: 25%;">Password</th>
@@ -227,7 +235,15 @@
                         </thead>
                         <tbody>
                             @forelse($users as $index => $user)
+                                @php
+                                    $isSelf = (Auth::id() === $user->id);
+                                    $isTargetSuperAdmin = ($user->role === 'super_admin');
+                                    $isCurrentSuperAdmin = Auth::user()->isSuperAdmin();
+                                @endphp
                                 <tr id="row-user-{{ $user->id }}">
+                                    <td style="text-align: center;">
+                                        <input type="checkbox" class="user-row-checkbox" value="{{ $user->id }}" onchange="onUserCheckboxChange(this)" style="width: 16px; height: 16px; cursor: pointer; accent-color: #dc2626;" @if($isSelf || (!$isCurrentSuperAdmin && $isTargetSuperAdmin)) disabled title="Tidak dapat dihapus" @endif>
+                                    </td>
                                     <td class="td-no">{{ $loop->iteration + ($users->currentPage() - 1) * $users->perPage() }}</td>
                                     <td class="td-nama">
                                         <div class="user-name-with-avatar">
@@ -267,11 +283,6 @@
                                         {{ $user->created_at ? $user->created_at->format('d-m-Y') : '11-02-2026' }}
                                     </td>
                                     <td>
-                                        @php
-                                            $isSelf = (Auth::id() === $user->id);
-                                            $isTargetSuperAdmin = ($user->role === 'super_admin');
-                                            $isCurrentSuperAdmin = Auth::user()->isSuperAdmin();
-                                        @endphp
                                         <div class="action-icons-cell">
                                             <!-- View Action -->
                                             <button type="button" class="action-btn-icon view" title="Lihat Detail" onclick="openViewModal({{ $user->id }})">
@@ -298,24 +309,20 @@
                                                     </svg>
                                                 </button>
 
-                                                <!-- Delete Action -->
-                                                <form action="{{ route('users.destroy', $user) }}" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengguna {{ $user->name }}?')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="action-btn-icon delete" title="Hapus Pengguna">
-                                                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                            <polyline points="3 6 5 6 21 6"></polyline>
-                                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                                        </svg>
-                                                    </button>
-                                                </form>
+                                                <!-- Delete Action (AJAX - No Page Refresh) -->
+                                                <button type="button" class="action-btn-icon delete" title="Hapus Pengguna" onclick="deleteUserAjax({{ $user->id }}, '{{ addslashes($user->name) }}')">
+                                                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                    </svg>
+                                                </button>
                                             @endif
                                         </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" style="text-align: center; padding: 40px; color: #847e73;">
+                                    <td colspan="7" style="text-align: center; padding: 40px; color: #847e73;">
                                         Belum ada data pengguna.
                                     </td>
                                 </tr>
@@ -923,6 +930,161 @@
                 });
             }
         })();
+
+        /* ---- Multi-Select & Bulk Delete with Page Slide Persistence ---- */
+        const selectedUserIds = new Set();
+        const csrfToken = '{{ csrf_token() }}';
+
+        function onUserCheckboxChange(cb) {
+            const val = parseInt(cb.value);
+            if (cb.checked) {
+                selectedUserIds.add(val);
+            } else {
+                selectedUserIds.delete(val);
+            }
+            updateBulkDeleteUI();
+        }
+
+        function toggleSelectAllUsers(masterCb) {
+            const rowCbs = document.querySelectorAll('.user-row-checkbox:not(:disabled)');
+            rowCbs.forEach(cb => {
+                cb.checked = masterCb.checked;
+                const val = parseInt(cb.value);
+                if (masterCb.checked) {
+                    selectedUserIds.add(val);
+                } else {
+                    selectedUserIds.delete(val);
+                }
+            });
+            updateBulkDeleteUI();
+        }
+
+        function updateBulkDeleteUI() {
+            const btn = document.getElementById('btnBulkDeleteUsers');
+            const countText = document.getElementById('selectedCountText');
+            const masterCb = document.getElementById('selectAllUsers');
+            const totalRowCbs = document.querySelectorAll('.user-row-checkbox:not(:disabled)');
+
+            if (countText) countText.textContent = selectedUserIds.size;
+
+            if (btn) {
+                btn.style.display = selectedUserIds.size > 0 ? 'inline-flex' : 'none';
+            }
+
+            if (masterCb && totalRowCbs.length > 0) {
+                const checkedCount = Array.from(totalRowCbs).filter(cb => cb.checked).length;
+                masterCb.checked = checkedCount === totalRowCbs.length;
+            }
+        }
+
+        function syncCheckboxesWithSet() {
+            const rowCbs = document.querySelectorAll('.user-row-checkbox');
+            rowCbs.forEach(cb => {
+                const val = parseInt(cb.value);
+                cb.checked = selectedUserIds.has(val);
+            });
+            updateBulkDeleteUI();
+        }
+
+        // Re-sync checkboxes whenever ajax-pagination updates table (slide change)
+        document.addEventListener('ajaxPagination:updated', function() {
+            syncCheckboxesWithSet();
+        });
+
+        /* ---- Single Delete via AJAX (No Web Refresh) ---- */
+        function deleteUserAjax(id, name) {
+            showConfirmModal({
+                type: 'delete',
+                title: 'Hapus Pengguna',
+                message: 'Apakah Anda yakin ingin menghapus pengguna <strong>"' + name + '"</strong>?',
+                onConfirm: function() {
+                    fetch('/users/' + id, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast(data.success, 'success');
+                            selectedUserIds.delete(id);
+                            const row = document.getElementById('row-user-' + id);
+                            if (row) {
+                                row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                                row.style.opacity = '0';
+                                row.style.transform = 'translateY(-10px)';
+                                setTimeout(() => {
+                                    row.remove();
+                                    updateBulkDeleteUI();
+                                    const container = document.querySelector('[data-ajax-pagination="main"]');
+                                    if (container && typeof window.loadPaginatedContent === 'function') {
+                                        window.loadPaginatedContent(window.location.href, container);
+                                    }
+                                }, 300);
+                            } else {
+                                updateBulkDeleteUI();
+                            }
+                        } else if (data.error) {
+                            showToast(data.error, 'error');
+                        }
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                        showToast('Gagal menghapus pengguna.', 'error');
+                    });
+                }
+            });
+        }
+
+        /* ---- Bulk Delete via AJAX (No Web Refresh) ---- */
+        function executeBulkDeleteUsers() {
+            if (selectedUserIds.size === 0) return;
+
+            const count = selectedUserIds.size;
+            showConfirmModal({
+                type: 'delete',
+                title: 'Hapus Multiple Pengguna',
+                message: 'Apakah Anda yakin ingin menghapus <strong>' + count + ' pengguna</strong> terpilih?',
+                onConfirm: function() {
+                    fetch('{{ route("users.bulk-delete") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({ ids: Array.from(selectedUserIds) })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast(data.success, 'success');
+                            selectedUserIds.clear();
+                            const masterCb = document.getElementById('selectAllUsers');
+                            if (masterCb) masterCb.checked = false;
+                            updateBulkDeleteUI();
+
+                            const container = document.querySelector('[data-ajax-pagination="main"]');
+                            if (container && typeof window.loadPaginatedContent === 'function') {
+                                window.loadPaginatedContent(window.location.href, container);
+                            } else {
+                                window.location.reload();
+                            }
+                        } else if (data.error) {
+                            showToast(data.error, 'error');
+                        }
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                        showToast('Gagal menghapus beberapa pengguna.', 'error');
+                    });
+                }
+            });
+        }
 
         /* ---- Auto-fade Flash Feedback Alerts after 3 seconds ---- */
         setTimeout(function() {

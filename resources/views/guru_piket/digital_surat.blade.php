@@ -194,6 +194,12 @@
                     </a>
                 </li>
                 <li>
+                    <a href="{{ route('guru-piket.surat-izin-masuk') }}" class="pk-nav-link">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line></svg>
+                        <span>Surat Ijin Masuk</span>
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('guru-piket.digital-surat') }}" class="pk-nav-link active">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
                         <span>Surat Piket Digital</span>
@@ -203,7 +209,7 @@
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 16px;">
-            <form action="{{ route('logout') }}" method="POST">
+            <form action="{{ route('logout') }}" method="POST" data-confirm-type="logout">
                 @csrf
                 <button type="submit" style="background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; width: 100%; padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem;">
                     <span>Keluar Akun</span>
@@ -389,6 +395,67 @@
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+        </section>
+
+        <!-- Section 3: Daftar Surat Ijin Masuk / Meninggalkan Kelas -->
+        <section class="pk-card-box">
+            <div class="pk-card-header-bar">
+                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--pk-navy);">
+                    <i class="fa-solid fa-list-check" style="color: var(--pk-emerald); margin-right: 8px;"></i>Daftar Surat Ijin Masuk / Meninggalkan Kelas
+                </h3>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="pk-table">
+                    <thead>
+                        <tr>
+                            <th>No. Surat</th>
+                            <th>Tanggal</th>
+                            <th>Nama Siswa</th>
+                            <th>Kelas</th>
+                            <th>Jam Ke</th>
+                            <th>Alasan</th>
+                            <th>Guru Piket</th>
+                            <th style="text-align: center;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($suratMasukList as $s)
+                            <tr>
+                                <td style="font-weight: 800; font-family: monospace; color: var(--pk-navy);">{{ $s->nomor_surat }}</td>
+                                <td style="font-weight: 600; color: #475569;">{{ $s->tanggal ? $s->tanggal->format('d/m/Y') : '-' }}</td>
+                                <td style="font-weight: 800; color: var(--pk-navy);">{{ $s->nama_siswa }}</td>
+                                <td><span style="background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 0.78rem;">{{ $s->kelas_str }}</span></td>
+                                <td style="font-weight: 700; color: #334155;">{{ $s->jam_pelajaran_ke }}</td>
+                                <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $s->alasan }}</td>
+                                <td style="font-weight: 600;">{{ $s->nama_guru_piket ?? '-' }}</td>
+                                <td style="text-align: center;">
+                                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                        <button type="button" onclick="showSlipModal('{{ $s->id_surat_izin_masuk }}', '{{ addslashes($s->nama_siswa) }}', '{{ addslashes($s->kelas_str) }}', '{{ addslashes($s->jam_pelajaran_ke) }}', '{{ addslashes($s->alasan) }}', '{{ $s->tanggal ? $s->tanggal->format('d-m-Y') : '-' }}', '{{ addslashes($s->nama_guru_piket ?? '-') }}', '{{ addslashes($s->nama_piket_wakasek ?? '-') }}')" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #2563eb; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 0.78rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Lihat & Cetak Slip">
+                                            <i class="fa-solid fa-print"></i> Cetak
+                                        </button>
+                                        <form action="{{ route('guru-piket.destroy-surat-izin-masuk', $s->id_surat_izin_masuk) }}" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus surat ijin ini?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" style="background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 6px 10px; border-radius: 8px; font-weight: 800; font-size: 0.78rem; cursor: pointer;" title="Hapus Surat">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" style="text-align: center; color: #64748b; padding: 24px;">Belum ada surat ijin masuk yang diterbitkan.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 16px;">
+                {{ $suratMasukList->links('pagination::bootstrap-4') }}
             </div>
         </section>
 
@@ -710,6 +777,27 @@
             document.getElementById('dispenModal').style.display = 'none';
         }
 
+        function showSlipModal(id, nama, kelas, jamKe, alasan, tanggal, guruPiket, wakasek) {
+            document.getElementById('slip_nama').textContent = nama || '-';
+            document.getElementById('slip_kelas').textContent = kelas || '-';
+            document.getElementById('slip_jam_ke').textContent = jamKe || '-';
+            document.getElementById('slip_alasan').textContent = alasan || '-';
+            document.getElementById('slip_tanggal').textContent = tanggal || '-';
+            document.getElementById('slip_guru_piket').textContent = guruPiket && guruPiket !== '-' ? guruPiket : '';
+            document.getElementById('slip_wakasek').textContent = wakasek && wakasek !== '-' ? wakasek : '';
+
+            const modal = document.getElementById('slipModal');
+            modal.style.display = 'flex';
+        }
+
+        function closeSlipModal() {
+            document.getElementById('slipModal').style.display = 'none';
+        }
+
+        function printSlip() {
+            window.print();
+        }
+
         function showPhotoModal(src, name) {
             document.getElementById('modalStudentName').innerText = 'Foto Surat Izin Fisik: ' + name;
             document.getElementById('modalPhotoImage').src = src;
@@ -731,6 +819,103 @@
         }
         setInterval(updateLiveClock, 1000);
     </script>
+
+    <!-- Modal Layout Slip Fisik Surat Ijin Masuk / Meninggalkan Kelas -->
+    <div id="slipModal" style="display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); align-items: center; justify-content: center;" onclick="closeSlipModal()">
+        <div onclick="event.stopPropagation()" style="max-width: 780px; width: 95%; max-height: 90vh; overflow-y: auto; background: #ffffff; border-radius: 16px; padding: 24px; box-shadow: 0 25px 60px rgba(0,0,0,0.35); position: relative; font-family: 'Plus Jakarta Sans', sans-serif;">
+            
+            <button type="button" onclick="closeSlipModal()" style="position: absolute; top: 16px; right: 18px; background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: #475569; display: flex; align-items: center; justify-content: center;">&times;</button>
+
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--pk-navy); margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">Pratinjau Slip Surat Ijin Masuk Kelas</h3>
+
+            <!-- Area Lembar Surat (Warna Pink/Salmon Sesuai Lembar Fisik) -->
+            <div id="printableSlipArea" style="
+                background: #fcd5ce;
+                border: 2px solid #000000;
+                padding: 24px 30px;
+                color: #000000;
+                font-family: 'Arial', sans-serif;
+                border-radius: 4px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            ">
+                <!-- Judul Surat -->
+                <div style="text-align: center; font-weight: 900; font-size: 1.15rem; letter-spacing: 0.02em; text-transform: uppercase; line-height: 1.3;">
+                    SURAT IJIN MASUK KELAS / MENINGGALKAN KELAS
+                </div>
+                <div style="text-align: center; font-weight: 900; font-size: 1.1rem; text-transform: uppercase; margin-top: 4px; margin-bottom: 24px;">
+                    SMK NEGERI 1 BOYOLANGU
+                </div>
+
+                <!-- Form Fields -->
+                <div style="display: flex; flex-direction: column; gap: 14px; font-size: 1rem; font-weight: 900;">
+                    <div style="display: flex; align-items: flex-end;">
+                        <div style="width: 310px; flex-shrink: 0; text-transform: uppercase;">NAMA</div>
+                        <div style="width: 20px; text-align: center;">:</div>
+                        <div style="flex: 1; border-bottom: 1.5px solid #000000; padding-bottom: 2px; font-size: 1.05rem;" id="slip_nama"></div>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-end;">
+                        <div style="width: 310px; flex-shrink: 0; text-transform: uppercase;">KELAS / KONSENTRASI KEAHLIAN</div>
+                        <div style="width: 20px; text-align: center;">:</div>
+                        <div style="flex: 1; border-bottom: 1.5px solid #000000; padding-bottom: 2px; font-size: 1.05rem;" id="slip_kelas"></div>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-end;">
+                        <div style="width: 310px; flex-shrink: 0; text-transform: uppercase;">JAM PELAJARAN KE</div>
+                        <div style="width: 20px; text-align: center;">:</div>
+                        <div style="flex: 1; border-bottom: 1.5px solid #000000; padding-bottom: 2px; font-size: 1.05rem;" id="slip_jam_ke"></div>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-end;">
+                        <div style="width: 310px; flex-shrink: 0; text-transform: uppercase;">ALASAN</div>
+                        <div style="width: 20px; text-align: center;">:</div>
+                        <div style="flex: 1; border-bottom: 1.5px solid #000000; padding-bottom: 2px; font-size: 1.05rem;" id="slip_alasan"></div>
+                    </div>
+                </div>
+
+                <!-- Sub-header Mengetahui -->
+                <div style="text-align: center; font-weight: 900; font-size: 0.95rem; margin-top: 28px; margin-bottom: 12px; letter-spacing: 0.05em; text-transform: uppercase;">
+                    MENGETAHUI / MENYETUJUI
+                </div>
+
+                <!-- Bottom Signature Grid (3 Columns) -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; text-align: center; font-size: 0.875rem; font-weight: 900; margin-top: 10px;">
+                    
+                    <!-- Left: Piket Wakasek -->
+                    <div style="width: 30%;">
+                        <div style="text-transform: uppercase;">PIKET WAKASEK</div>
+                        <div style="height: 60px;"></div>
+                        <div style="border-top: 1.5px solid #000000; padding-top: 4px; min-width: 140px; margin: 0 auto;" id="slip_wakasek"></div>
+                    </div>
+
+                    <!-- Center: Guru Piket -->
+                    <div style="width: 30%;">
+                        <div style="text-transform: uppercase;">GURU PIKET</div>
+                        <div style="height: 60px;"></div>
+                        <div style="border-top: 1.5px solid #000000; padding-top: 4px; min-width: 140px; margin: 0 auto;" id="slip_guru_piket"></div>
+                    </div>
+
+                    <!-- Right: Tulungagung & Ttd Siswa -->
+                    <div style="width: 38%;">
+                        <div>TULUNGAGUNG, <span id="slip_tanggal" style="border-bottom: 1px dotted #000000; padding: 0 4px;"></span></div>
+                        <div style="text-transform: uppercase; margin-top: 2px;">TANDA TANGAN SISWA</div>
+                        <div style="height: 50px;"></div>
+                        <div style="border-top: 1.5px solid #000000; padding-top: 4px; min-width: 140px; margin: 0 auto;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Action Buttons -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                <button type="button" onclick="closeSlipModal()" style="background: #ffffff; border: 1px solid #cbd5e1; color: #475569; padding: 10px 20px; border-radius: 10px; font-weight: 700; cursor: pointer;">
+                    Tutup
+                </button>
+                <button type="button" onclick="printSlip()" style="background: var(--pk-navy); color: #ffffff; border: none; padding: 11px 24px; border-radius: 10px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-print"></i> Cetak Lembar Surat Ijin
+                </button>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>

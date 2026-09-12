@@ -129,13 +129,44 @@ class GuruController extends Controller
     /**
      * Remove the specified Guru.
      */
-    public function destroy(Guru $guru)
+    public function destroy(Request $request, Guru $guru)
     {
         if ($guru->user) {
             $guru->user->delete();
         }
         $guru->delete();
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => 'Data guru & akun penggunanya berhasil dihapus']);
+        }
         return redirect()->route('guru.index')->with('success', 'Data guru & akun penggunanya berhasil dihapus');
+    }
+
+    /**
+     * Remove multiple guru records from database at once.
+     */
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        if (!is_array($ids) || empty($ids)) {
+            return response()->json(['error' => 'Tidak ada guru yang dipilih untuk dihapus.'], 400);
+        }
+
+        $gurus = Guru::with('user')->whereIn('id_guru', $ids)->get();
+        $deletedCount = 0;
+
+        foreach ($gurus as $guru) {
+            if ($guru->user) {
+                $guru->user->delete();
+            }
+            $guru->delete();
+            $deletedCount++;
+        }
+
+        return response()->json([
+            'success' => "{$deletedCount} data guru & akun penggunanya berhasil dihapus.",
+            'deleted_count' => $deletedCount,
+            'deleted_ids' => $ids,
+        ]);
     }
 
     /**

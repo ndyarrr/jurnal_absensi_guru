@@ -143,6 +143,12 @@
                             <span>Daftar Mapel</span>
                         </div>
 
+                        <!-- Bulk Delete Button -->
+                        <button type="button" id="btnBulkDeleteMapel" class="btn-bulk-delete" style="display: none; background: #dc2626; color: white; border: none; padding: 0 16px; height: 38px; border-radius: 10px; font-weight: 700; font-size: 0.825rem; cursor: pointer; align-items: center; gap: 8px; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.2s;" onclick="executeBulkDeleteMapel()">
+                            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            <span>Hapus Terpilih (<span id="selectedCountTextMapel">0</span>)</span>
+                        </button>
+
                         <!-- Toggle Form Button (Hide / Unhide Panel Form) -->
                         <button type="button" class="btn-mapel-tambah-navy" id="btnToggleFormMapel" onclick="toggleTambahMapelForm()">
                             <svg id="toggleMapelIcon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -158,6 +164,9 @@
                         <table class="mapel-table" id="mapelMainTable">
                             <thead>
                                 <tr>
+                                    <th style="width: 40px; text-align: center;">
+                                        <input type="checkbox" id="selectAllMapel" onclick="toggleSelectAllMapel(this)" style="width: 16px; height: 16px; cursor: pointer; accent-color: #dc2626;" title="Pilih Semua di Halaman Ini">
+                                    </th>
                                     <th style="width: 10%;">No</th>
                                     <th style="width: 50%;">Nama Mapel (Klik untuk Detail)</th>
                                     <th style="width: 25%;">Jumlah Pengampu</th>
@@ -167,6 +176,9 @@
                             <tbody>
                                 @forelse($mapel as $index => $m)
                                     <tr id="row-mapel-{{ $m->id_mapel }}" class="{{ (isset($defaultMapel) && $defaultMapel && $m->id_mapel == $defaultMapel->id_mapel) ? 'selected-active-row' : '' }}">
+                                        <td style="text-align: center;" onclick="event.stopPropagation();">
+                                            <input type="checkbox" class="mapel-row-checkbox" value="{{ $m->id_mapel }}" onchange="onMapelCheckboxChange(this)" style="width: 16px; height: 16px; cursor: pointer; accent-color: #dc2626;">
+                                        </td>
                                         <td class="td-no">{{ $loop->iteration + ($mapel->currentPage() - 1) * $mapel->perPage() }}</td>
                                         <td style="font-weight: 700; color: #1e2538; cursor: pointer;" class="td-nama-mapel" title="Klik untuk melihat detail mapel" onclick="loadMapelDetail({{ $m->id_mapel }})">
                                             {{ $m->nama_mapel }}
@@ -196,7 +208,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" style="text-align: center; padding: 30px; color: #847e73;">
+                                        <td colspan="5" style="text-align: center; padding: 30px; color: #847e73;">
                                             Belum ada data mata pelajaran.
                                         </td>
                                     </tr>
@@ -637,25 +649,156 @@
             });
         }
 
-        /* ---- Delete Mapel via AJAX ---- */
-        function deleteMapelAjax(id) {
-            if (!confirm('Apakah Anda yakin ingin menghapus mata pelajaran ini?')) return;
+        /* ---- Multi-Select & Bulk Delete with Page Slide Persistence (Mapel) ---- */
+        const selectedMapelIds = new Set();
 
-            fetch('/mapel/' + id, {
-                method: 'DELETE',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
+        function onMapelCheckboxChange(cb) {
+            const val = parseInt(cb.value);
+            if (cb.checked) {
+                selectedMapelIds.add(val);
+            } else {
+                selectedMapelIds.delete(val);
+            }
+            updateBulkDeleteUIMapel();
+        }
+
+        function toggleSelectAllMapel(masterCb) {
+            const rowCbs = document.querySelectorAll('.mapel-row-checkbox:not(:disabled)');
+            rowCbs.forEach(cb => {
+                cb.checked = masterCb.checked;
+                const val = parseInt(cb.value);
+                if (masterCb.checked) {
+                    selectedMapelIds.add(val);
+                } else {
+                    selectedMapelIds.delete(val);
                 }
-            })
-            .then(res => res.json())
-            .then(data => {
-                showToast(data.success || 'Mata pelajaran berhasil dihapus.');
-                reloadMapelTable();
+            });
+            updateBulkDeleteUIMapel();
+        }
+
+        function updateBulkDeleteUIMapel() {
+            const btn = document.getElementById('btnBulkDeleteMapel');
+            const countText = document.getElementById('selectedCountTextMapel');
+            const masterCb = document.getElementById('selectAllMapel');
+            const totalRowCbs = document.querySelectorAll('.mapel-row-checkbox:not(:disabled)');
+
+            if (countText) countText.textContent = selectedMapelIds.size;
+
+            if (btn) {
+                btn.style.display = selectedMapelIds.size > 0 ? 'inline-flex' : 'none';
+            }
+
+            if (masterCb && totalRowCbs.length > 0) {
+                const checkedCount = Array.from(totalRowCbs).filter(cb => cb.checked).length;
+                masterCb.checked = checkedCount === totalRowCbs.length;
+            }
+        }
+
+        function syncCheckboxesWithSetMapel() {
+            const rowCbs = document.querySelectorAll('.mapel-row-checkbox');
+            rowCbs.forEach(cb => {
+                const val = parseInt(cb.value);
+                cb.checked = selectedMapelIds.has(val);
+            });
+            updateBulkDeleteUIMapel();
+        }
+
+        document.addEventListener('ajaxPagination:updated', function() {
+            syncCheckboxesWithSetMapel();
+        });
+
+        /* ---- Delete Mapel via AJAX (No Web Refresh) ---- */
+        function deleteMapelAjax(id) {
+            showConfirmModal({
+                type: 'delete',
+                title: 'Hapus Mata Pelajaran',
+                message: 'Apakah Anda yakin ingin menghapus mata pelajaran ini?',
+                onConfirm: function() {
+                    fetch('/mapel/' + id, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast(data.success || 'Mata pelajaran berhasil dihapus.');
+                            const row = document.getElementById('row-mapel-' + id);
+                            if (row) {
+                                row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                                row.style.opacity = '0';
+                                row.style.transform = 'translateY(-10px)';
+                                setTimeout(() => {
+                                    row.remove();
+                                    selectedMapelIds.delete(id);
+                                    updateBulkDeleteUIMapel();
+                                }, 300);
+                            }
+                            clearDetailView();
+                        } else if (data.error) {
+                            showToast(data.error, 'error');
+                        }
+                    })
+                    .catch(() => showToast('Gagal menghapus mata pelajaran.', 'error'));
+                }
             });
         }
 
+        /* ---- Bulk Delete via AJAX (Mapel - No Web Refresh) ---- */
+        function executeBulkDeleteMapel() {
+            if (selectedMapelIds.size === 0) return;
+
+            const count = selectedMapelIds.size;
+            showConfirmModal({
+                type: 'delete',
+                title: 'Hapus Multiple Mata Pelajaran',
+                message: 'Apakah Anda yakin ingin menghapus <strong>' + count + ' mata pelajaran</strong> terpilih?',
+                onConfirm: function() {
+                    fetch('{{ route("mapel.bulk-delete") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({ ids: Array.from(selectedMapelIds) })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast(data.success, 'success');
+                            const deletedIds = data.deleted_ids || Array.from(selectedMapelIds);
+                            deletedIds.forEach(id => {
+                                const row = document.getElementById('row-mapel-' + id);
+                                if (row) {
+                                    row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                                    row.style.opacity = '0';
+                                    row.style.transform = 'translateY(-10px)';
+                                    setTimeout(() => row.remove(), 300);
+                                }
+                                selectedMapelIds.delete(id);
+                            });
+                            setTimeout(() => {
+                                updateBulkDeleteUIMapel();
+                                clearDetailView();
+                                const container = document.querySelector('[data-ajax-pagination="main"]');
+                                if (container && typeof window.loadPaginatedContent === 'function') {
+                                    window.loadPaginatedContent(window.location.href, container);
+                                }
+                            }, 350);
+                        } else if (data.error) {
+                            showToast(data.error, 'error');
+                        }
+                    })
+                    .catch(() => showToast('Gagal menghapus beberapa mata pelajaran.', 'error'));
+                }
+            });
+        }
+    
         /* ---- Auto-fade Session Flash Alerts ---- */
         setTimeout(function() {
             document.querySelectorAll('.flash-alert').forEach(function(el) {

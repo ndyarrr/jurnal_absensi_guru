@@ -87,7 +87,7 @@
     function toggleGuruField(role) {
         const wrapper = document.getElementById('guruFieldWrapper');
         const select = document.getElementById('id_guru');
-        if (role && role !== 'admin') {
+        if (role && role !== 'admin' && role !== 'super_admin') {
             wrapper.style.display = 'block';
         } else {
             wrapper.style.display = 'none';

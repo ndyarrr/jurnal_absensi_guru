@@ -298,4 +298,47 @@ class UserController extends Controller
 
         return redirect()->route('users.index')->with('success', 'Pengguna berhasil dihapus');
     }
+
+    /**
+     * Remove multiple users from database at once.
+     */
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        if (!is_array($ids) || empty($ids)) {
+            return response()->json(['error' => 'Tidak ada pengguna yang dipilih untuk dihapus.'], 400);
+        }
+
+        $currentUser = auth()->user();
+        $isSuperAdmin = $currentUser->isSuperAdmin();
+
+        // Query targeted users, excluding self
+        $query = User::whereIn('id', $ids)->where('id', '!=', $currentUser->id);
+
+        if (!$isSuperAdmin) {
+            // Regular admins cannot delete Super Admins
+            $query->where('role', '!=', 'super_admin');
+        }
+
+        $usersToDelete = $query->get();
+        $deletedCount = 0;
+
+        foreach ($usersToDelete as $u) {
+            if ($u->avatar && Storage::disk('public')->exists($u->avatar)) {
+                Storage::disk('public')->delete($u->avatar);
+            }
+            $u->delete();
+            $deletedCount++;
+        }
+
+        if ($deletedCount === 0) {
+            return response()->json(['error' => 'Gagal menghapus pengguna. Akun Anda sendiri atau Super Admin tidak dapat dihapus.'], 400);
+        }
+
+        return response()->json([
+            'success' => "{$deletedCount} pengguna berhasil dihapus.",
+            'deleted_count' => $deletedCount,
+            'deleted_ids' => $usersToDelete->pluck('id')->toArray(),
+        ]);
+    }
 }

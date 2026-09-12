@@ -464,7 +464,7 @@
                                                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                                                     </svg>
                                                 </button>
-                                                <form action="{{ route('jam-pelajaran.destroy', $j) }}" method="POST" style="display: inline;" onsubmit="return confirm('Hapus slot jam ini?')">
+                                                <form action="{{ route('jam-pelajaran.destroy', $j) }}" method="POST" style="display: inline;" data-confirm-type="delete" data-confirm="Apakah Anda yakin ingin menghapus slot jam pelajaran ini?">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="action-btn-icon delete" title="Hapus Slot">

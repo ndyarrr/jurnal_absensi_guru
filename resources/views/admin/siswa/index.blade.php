@@ -174,6 +174,12 @@
                         <span>Export</span>
                     </button>
 
+                    <!-- Bulk Delete Button -->
+                    <button type="button" id="btnBulkDeleteSiswa" class="btn-bulk-delete" style="display: none; background: #dc2626; color: white; border: none; padding: 0 16px; height: 42px; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; align-items: center; gap: 8px; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.2s;" onclick="executeBulkDeleteSiswa()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        <span>Hapus Terpilih (<span id="selectedCountTextSiswa">0</span>)</span>
+                    </button>
+
                     <!-- + Tambah Button -->
                     <button type="button" class="btn-siswa-tambah" onclick="openCreateModal()">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -275,6 +281,9 @@
                     <table class="siswa-table">
                         <thead>
                             <tr>
+                                <th style="width: 40px; text-align: center;">
+                                    <input type="checkbox" id="selectAllSiswa" onclick="toggleSelectAllSiswa(this)" style="width: 16px; height: 16px; cursor: pointer; accent-color: #dc2626;" title="Pilih Semua di Halaman Ini">
+                                </th>
                                 <th style="width: 5%;">No</th>
                                 <th style="width: 14%;">NISN</th>
                                 <th style="width: 22%;">Nama Siswa</th>
@@ -288,6 +297,9 @@
                         <tbody>
                             @forelse($siswa as $index => $s)
                                 <tr id="row-siswa-{{ $s->id_siswa }}">
+                                    <td style="text-align: center;">
+                                        <input type="checkbox" class="siswa-row-checkbox" value="{{ $s->id_siswa }}" onchange="onSiswaCheckboxChange(this)" style="width: 16px; height: 16px; cursor: pointer; accent-color: #dc2626;">
+                                    </td>
                                     <td class="td-siswa-no">{{ $loop->iteration + ($siswa->currentPage() - 1) * $siswa->perPage() }}</td>
                                     <td class="td-siswa-nisn">
                                         <span class="nisn-badge">{{ $s->nisn }}</span>
@@ -345,23 +357,19 @@
                                                 </svg>
                                             </button>
 
-                                            <!-- Delete Action -->
-                                            <form action="{{ route('siswa.destroy', $s) }}" method="POST" style="display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data siswa {{ $s->nama_siswa }}?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="action-btn-icon delete" title="Hapus Siswa">
-                                                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                        <polyline points="3 6 5 6 21 6"></polyline>
-                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                                    </svg>
-                                                </button>
-                                            </form>
+                                            <!-- Delete Action (AJAX - No Page Refresh) -->
+                                            <button type="button" class="action-btn-icon delete" title="Hapus Siswa" onclick="deleteSiswaAjax({{ $s->id_siswa }}, '{{ addslashes($s->nama_siswa) }}')">
+                                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                </svg>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" style="text-align: center; padding: 40px; color: #847e73;">
+                                    <td colspan="9" style="text-align: center; padding: 40px; color: #847e73;">
                                         Belum ada data siswa.
                                     </td>
                                 </tr>
@@ -698,7 +706,7 @@
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
+                    'X-CSRF-TOKEN': csrfTokenSiswa
                 }
             })
             .then(async res => {
@@ -815,6 +823,160 @@
                     e.preventDefault();
                     alert('NISN harus berisi tepat 10 digit angka.');
                     createNisnEl.focus();
+                }
+            });
+        }
+
+        /* ---- Multi-Select & Bulk Delete with Page Slide Persistence (Siswa) ---- */
+        const selectedSiswaIds = new Set();
+        const csrfTokenSiswa = '{{ csrf_token() }}';
+
+        function onSiswaCheckboxChange(cb) {
+            const val = parseInt(cb.value);
+            if (cb.checked) {
+                selectedSiswaIds.add(val);
+            } else {
+                selectedSiswaIds.delete(val);
+            }
+            updateBulkDeleteUISiswa();
+        }
+
+        function toggleSelectAllSiswa(masterCb) {
+            const rowCbs = document.querySelectorAll('.siswa-row-checkbox:not(:disabled)');
+            rowCbs.forEach(cb => {
+                cb.checked = masterCb.checked;
+                const val = parseInt(cb.value);
+                if (masterCb.checked) {
+                    selectedSiswaIds.add(val);
+                } else {
+                    selectedSiswaIds.delete(val);
+                }
+            });
+            updateBulkDeleteUISiswa();
+        }
+
+        function updateBulkDeleteUISiswa() {
+            const btn = document.getElementById('btnBulkDeleteSiswa');
+            const countText = document.getElementById('selectedCountTextSiswa');
+            const masterCb = document.getElementById('selectAllSiswa');
+            const totalRowCbs = document.querySelectorAll('.siswa-row-checkbox:not(:disabled)');
+
+            if (countText) countText.textContent = selectedSiswaIds.size;
+
+            if (btn) {
+                btn.style.display = selectedSiswaIds.size > 0 ? 'inline-flex' : 'none';
+            }
+
+            if (masterCb && totalRowCbs.length > 0) {
+                const checkedCount = Array.from(totalRowCbs).filter(cb => cb.checked).length;
+                masterCb.checked = checkedCount === totalRowCbs.length;
+            }
+        }
+
+        function syncCheckboxesWithSetSiswa() {
+            const rowCbs = document.querySelectorAll('.siswa-row-checkbox');
+            rowCbs.forEach(cb => {
+                const val = parseInt(cb.value);
+                cb.checked = selectedSiswaIds.has(val);
+            });
+            updateBulkDeleteUISiswa();
+        }
+
+        document.addEventListener('ajaxPagination:updated', function() {
+            syncCheckboxesWithSetSiswa();
+        });
+
+        /* ---- Single Delete via AJAX (Siswa - No Web Refresh) ---- */
+        function deleteSiswaAjax(id, name) {
+            showConfirmModal({
+                type: 'delete',
+                title: 'Hapus Data Siswa',
+                message: 'Apakah Anda yakin ingin menghapus data siswa <strong>"' + name + '"</strong>?',
+                onConfirm: function() {
+                    fetch('/siswa/' + id, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfTokenSiswa
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast(data.success, 'success');
+                            selectedSiswaIds.delete(id);
+                            const row = document.getElementById('row-siswa-' + id);
+                            if (row) {
+                                row.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                                row.style.opacity = '0';
+                                row.style.transform = 'translateY(-10px)';
+                                setTimeout(() => {
+                                    row.remove();
+                                    updateBulkDeleteUISiswa();
+                                    const container = document.querySelector('[data-ajax-pagination="main"]');
+                                    if (container && typeof window.loadPaginatedContent === 'function') {
+                                        window.loadPaginatedContent(window.location.href, container);
+                                    }
+                                }, 300);
+                            } else {
+                                updateBulkDeleteUISiswa();
+                            }
+                        } else if (data.error) {
+                            showToast(data.error, 'error');
+                        }
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                        showToast('Gagal menghapus data siswa.', 'error');
+                    });
+                }
+            });
+        }
+
+        /* ---- Bulk Delete via AJAX (Siswa - No Web Refresh) ---- */
+        function executeBulkDeleteSiswa() {
+            if (selectedSiswaIds.size === 0) return;
+
+            const count = selectedSiswaIds.size;
+            showConfirmModal({
+                type: 'delete',
+                title: 'Hapus Multiple Data Siswa',
+                message: 'Apakah Anda yakin ingin menghapus <strong>' + count + ' data siswa</strong> terpilih?',
+                onConfirm: function() {
+                    fetch('{{ route("siswa.bulk-delete") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfTokenSiswa
+                        },
+                        body: JSON.stringify({ ids: Array.from(selectedSiswaIds) })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast(data.success, 'success');
+                            selectedSiswaIds.clear();
+                            const masterCb = document.getElementById('selectAllSiswa');
+                            if (masterCb) masterCb.checked = false;
+                            updateBulkDeleteUISiswa();
+
+                            const container = document.querySelector('[data-ajax-pagination="main"]');
+                            if (container && typeof window.loadPaginatedContent === 'function') {
+                                window.loadPaginatedContent(window.location.href, container);
+                            } else {
+                                window.location.reload();
+                            }
+                        } else if (data.error) {
+                            showToast(data.error, 'error');
+                        }
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                        showToast('Gagal menghapus beberapa data siswa.', 'error');
+                    });
                 }
             });
         }

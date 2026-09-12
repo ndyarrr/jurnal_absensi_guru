@@ -159,4 +159,23 @@ class MapelController extends Controller
 
         return redirect()->route('mapel.index')->with('success', 'Mata pelajaran berhasil dihapus.');
     }
+
+    /**
+     * Remove multiple mapel records from database at once.
+     */
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        if (!is_array($ids) || empty($ids)) {
+            return response()->json(['error' => 'Tidak ada mata pelajaran yang dipilih untuk dihapus.'], 400);
+        }
+
+        $deletedCount = Mapel::whereIn('id_mapel', $ids)->delete();
+
+        return response()->json([
+            'success' => "{$deletedCount} mata pelajaran berhasil dihapus.",
+            'deleted_count' => $deletedCount,
+            'deleted_ids' => $ids,
+        ]);
+    }
 }
