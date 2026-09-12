@@ -6,7 +6,6 @@ use App\Models\Guru;
 use App\Models\JadwalPiket;
 use App\Models\LaporanKejadianSiswa;
 use App\Models\PermohonanIzin;
-use App\Models\ProfilSatpam;
 use App\Models\Siswa;
 use App\Models\WaSetting;
 use App\Models\WaTemplate;
@@ -216,51 +215,6 @@ class SatpamController extends Controller
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::warning('Gagal kirim laporan kejadian via WA: ' . $e->getMessage());
         }
-    }
-
-    /* ==========================================================================
-       4. PENGATURAN PROFIL
-       ========================================================================== */
-    public function profil(Request $request)
-    {
-        $user = auth()->user();
-        $profil = ProfilSatpam::firstOrCreate(['id_user' => $user->id]);
-
-        return view('satpam.profil', compact('user', 'profil'));
-    }
-
-    public function updateProfil(Request $request)
-    {
-        $user = auth()->user();
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'id_petugas' => 'nullable|string|max:50',
-            'no_hp' => 'nullable|string|max:30',
-            'email' => 'nullable|email|max:150',
-            'pos_jaga' => 'nullable|string|max:100',
-            'jadwal_shift' => 'nullable|string|max:100',
-            'notif_izin_belum_kembali' => 'nullable|boolean',
-            'notif_laporan_terkirim' => 'nullable|boolean',
-            'notif_pengumuman_sekolah' => 'nullable|boolean',
-        ]);
-
-        $user->name = $validated['name'];
-        $user->no_hp = $validated['no_hp'] ?? null;
-        $user->save();
-
-        $profil = ProfilSatpam::firstOrCreate(['id_user' => $user->id]);
-        $profil->update([
-            'id_petugas' => $validated['id_petugas'] ?? null,
-            'email' => $validated['email'] ?? null,
-            'pos_jaga' => $validated['pos_jaga'] ?? null,
-            'jadwal_shift' => $validated['jadwal_shift'] ?? null,
-            'notif_izin_belum_kembali' => $request->boolean('notif_izin_belum_kembali'),
-            'notif_laporan_terkirim' => $request->boolean('notif_laporan_terkirim'),
-            'notif_pengumuman_sekolah' => $request->boolean('notif_pengumuman_sekolah'),
-        ]);
-
-        return redirect()->route('satpam.profil')->with('success', 'Profil berhasil diperbarui.');
     }
 
     /* ==========================================================================

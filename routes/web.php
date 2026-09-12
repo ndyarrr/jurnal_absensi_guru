@@ -72,8 +72,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/satpam/cek-izin/{izin}/catat-kembali', [\App\Http\Controllers\SatpamController::class, 'catatKembali'])->name('satpam.catat-kembali');
     Route::get('/satpam/lapor-siswa', [\App\Http\Controllers\SatpamController::class, 'laporSiswaForm'])->name('satpam.lapor-siswa');
     Route::post('/satpam/lapor-siswa', [\App\Http\Controllers\SatpamController::class, 'storeLaporSiswa'])->name('satpam.lapor-siswa.store');
-    Route::get('/satpam/profil', [\App\Http\Controllers\SatpamController::class, 'profil'])->name('satpam.profil');
-    Route::put('/satpam/profil', [\App\Http\Controllers\SatpamController::class, 'updateProfil'])->name('satpam.profil.update');
 
     // Dedicated Routes for Waka, Waka SDM, and Kepala Sekolah (Approver Dashboard)
     Route::middleware([\App\Http\Middleware\EnsureUserIsApprover::class])->prefix('approver')->name('approver.')->group(function () {
