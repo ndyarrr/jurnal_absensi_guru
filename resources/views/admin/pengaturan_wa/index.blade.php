@@ -722,6 +722,7 @@
                                         $displayWaka    = preg_replace('/^62/', '0', $settings['wa_nomor_waka'] ?? '');
                                         $displayWakaKur = preg_replace('/^62/', '0', $settings['wa_nomor_waka_kurikulum'] ?? '');
                                         $displayKepsek  = preg_replace('/^62/', '0', $settings['wa_nomor_kepsek'] ?? '');
+                                        $displaySatpam  = preg_replace('/^62/', '0', $settings['wa_nomor_satpam'] ?? '');
                                     @endphp
                                     <div>
                                         <label style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Nomor WA Waka (Kesiswaan)</label>
@@ -734,6 +735,10 @@
                                     <div>
                                         <label style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Nomor WA Kepala Sekolah</label>
                                         <input type="text" id="input_wa_kepsek" name="wa_nomor_kepsek" class="form-control" value="{{ $displayKepsek }}" placeholder="Contoh: 08987654321" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Nomor WA Pos Satpam / Gerbang</label>
+                                        <input type="text" id="input_wa_satpam" name="wa_nomor_satpam" class="form-control" value="{{ $displaySatpam }}" placeholder="Contoh: 08123456789" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem;">
                                     </div>
                                 </div>
                                 <p style="font-size: 0.78rem; color: #5d6269; margin: 10px 0 0 0;">Format 08xxx atau 628xxx keduanya diterima — sistem otomatis menyesuaikan.</p>
@@ -795,6 +800,7 @@
                             <button type="button" class="wa-filter-pill active" onclick="filterTemplates('reminder', this)">Reminder</button>
                             <button type="button" class="wa-filter-pill" onclick="filterTemplates('izin', this)">Izin</button>
                             <button type="button" class="wa-filter-pill" onclick="filterTemplates('dispensasi', this)">Dispensasi</button>
+                            <button type="button" class="wa-filter-pill" onclick="filterTemplates('satpam', this)">Satpam</button>
                         </div>
 
                         <!-- WhatsApp Chat Canvas Background -->
@@ -805,7 +811,7 @@
                                         $allSystemVars = [
                                             '{nama_guru}','{nama_siswa}','{nama_kelas}','{jam_ke}','{mapel}','{alasan}',
                                             '{jenis_izin}','{nama_kegiatan}','{lokasi}','{nama_piket}','{tanggal}','{status}',
-                                            '{waktu_selesai}','{sisa_menit}','{keterangan}',
+                                            '{waktu_selesai}','{sisa_menit}','{keterangan}','{jam_keluar}','{jam_kembali}',
                                             '{link_dokumen_bukti_izin}','{link_persetujuan_waka_kepsek}','{link_bukti}','{link_persetujuan}'
                                         ];
                                     @endphp

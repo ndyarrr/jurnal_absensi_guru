@@ -296,6 +296,10 @@ class ApproverDashboardController extends Controller
         $dispen->disetujui_oleh = $user->id;
         $dispen->save();
 
+        if ($dispen->status_approval === 'disetujui') {
+            $this->kirimPengumumanSatpamDispensasi($dispen);
+        }
+
         return back()->with('success', $msg);
     }
 
@@ -373,5 +377,50 @@ class ApproverDashboardController extends Controller
         $dispen->save();
 
         return back()->with('success', 'Status surat dispensasi siswa berhasil DIBATALKAN / DIRESET ke Menunggu.');
+    }
+
+    private function kirimPengumumanSatpamDispensasi($dispen): void
+    {
+        try {
+            $nomorSatpam = \App\Models\WaSetting::getByKey('wa_nomor_satpam', '');
+            if (empty($nomorSatpam)) return;
+
+            $waEnabled = \App\Models\WaSetting::getByKey('wa_enabled', '1') === '1';
+            if (!$waEnabled) return;
+
+            $waBotService = app(\App\Services\WaBotService::class);
+            $botStatus = $waBotService->getStatus();
+            if (!isset($botStatus['status']) || $botStatus['status'] !== 'connected') return;
+
+            $siswa = $dispen->siswa;
+            $kelasLabel = '';
+            if ($siswa && $siswa->kelas) {
+                $kelasLabel = trim(
+                    ($siswa->kelas->tingkat ?? '') . ' ' .
+                    (optional($siswa->kelas->jurusan)->kode_jurusan ?? '') . ' ' .
+                    ($siswa->kelas->rombel ?? '')
+                );
+            }
+
+            $jamKeluar = $dispen->jam_mulai ? \Carbon\Carbon::parse($dispen->jam_mulai)->format('H:i') : '-';
+            $jamKembali = $dispen->jam_selesai ? \Carbon\Carbon::parse($dispen->jam_selesai)->format('H:i') : '-';
+            $namaApprover = auth()->user()->name ?? 'Approver';
+
+            $pesan = \App\Models\WaTemplate::renderMessage('pengumuman_gerbang_satpam', [
+                'nama_siswa'    => optional($siswa)->nama_siswa ?? '-',
+                'nama_kelas'    => $kelasLabel ?: '-',
+                'nama_kegiatan' => $dispen->nama_kegiatan ?? '-',
+                'jam_keluar'    => $jamKeluar,
+                'jam_kembali'   => $jamKembali,
+                'nama_piket'    => $namaApprover,
+            ]);
+
+            $phone = preg_replace('/[^0-9]/', '', $nomorSatpam);
+            if (str_starts_with($phone, '0')) $phone = '62' . substr($phone, 1);
+
+            $waBotService->sendMessage($phone, $pesan);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning('Gagal kirim pengumuman satpam (approver): ' . $e->getMessage());
+        }
     }
 }

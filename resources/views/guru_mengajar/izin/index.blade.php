@@ -2,7 +2,7 @@
 
 @section('title', 'Riwayat Pengajuan Izin Guru')
 @section('page-title', 'Riwayat & Pengajuan Izin')
-@section('page-subtitle', 'Ajukan permohonan izin kerja (sakit, dinas, cuti, dll.) dan hubungi Waka/Kepsek via WhatsApp.')
+@section('page-subtitle', 'Ajukan permohonan izin kerja (sakit, dinas, cuti, dll.).')
 
 @section('content')
     <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
@@ -35,7 +35,6 @@
                                 <th>Keterangan Rincian</th>
                                 <th style="text-align: center;">Bukti Dokumen</th>
                                 <th style="text-align: center;">Status Approval</th>
-                                <th style="text-align: center; width: 170px;">Notifikasi WA</th>
                                 <th style="text-align: center; width: 80px;">Aksi</th>
                             </tr>
                         </thead>
@@ -121,16 +120,6 @@
                                                 <i class="fa-solid fa-circle-xmark"></i> Ditolak
                                             </span>
                                         @endif
-                                    </td>
-                                    <td style="text-align: center;">
-                                        <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
-                                            <a href="{{ $wakaNum ? 'https://wa.me/' . $wakaNum . '?text=' . $waEnc : 'https://api.whatsapp.com/send?text=' . $waEnc }}" target="_blank" class="gm-btn" style="background: #25d366; color: white; border: none; padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; text-decoration: none;" title="Kirim Pesan WA Izin ke Waka">
-                                                <i class="fa-brands fa-whatsapp"></i> Waka
-                                            </a>
-                                            <a href="{{ $kepsekNum ? 'https://wa.me/' . $kepsekNum . '?text=' . $waEnc : 'https://api.whatsapp.com/send?text=' . $waEnc }}" target="_blank" class="gm-btn" style="background: #075e54; color: white; border: none; padding: 4px 8px; font-size: 0.73rem; border-radius: 6px; text-decoration: none;" title="Kirim Pesan WA Izin ke Kepsek">
-                                                <i class="fa-brands fa-whatsapp"></i> Kepsek
-                                            </a>
-                                        </div>
                                     </td>
                                     <td style="text-align: center;">
                                         @if($item->status_approval === 'pending')

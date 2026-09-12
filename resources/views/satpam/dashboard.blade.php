@@ -1,34 +1,27 @@
 @extends('layouts.satpam')
 
 @section('title', 'Dashboard Satpam')
-@section('page-title', 'Dashboard')
-@section('page-subtitle', 'Pantauan siswa keluar gerbang hari ini')
+@section('page-title', 'Dashboard Satpam')
+@section('page-subtitle', 'Monitor siswa yang mendapat dispensasi keluar sekolah hari ini')
 
 @section('content')
 
-    <div class="sp-header-row">
-        <div></div>
-        <a href="{{ route('satpam.lapor-siswa') }}" class="sp-btn sp-btn-danger">
-            <i class="fa-solid fa-bullhorn"></i> Buat Laporan Cepat
-        </a>
-    </div>
-
     <section class="sp-stats-grid">
         <div class="sp-stat-card">
-            <div class="sp-stat-value">{{ $stats['siswa_sudah_masuk'] }}</div>
-            <div class="sp-stat-label">Siswa Sudah Masuk</div>
+            <div class="sp-stat-value">{{ $stats['total_dispen'] }}</div>
+            <div class="sp-stat-label">Total Dispensasi Hari Ini</div>
         </div>
         <div class="sp-stat-card">
-            <div class="sp-stat-value">{{ $stats['sedang_izin_keluar'] }}</div>
-            <div class="sp-stat-label warn">Sedang Izin Keluar</div>
+            <div class="sp-stat-value">{{ $stats['disetujui'] }}</div>
+            <div class="sp-stat-label success" style="color: #16a34a;">Disetujui</div>
         </div>
         <div class="sp-stat-card">
-            <div class="sp-stat-value">{{ $stats['terlambat'] }}</div>
-            <div class="sp-stat-label danger">Terlambat</div>
+            <div class="sp-stat-value">{{ $stats['pending'] }}</div>
+            <div class="sp-stat-label warn">Menunggu Approval</div>
         </div>
         <div class="sp-stat-card">
-            <div class="sp-stat-value">{{ $stats['laporan_kejadian'] }}</div>
-            <div class="sp-stat-label">Laporan Kejadian</div>
+            <div class="sp-stat-value">{{ $stats['ditolak'] }}</div>
+            <div class="sp-stat-label danger">Ditolak</div>
         </div>
     </section>
 
@@ -36,7 +29,7 @@
 
         <div class="sp-card">
             <div class="sp-card-header">
-                <h3 class="sp-card-title"><i class="fa-solid fa-timeline" style="color: var(--dash-navy);"></i> Aktivitas Gerbang Terbaru</h3>
+                <h3 class="sp-card-title"><i class="fa-solid fa-timeline" style="color: var(--dash-navy);"></i> Aktivitas Dispensasi Hari Ini</h3>
             </div>
             <div class="sp-card-body">
                 @forelse($aktivitasGerbang as $item)
@@ -45,13 +38,22 @@
                             <div class="sp-activity-name">{{ $item['nama_siswa'] }} - {{ $item['kelas'] }}</div>
                             <div class="sp-activity-meta">{{ $item['aktivitas'] }} &middot; {{ $item['keterangan'] }}</div>
                         </div>
-                        <div class="sp-activity-time">{{ $item['waktu'] ?? '-' }}</div>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                            <div class="sp-activity-time">{{ $item['waktu'] }}</div>
+                            @if($item['status'] === 'disetujui')
+                                <span style="background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; padding: 2px 8px; border-radius: 12px; font-weight: 800; font-size: 0.68rem;">Disetujui</span>
+                            @elseif($item['status'] === 'pending')
+                                <span style="background: #fefce8; color: #ca8a04; border: 1px solid #fef08a; padding: 2px 8px; border-radius: 12px; font-weight: 800; font-size: 0.68rem;">Menunggu</span>
+                            @else
+                                <span style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 2px 8px; border-radius: 12px; font-weight: 800; font-size: 0.68rem;">Ditolak</span>
+                            @endif
+                        </div>
                     </div>
                 @empty
                     <div class="sp-empty-state">
                         <div class="sp-empty-icon"><i class="fa-regular fa-clock"></i></div>
-                        <div class="sp-empty-title">Belum Ada Aktivitas Hari Ini</div>
-                        <p>Aktivitas siswa keluar/masuk gerbang akan muncul di sini.</p>
+                        <div class="sp-empty-title">Belum Ada Pengajuan Dispensasi Hari Ini</div>
+                        <p>Daftar permohonan dispensasi siswa hari ini akan muncul di sini.</p>
                     </div>
                 @endforelse
             </div>
@@ -67,15 +69,8 @@
                     <a href="{{ route('satpam.cek-izin') }}" class="sp-quick-btn navy">
                         <i class="fa-solid fa-user-check"></i>
                         <div>
-                            Cek Izin
-                            <span class="sp-quick-btn-sub">Verifikasi status izin siswa</span>
-                        </div>
-                    </a>
-                    <a href="{{ route('satpam.lapor-siswa') }}" class="sp-quick-btn tan">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        <div>
-                            Buat Laporan
-                            <span class="sp-quick-btn-sub">Kirim laporan kejadian</span>
+                            Cek Dispensasi Siswa
+                            <span class="sp-quick-btn-sub">Monitor status dispensasi siswa</span>
                         </div>
                     </a>
                 </div>
@@ -83,20 +78,31 @@
 
             <div class="sp-card">
                 <div class="sp-card-header">
-                    <h3 class="sp-card-title"><i class="fa-solid fa-hourglass-half" style="color: var(--dash-navy);"></i> Izin Aktif Butuh Verifikasi</h3>
+                    <h3 class="sp-card-title"><i class="fa-solid fa-user-check" style="color: var(--dash-navy);"></i> Siswa Diizinkan Keluar Hari Ini</h3>
                 </div>
                 <div class="sp-card-body">
-                    @forelse($izinButuhVerifikasi as $izin)
-                        <div class="sp-verify-item">
+                    @forelse($siswaIzinKeluarHariIni as $dispen)
+                        @php
+                            $s = $dispen->siswa;
+                            $kStr = $s && $s->kelas ? ($s->kelas->tingkat . ' ' . optional($s->kelas->jurusan)->kode_jurusan . ' ' . $s->kelas->rombel) : '-';
+                            $jMulai = $dispen->jam_mulai ? \Carbon\Carbon::parse($dispen->jam_mulai)->format('H:i') : '-';
+                            $jSelesai = $dispen->jam_selesai ? \Carbon\Carbon::parse($dispen->jam_selesai)->format('H:i') : '-';
+                        @endphp
+                        <div class="sp-verify-item" style="padding: 10px 0; border-bottom: 1px dashed #e2e8f0;">
                             <div>
-                                <div class="sp-activity-name" style="font-size: 0.85rem;">{{ optional($izin->siswa)->nama_siswa }}</div>
-                                <div class="sp-activity-meta">Kelas {{ optional($izin->siswa)->kelas ? optional($izin->siswa)->kelas->tingkat . ' ' . optional($izin->siswa)->kelas->rombel : '-' }}</div>
+                                <div class="sp-activity-name" style="font-size: 0.875rem; font-weight: 800;">{{ optional($s)->nama_siswa ?? '-' }}</div>
+                                <div class="sp-activity-meta" style="font-size: 0.775rem;">Kelas {{ $kStr }} &middot; {{ $dispen->nama_kegiatan ?? 'Dispensasi' }}</div>
+                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">
+                                    <i class="fa-regular fa-clock"></i> Jam: <strong>{{ $jMulai }}</strong> s/d <strong>{{ $jSelesai }}</strong>
+                                </div>
                             </div>
-                            <span class="sp-pending-badge">Menunggu konfirmasi</span>
+                            <div style="font-size: 0.75rem; color: #16a34a; font-weight: 800; flex-shrink: 0; background: #f0fdf4; padding: 4px 10px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                                <i class="fa-solid fa-circle-check"></i> Disetujui
+                            </div>
                         </div>
                     @empty
                         <div class="sp-empty-state" style="padding: 24px 12px;">
-                            <p style="font-size: 0.825rem;">Tidak ada izin yang perlu diverifikasi.</p>
+                            <p style="font-size: 0.825rem;">Tidak ada siswa yang diizinkan dispensasi keluar hari ini.</p>
                         </div>
                     @endforelse
                 </div>

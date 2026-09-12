@@ -796,17 +796,7 @@
             if (!area) return;
 
             area.innerHTML = `
-                <div style="border:1px dashed #555; border-radius:4px; padding:6px; background:#fafafa; max-width: 320px; margin: 0 auto;">
-                    <canvas id="dp_canvas_siswa" width="300" height="120" style="width:100%; height:120px; background:#fff; touch-action: none; display:block; margin: 0 auto; cursor: crosshair; border-radius:2px;"></canvas>
-                    <div style="display:flex; gap:6px; justify-content:center; margin-top:6px;">
-                        <button type="button" id="dp_btn_clear_ttd" style="font-size:0.7rem; padding:3px 10px; background:#e5e7eb; border:1px solid #9ca3af; color:#374151; border-radius:3px; cursor:pointer;">
-                            Bersihkan
-                        </button>
-                        <button type="button" id="dp_btn_simpan_ttd" style="font-size:0.7rem; padding:3px 10px; background:#1e2538; border:1px solid #1e2538; color:#fff; border-radius:3px; cursor:pointer;" disabled>
-                            Simpan TTD
-                        </button>
-                    </div>
-                </div>
+                
             `;
             if (label) {
                 label.style.borderTop = '1px solid #000';

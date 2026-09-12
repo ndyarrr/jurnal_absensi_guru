@@ -271,7 +271,7 @@
             <div style="background-color: #f0fdf4; border: 1.5px solid #86efac; color: #166534; padding: 18px 22px; border-radius: 16px; margin-bottom: 24px; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 14px; box-shadow: 0 4px 14px rgba(22, 101, 52, 0.08);">
                 <i class="fa-solid fa-lock" style="font-size: 1.8rem; color: #16a34a;"></i>
                 <div>
-                    <div style="font-size: 1.05rem; font-weight: 800; color: #14532d;">SURAT DISPENSASI TERVERIFIKASI & DISETUJUI (KUNCI PERMANEN)</div>
+                    <div style="font-size: 1.05rem; font-weight: 800; color: #14532d;">SURAT DISPENSASI TERVERIFIKASI & DISETUJUI</div>
                     <p style="font-size: 0.85rem; font-weight: 600; margin-top: 2px; color: #166534;">Surat dispensasi nomor <strong>{{ $autoNomorSurat }}</strong> telah resmi disetujui. Seluruh data, lampiran file, dan pengesahan TTD Digital telah dikunci secara permanen dan tidak dapat diubah kembali.</p>
                 </div>
             </div>

@@ -144,6 +144,7 @@ class PengaturanWaController extends Controller
             'wa_nomor_waka' => 'nullable|string',
             'wa_nomor_waka_kurikulum' => 'nullable|string',
             'wa_nomor_kepsek' => 'nullable|string',
+            'wa_nomor_satpam' => 'nullable|string',
         ]);
 
         WaSetting::setKey('wa_enabled', $request->has('wa_enabled') ? '1' : '0', 'general', 'Aktifkan/Nonaktifkan Notifikasi WA');
@@ -156,6 +157,7 @@ class PengaturanWaController extends Controller
         WaSetting::setKey('wa_nomor_waka', $normalizePhone($request->wa_nomor_waka), 'contact', 'Nomor WhatsApp Waka Kesiswaan');
         WaSetting::setKey('wa_nomor_waka_kurikulum', $normalizePhone($request->wa_nomor_waka_kurikulum), 'contact', 'Nomor WhatsApp Waka Kurikulum');
         WaSetting::setKey('wa_nomor_kepsek', $normalizePhone($request->wa_nomor_kepsek), 'contact', 'Nomor WhatsApp Kepsek');
+        WaSetting::setKey('wa_nomor_satpam', $normalizePhone($request->wa_nomor_satpam), 'contact', 'Nomor WhatsApp Pos Satpam/Gerbang');
         
         if ($request->has('target_roles')) {
             WaSetting::setKey('notification_target_roles', $request->target_roles, 'general', 'Role target penerima default');

@@ -2,14 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Guru;
-use App\Models\JadwalPiket;
-use App\Models\LaporanKejadianSiswa;
-use App\Models\PermohonanIzin;
 use App\Models\Siswa;
-use App\Models\WaSetting;
-use App\Models\WaTemplate;
-use App\Services\WaBotService;
+use App\Models\SuratDispensasi;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -22,199 +16,71 @@ class SatpamController extends Controller
     {
         $today = Carbon::now('Asia/Jakarta')->toDateString();
 
-        $izinHariIni = PermohonanIzin::with(['siswa.kelas'])
-            ->where('tipe_pemohon', 'siswa')
-            ->whereDate('tanggal_mulai', $today)
-            ->orderByDesc('jam_keluar')
+        $dispenHariIni = SuratDispensasi::with(['siswa.kelas.jurusan'])
+            ->whereDate('tanggal_mulai', '<=', $today)
+            ->whereDate('tanggal_selesai', '>=', $today)
+            ->orderByDesc('created_at')
             ->get();
 
-        $totalSiswa = Siswa::count();
-        $sedangIzinKeluar = $izinHariIni->filter(fn ($i) => $i->jam_keluar && !$i->jam_kembali_aktual)->count();
-        $terlambat = $izinHariIni->filter(fn ($i) => $i->status_gerbang === 'kadaluwarsa')->count();
-        $laporanHariIni = LaporanKejadianSiswa::whereDate('created_at', $today)->count();
+        $totalDispen = $dispenHariIni->count();
+        $disetujuiCount = $dispenHariIni->where('status_approval', 'disetujui')->count();
+        $pendingCount = $dispenHariIni->where('status_approval', 'pending')->count();
+        $ditolakCount = $dispenHariIni->where('status_approval', 'ditolak')->count();
 
-        // Aktivitas gerbang terbaru: gabungan izin keluar/masuk hari ini, urut terbaru
-        $aktivitasGerbang = $izinHariIni->take(6)->map(function ($izin) {
-            $isKembali = (bool) $izin->jam_kembali_aktual;
+        // Aktivitas gerbang terbaru: daftar permohonan dispensasi hari ini
+        $aktivitasGerbang = $dispenHariIni->take(6)->map(function ($dispen) {
+            $isDisetujui = $dispen->status_approval === 'disetujui';
+            $jamMulaiStr = $dispen->jam_mulai ? Carbon::parse($dispen->jam_mulai)->format('H:i') : '-';
+            $jamSelesaiStr = $dispen->jam_selesai ? Carbon::parse($dispen->jam_selesai)->format('H:i') : '-';
+
             return [
-                'nama_siswa' => optional($izin->siswa)->nama_siswa ?? '-',
-                'kelas' => $this->kelasLabel(optional($izin->siswa)->kelas),
-                'aktivitas' => $isKembali ? 'Kembali ke gerbang' : 'Izin keluar - ' . $izin->jenis_izin,
-                'keterangan' => $izin->alasan,
-                'waktu' => $isKembali
-                    ? optional($izin->jam_kembali_aktual ? Carbon::parse($izin->jam_kembali_aktual) : null)?->format('H:i')
-                    : optional($izin->jam_keluar ? Carbon::parse($izin->jam_keluar) : null)?->format('H:i'),
+                'nama_siswa' => optional($dispen->siswa)->nama_siswa ?? '-',
+                'kelas' => $this->kelasLabel(optional($dispen->siswa)->kelas),
+                'aktivitas' => $isDisetujui ? 'Dispensasi Keluar - ' . ($dispen->nama_kegiatan ?? 'Tugas/Kegiatan') : 'Pengajuan Dispensasi',
+                'keterangan' => $dispen->alasan_dispensasi ?? $dispen->nama_kegiatan ?? '-',
+                'waktu' => $jamMulaiStr . ($jamSelesaiStr !== '-' ? " s/d {$jamSelesaiStr}" : ''),
+                'status' => $dispen->status_approval,
             ];
         });
 
-        // Izin aktif butuh verifikasi (belum dicatat jam keluarnya oleh satpam)
-        $izinButuhVerifikasi = $izinHariIni->filter(fn ($i) => !$i->jam_keluar)->take(5);
+        // Daftar siswa yang DISETUJUI dispensasi keluar hari ini (Read-only monitoring)
+        $siswaIzinKeluarHariIni = $dispenHariIni->filter(fn ($d) => $d->status_approval === 'disetujui')->take(6);
 
         $stats = [
-            'siswa_sudah_masuk' => max($totalSiswa - $sedangIzinKeluar, 0),
-            'sedang_izin_keluar' => $sedangIzinKeluar,
-            'terlambat' => $terlambat,
-            'laporan_kejadian' => $laporanHariIni,
+            'total_dispen' => $totalDispen,
+            'disetujui' => $disetujuiCount,
+            'pending' => $pendingCount,
+            'ditolak' => $ditolakCount,
         ];
 
-        return view('satpam.dashboard', compact('stats', 'aktivitasGerbang', 'izinButuhVerifikasi'));
+        return view('satpam.dashboard', compact('stats', 'aktivitasGerbang', 'siswaIzinKeluarHariIni'));
     }
 
     /* ==========================================================================
-       2. CEK IZIN SISWA
+       2. CEK DISPENSASI SISWA
        ========================================================================== */
     public function cekIzin(Request $request)
     {
-        $query = PermohonanIzin::with(['siswa.kelas'])->where('tipe_pemohon', 'siswa');
+        $query = SuratDispensasi::with(['siswa.kelas.jurusan']);
 
         if ($request->filled('search')) {
             $search = $request->input('search');
-            $query->whereHas('siswa', function ($q) use ($search) {
-                $q->where('nama_siswa', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('siswa', function ($sq) use ($search) {
+                    $sq->where('nama_siswa', 'like', "%{$search}%");
+                })->orWhere('nama_kegiatan', 'like', "%{$search}%")
+                  ->orWhere('alasan_dispensasi', 'like', "%{$search}%");
             });
         }
 
-        $daftarIzin = $query->orderByDesc('tanggal_mulai')->orderByDesc('jam_keluar')->paginate(15)->withQueryString();
-
-        // Filter status_gerbang dilakukan di collection karena itu accessor turunan, bukan kolom DB
-        $filterStatus = $request->input('status');
+        $filterStatus = $request->input('status', 'semua');
         if ($filterStatus && $filterStatus !== 'semua') {
-            $daftarIzin->setCollection(
-                $daftarIzin->getCollection()->filter(fn ($i) => $i->status_gerbang === $filterStatus)->values()
-            );
+            $query->where('status_approval', $filterStatus);
         }
+
+        $daftarIzin = $query->orderByDesc('tanggal_mulai')->orderByDesc('created_at')->paginate(15)->withQueryString();
 
         return view('satpam.cek_izin', compact('daftarIzin', 'filterStatus'));
-    }
-
-    /**
-     * Satpam mencatat jam keluar siswa (submit dari modal di halaman Cek Izin Siswa).
-     */
-    public function catatKeluar(Request $request, PermohonanIzin $izin)
-    {
-        $validated = $request->validate([
-            'perkiraan_kembali' => 'nullable|date_format:H:i',
-        ]);
-
-        $izin->jam_keluar = Carbon::now('Asia/Jakarta')->format('H:i:s');
-        $izin->perkiraan_kembali = $validated['perkiraan_kembali'] ?? null;
-        $izin->dicatat_oleh_user_id = auth()->id();
-        $izin->save();
-
-        return redirect()->route('satpam.cek-izin')->with('success', 'Jam keluar siswa berhasil dicatat.');
-    }
-
-    /**
-     * Satpam mencatat siswa sudah kembali ke sekolah.
-     */
-    public function catatKembali(Request $request, PermohonanIzin $izin)
-    {
-        $izin->jam_kembali_aktual = Carbon::now('Asia/Jakarta')->format('H:i:s');
-        $izin->save();
-
-        return redirect()->route('satpam.cek-izin')->with('success', 'Siswa tercatat sudah kembali ke sekolah.');
-    }
-
-    /* ==========================================================================
-       3. LAPOR SISWA
-       ========================================================================== */
-    public function laporSiswaForm(Request $request)
-    {
-        $siswaList = Siswa::with('kelas.jurusan')->orderBy('nama_siswa')->get();
-        return view('satpam.lapor_siswa', compact('siswaList'));
-    }
-    
-    public function storeLaporSiswa(Request $request, WaBotService $waBotService)
-    {
-        $validated = $request->validate([
-            'id_siswa' => 'required|exists:siswa,id_siswa',
-            'jenis_kejadian' => 'required|in:terlambat_kembali,keluar_tanpa_izin,pelanggaran_tata_tertib,lainnya',
-            'catatan_kejadian' => 'required|string|max:1000',
-            'kirim_ke_wali_kelas' => 'nullable|boolean',
-            'kirim_ke_guru_piket' => 'nullable|boolean',
-            'aksi' => 'required|in:kirim,draft',
-        ]);
-
-        $siswa = Siswa::with('kelas')->findOrFail($validated['id_siswa']);
-
-        $laporan = LaporanKejadianSiswa::create([
-            'id_siswa' => $siswa->id_siswa,
-            'id_kelas' => $siswa->id_kelas,
-            'jenis_kejadian' => $validated['jenis_kejadian'],
-            'catatan_kejadian' => $validated['catatan_kejadian'],
-            'id_user_pelapor' => auth()->id(),
-            'kirim_ke_wali_kelas' => $request->boolean('kirim_ke_wali_kelas'),
-            'kirim_ke_guru_piket' => $request->boolean('kirim_ke_guru_piket'),
-            'status' => $validated['aksi'] === 'kirim' ? 'terkirim' : 'draft',
-        ]);
-
-        if ($validated['aksi'] === 'kirim') {
-            $this->kirimLaporanViaWa($laporan, $siswa, $waBotService);
-        }
-
-        $pesan = $validated['aksi'] === 'kirim'
-            ? 'Laporan berhasil dikirim.'
-            : 'Laporan berhasil disimpan sebagai draft.';
-
-        return redirect()->route('satpam.lapor-siswa')->with('success', $pesan);
-    }
-
-    private function kirimLaporanViaWa(LaporanKejadianSiswa $laporan, Siswa $siswa, WaBotService $waBotService): void
-    {
-        try {
-            $waEnabled = WaSetting::getByKey('wa_enabled', '1') === '1';
-            $botStatus = $waBotService->getStatus();
-            $isBotOnline = $waEnabled && isset($botStatus['status']) && $botStatus['status'] === 'connected';
-
-            if (!$isBotOnline) {
-                return;
-            }
-
-            $penerima = collect();
-
-            if ($laporan->kirim_ke_wali_kelas && $siswa->kelas && $siswa->kelas->id_guru_wali) {
-                $wali = Guru::find($siswa->kelas->id_guru_wali);
-                if ($wali && !empty($wali->no_hp)) {
-                    $penerima->push($wali->no_hp);
-                }
-            }
-
-            if ($laporan->kirim_ke_guru_piket) {
-                $hariIni = Carbon::now('Asia/Jakarta')->translatedFormat('l');
-                $piket = JadwalPiket::where('hari', $hariIni)->first();
-                if ($piket) {
-                    $guruPiket = Guru::find($piket->id_guru);
-                    if ($guruPiket && !empty($guruPiket->no_hp)) {
-                        $penerima->push($guruPiket->no_hp);
-                    }
-                }
-            }
-
-            if ($penerima->isEmpty()) {
-                return;
-            }
-
-            $pesan = WaTemplate::renderMessage('laporan_kejadian_siswa', [
-                'nama_siswa' => $siswa->nama_siswa,
-                'nama_kelas' => $this->kelasLabel($siswa->kelas),
-                'jenis_kejadian' => $laporan->jenis_label,
-                'catatan_kejadian' => $laporan->catatan_kejadian,
-                'nama_pelapor' => auth()->user()->name,
-                'tanggal' => Carbon::now('Asia/Jakarta')->translatedFormat('d F Y, H:i'),
-            ]);
-
-            $terkirim = false;
-            foreach ($penerima->unique() as $noHp) {
-                $waBotService->sendMessage($noHp, $pesan);
-                $terkirim = true;
-            }
-
-            if ($terkirim) {
-                $laporan->update(['terkirim_wa' => true]);
-            }
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning('Gagal kirim laporan kejadian via WA: ' . $e->getMessage());
-        }
     }
 
     /* ==========================================================================
@@ -226,6 +92,6 @@ class SatpamController extends Controller
             return '-';
         }
 
-        return trim($kelas->tingkat . ' ' . optional($kelas->jurusan)->kode_jurusan . ' ' . $kelas->rombel);
+        return trim(($kelas->tingkat ?? '') . ' ' . optional($kelas->jurusan)->kode_jurusan . ' ' . ($kelas->rombel ?? ''));
     }
 }

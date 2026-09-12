@@ -543,6 +543,9 @@ class GuruPiketController extends Controller
             }
         }
 
+        // Kirim notifikasi pengumuman ke Pos Satpam/Gerbang
+        $this->kirimPengumumanKeSatpam($dispen, $siswa);
+
         return redirect()->route('guru-piket.digital-surat')
             ->with('success', "Surat dispensasi untuk {$siswa->nama_siswa} ({$request->nama_kegiatan}) beserta TTD Digital berhasil diterbitkan dan terverifikasi!");
     }
@@ -744,5 +747,69 @@ class GuruPiketController extends Controller
             'url'        => $surat->fresh()->ttd_guru_url,
             'signed_at'  => optional($surat->fresh()->ttd_guru_signed_at)->format('d/m/Y H:i'),
         ]);
+    }
+
+    /**
+     * Kirim notifikasi WA pengumuman ke Pos Satpam saat dispensasi siswa diterbitkan.
+     */
+    private function kirimPengumumanKeSatpam($dispen, $siswa): void
+    {
+        try {
+            $nomorSatpam = \App\Models\WaSetting::getByKey('wa_nomor_satpam', '');
+            if (empty($nomorSatpam)) {
+                return;
+            }
+
+            $waEnabled = \App\Models\WaSetting::getByKey('wa_enabled', '1') === '1';
+            if (!$waEnabled) {
+                return;
+            }
+
+            $waBotService = app(\App\Services\WaBotService::class);
+            $botStatus = $waBotService->getStatus();
+            if (!isset($botStatus['status']) || $botStatus['status'] !== 'connected') {
+                return;
+            }
+
+            $kelasLabel = '';
+            if ($siswa->kelas) {
+                $kelasLabel = trim(
+                    ($siswa->kelas->tingkat ?? '') . ' ' .
+                    (optional($siswa->kelas->jurusan)->kode_jurusan ?? '') . ' ' .
+                    ($siswa->kelas->rombel ?? '')
+                );
+            }
+
+            $jamKeluar = $dispen->jam_mulai
+                ? \Carbon\Carbon::parse($dispen->jam_mulai)->format('H:i')
+                : \Carbon\Carbon::now('Asia/Jakarta')->format('H:i');
+
+            $jamKembali = $dispen->jam_selesai
+                ? \Carbon\Carbon::parse($dispen->jam_selesai)->format('H:i')
+                : '-';
+
+            $namaGuru = auth()->user() && auth()->user()->guru
+                ? auth()->user()->guru->nama_guru
+                : (auth()->user()->name ?? 'Guru Piket');
+
+            $pesan = \App\Models\WaTemplate::renderMessage('pengumuman_gerbang_satpam', [
+                'nama_siswa'    => $siswa->nama_siswa,
+                'nama_kelas'    => $kelasLabel ?: '-',
+                'nama_kegiatan' => $dispen->nama_kegiatan ?? '-',
+                'jam_keluar'    => $jamKeluar,
+                'jam_kembali'   => $jamKembali,
+                'nama_piket'    => $namaGuru,
+            ]);
+
+            // Normalize phone number
+            $phone = preg_replace('/[^0-9]/', '', $nomorSatpam);
+            if (str_starts_with($phone, '0')) {
+                $phone = '62' . substr($phone, 1);
+            }
+
+            $waBotService->sendMessage($phone, $pesan);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning('Gagal kirim pengumuman gerbang satpam: ' . $e->getMessage());
+        }
     }
 }
