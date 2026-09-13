@@ -20,6 +20,24 @@
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
         }
 
+        .wa-tab-link.wa-tab-test {
+            margin-left: auto;
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-color: #bfdbfe;
+        }
+
+        .wa-tab-link.wa-tab-test:hover,
+        .wa-tab-link.wa-tab-test.active {
+            background: #1d4ed8;
+            color: #ffffff;
+            border-color: #1d4ed8;
+        }
+
+        .wa-page-content {
+            padding: 8px 0 24px;
+        }
+
         .wa-tab-nav {
             display: flex;
             gap: 10px;
@@ -28,6 +46,7 @@
             padding-bottom: 12px;
             flex-wrap: wrap;
         }
+
         .wa-tab-link {
             padding: 10px 18px;
             font-size: 0.88rem;
@@ -215,8 +234,12 @@
 
         .wa-chat-bubble-wrap {
             display: flex;
+            flex-direction: column;
+            align-items: flex-end;
             justify-content: flex-end;
             margin-bottom: 24px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .wa-chat-bubble {
@@ -229,6 +252,7 @@
             position: relative;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
             line-height: 1.6;
+            box-sizing: border-box;
         }
 
         .wa-bubble-header {
@@ -346,6 +370,198 @@
             font-weight: 800;
             font-size: 0.875rem;
         }
+
+        .template-item-card {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .template-item-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            width: 100%;
+            max-width: 650px;
+            margin-bottom: 8px;
+            padding: 0 4px;
+            box-sizing: border-box;
+            flex-wrap: wrap;
+        }
+
+        .template-item-meta-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .wa-title-short,
+        .wa-subtitle-mobile {
+            display: none;
+        }
+
+        @media (max-width: 992px) {
+            .dash-main > .dash-content,
+            .dash-content,
+            .wa-page-content {
+                padding: 0 !important;
+            }
+
+            .wa-title-full,
+            .wa-subtitle-desktop {
+                display: none !important;
+            }
+
+            .wa-title-short,
+            .wa-subtitle-mobile {
+                display: inline !important;
+            }
+
+            .wa-tab-nav {
+                gap: 8px;
+                margin-bottom: 16px;
+                padding-bottom: 10px;
+            }
+
+            .wa-tab-link {
+                flex: 1 1 calc(50% - 8px);
+                justify-content: center;
+                padding: 10px 12px;
+                font-size: 0.8rem;
+                min-width: 0;
+            }
+
+            .wa-tab-link.wa-tab-test {
+                margin-left: 0 !important;
+                flex: 1 1 100%;
+            }
+
+            .wa-tab-link span {
+                overflow-wrap: anywhere;
+                line-height: 1.2;
+            }
+
+            .card-box {
+                padding: 14px 12px;
+                margin-bottom: 16px;
+                border-radius: 14px;
+            }
+
+            .wa-filter-pill-bar {
+                justify-content: stretch;
+                gap: 8px;
+            }
+
+            .wa-filter-pill {
+                flex: 1 1 calc(50% - 8px);
+                text-align: center;
+                padding: 8px 10px;
+                font-size: 0.8rem;
+            }
+
+            .wa-chat-canvas {
+                padding: 12px 10px;
+                border-radius: 14px;
+                min-height: 280px;
+            }
+
+            .wa-chat-bubble-wrap,
+            .template-item-card {
+                width: 100% !important;
+                max-width: 100% !important;
+                align-items: stretch !important;
+            }
+
+            .template-item-meta {
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+
+            .wa-chat-bubble {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 14px 14px;
+                border-radius: 14px 14px 4px 14px;
+                box-sizing: border-box;
+            }
+
+            .wa-bubble-text {
+                font-size: 0.88rem;
+            }
+
+            .wa-bubble-footer {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .wa-bubble-actions {
+                flex-wrap: wrap;
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .wa-btn-act {
+                min-height: 36px;
+            }
+
+            .var-tags-bar {
+                max-height: 140px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .form-switch-label {
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: 12px;
+            }
+
+            .pairing-code-box {
+                font-size: 1.5rem;
+                letter-spacing: 4px;
+                padding: 12px 16px;
+                max-width: 100%;
+                box-sizing: border-box;
+                word-break: break-all;
+            }
+
+            .qr-code-img {
+                max-width: min(250px, 70vw);
+            }
+
+            .table-custom {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .wa-tab-link {
+                flex: 1 1 100%;
+            }
+
+            .wa-filter-pill {
+                flex: 1 1 calc(50% - 8px);
+            }
+
+            .wa-chat-canvas {
+                padding: 10px 8px;
+            }
+
+            .wa-chat-bubble {
+                padding: 12px;
+            }
+
+            .card-box {
+                padding: 12px 10px;
+            }
+        }
+
         .tag-pill-var-invalid {
             color: #fca5a5;
             background: rgba(239, 68, 68, 0.25);
@@ -354,6 +570,7 @@
             padding: 1px 4px;
             font-weight: 800;
             font-size: 0.85rem;
+            text-decoration: none;
         }
     </style>
 </head>
@@ -380,8 +597,12 @@
                         </svg>
                     </button>
                     <div>
-                        <h1 class="dash-header-title">Pengaturan & Notifikasi WhatsApp</h1>
-                        <p class="dash-header-subtitle">Konfigurasi status bot, pengingat 15 menit, template pesan, dan penerima</p>
+                        <h1 class="dash-header-title">
+                            <span class="wa-title-full">Pengaturan & Notifikasi WhatsApp</span>
+                            <span class="wa-title-short">Bot Konfigurasi</span>
+                        </h1>
+                        <p class="dash-header-subtitle wa-subtitle-desktop">Konfigurasi status bot, pengingat 15 menit, template pesan, dan penerima</p>
+                        <p class="dash-header-subtitle wa-subtitle-mobile">Status, template & penerima</p>
                     </div>
                 </div>
 
@@ -404,7 +625,7 @@
                 </div>
             </header>
 
-            <div class="dash-content" style="padding: 24px;">
+            <div class="dash-content wa-page-content">
                 @if(session('success'))
                     <div style="background: #dcfce7; color: #15803d; border: 1px solid #86efac; border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
@@ -437,7 +658,7 @@
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                         <span>Daftar Penerima</span>
                     </a>
-                    <a href="{{ route('pengaturan-wa.index', ['tab' => 'test-send']) }}" class="wa-tab-link {{ $activeTab === 'test-send' ? 'active' : '' }}" style="margin-left: auto; background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;">
+                    <a href="{{ route('pengaturan-wa.index', ['tab' => 'test-send']) }}" class="wa-tab-link wa-tab-test {{ $activeTab === 'test-send' ? 'active' : '' }}">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                         <span>Uji Coba Kirim WA</span>
                     </a>
@@ -819,13 +1040,12 @@
                                          data-category="{{ $tmpl->kategori }}"
                                          data-id="{{ $tmpl->id }}"
                                          data-kode="{{ $tmpl->kode }}"
-                                         data-allowed-vars="{{ json_encode($allSystemVars) }}"
-                                         style="display: flex; flex-direction: column; align-items: flex-end; margin-bottom: 24px;">
+                                         data-allowed-vars="{{ json_encode($allSystemVars) }}">
 
                                         {{-- Meta Header: Title & Code sit cleanly above the WhatsApp Chat Bubble --}}
-                                        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 650px; margin-bottom: 8px; padding: 0 4px;">
-                                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                                <span class="bubble-nama" id="nama-{{ $tmpl->id }}" data-original="{{ e($tmpl->nama) }}" style="font-weight: 800; font-size: 0.95rem; color: #ffffff; outline: none;">{{ $tmpl->nama }}</span>
+                                        <div class="template-item-meta">
+                                            <div class="template-item-meta-left">
+                                                <span class="bubble-nama" id="nama-{{ $tmpl->id }}" data-original="{{ e($tmpl->nama) }}" style="font-weight: 800; font-size: 0.95rem; color: #0f172a; outline: none;">{{ $tmpl->nama }}</span>
                                                 <span class="bubble-kode" id="kode-{{ $tmpl->id }}" data-original="{{ e($tmpl->kode) }}" contenteditable="false" style="font-size: 0.75rem; color: #64748b; font-family: monospace; font-weight: 600; background: #e2e8f0; padding: 2px 8px; border-radius: 6px; outline: none;">{{ $tmpl->kode }}</span>
                                             </div>
                                             <span class="bubble-kat-badge" id="kat-badge-{{ $tmpl->id }}" style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: #ffffff; color: #000000; padding: 3px 10px; border-radius: 12px; letter-spacing: 0.5px;">{{ $tmpl->kategori }}</span>

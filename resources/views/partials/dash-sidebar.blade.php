@@ -36,7 +36,7 @@
                         <polyline points="6 9 12 15 18 9"></polyline>
                     </svg>
                 </button>
-                <ul class="dash-sub-menu" id="masterDataSub" style="{{ $isMasterData ? 'display: flex;' : '' }}">
+                <ul class="dash-sub-menu{{ $isMasterData ? ' is-open' : '' }}" id="masterDataSub" style="{{ $isMasterData ? 'display: flex;' : 'display: none;' }}">
                     <li>
                         <a href="{{ route('users.index') }}" class="dash-sub-link" @if(request()->routeIs('users.*')) style="background-color: var(--dash-navy); color: #ffffff; font-weight: 700;" @endif>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="{{ request()->routeIs('users.*') ? 'color: #ffffff;' : '' }} width: 18px; height: 18px; flex-shrink: 0;">
@@ -107,7 +107,7 @@
                         <polyline points="6 9 12 15 18 9"></polyline>
                     </svg>
                 </button>
-                <ul class="dash-sub-menu" id="akademikSub" style="{{ $isAkademik ? 'display: flex;' : '' }}">
+                <ul class="dash-sub-menu{{ $isAkademik ? ' is-open' : '' }}" id="akademikSub" style="{{ $isAkademik ? 'display: flex;' : 'display: none;' }}">
                     <li>
                         <a href="{{ route('jam.index') }}" class="dash-sub-link" @if(request()->routeIs('jam.*')) style="background-color: var(--dash-navy); color: #ffffff; font-weight: 700;" @endif>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="{{ request()->routeIs('jam.*') ? 'color: #ffffff;' : '' }} width: 18px; height: 18px; flex-shrink: 0;">

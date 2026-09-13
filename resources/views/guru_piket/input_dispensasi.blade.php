@@ -166,12 +166,95 @@
             padding: 16px;
             background: #fafafa;
             text-align: center;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+        }
+
+        .ttd-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .ttd-canvas {
+            width: 100% !important;
+            max-width: 100%;
+            height: 160px !important;
+            background: #ffffff;
+            border: 1px dashed #94a3b8;
+            border-radius: 10px;
+            touch-action: none;
+            cursor: crosshair;
+            display: block;
+            margin: 0 auto 8px auto;
+            box-sizing: border-box;
+        }
+
+        .pk-form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .pk-form-grid-4 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 12px;
         }
 
         @media (max-width: 992px) {
-            .pk-sidebar { transform: translateX(-260px); }
-            .pk-main { margin-left: 0; width: 100%; padding: 20px 16px; }
+            .pk-sidebar {
+                transform: translateX(-105%);
+                width: min(280px, 86vw);
+                z-index: 1000;
+                transition: transform 0.3s ease;
+                box-shadow: 4px 0 25px rgba(15, 23, 42, 0.15);
+            }
+            .pk-main {
+                margin-left: 0 !important;
+                width: 100% !important;
+                max-width: 100vw;
+                padding: 16px 12px;
+                overflow-x: hidden;
+            }
             body.sidebar-mobile-open .pk-sidebar { transform: translateX(0); }
+            body.sidebar-mobile-open { overflow: hidden; }
+
+            .pk-form-card {
+                padding: 16px 12px;
+                border-radius: 16px;
+            }
+
+            .pk-header-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .pk-form-grid-2,
+            .pk-form-grid-4,
+            .ttd-grid {
+                grid-template-columns: 1fr !important;
+                gap: 12px !important;
+            }
+
+            .ttd-canvas {
+                height: 200px !important;
+                min-height: 200px;
+            }
+
+            .ttd-card {
+                padding: 14px 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .pk-main { padding: 12px 10px; }
+            .pk-form-card { padding: 14px 10px; }
+            .ttd-canvas { height: 220px !important; min-height: 220px; }
         }
     </style>
 </head>
@@ -319,7 +402,7 @@
                 </div>
 
                 <!-- Cascading Select (Pilih Kelas -> Pilih Siswa) -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                <div class="pk-form-grid-2" style="margin-bottom: 20px;">
                     <div class="pk-form-group" style="margin-bottom: 0;">
                         <label class="pk-label"><i class="fa-solid fa-school" style="margin-right: 6px; color: var(--pk-amber);"></i>1. Pilih Kelas Dahulu</label>
                         <select id="select_kelas" class="pk-select" onchange="filterSiswaByKelas(this.value)" @if((isset($isDutyToday) && !$isDutyToday) || (isset($isVerified) && $isVerified)) disabled @endif>
@@ -346,7 +429,7 @@
                 </div>
 
                 <!-- Nama Kegiatan & Lokasi -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="pk-form-grid-2">
                     <div class="pk-form-group">
                         <label class="pk-label"><i class="fa-solid fa-trophy" style="margin-right: 6px;"></i>Nama Kegiatan / Keperluan</label>
                         <input type="text" name="nama_kegiatan" class="pk-input" value="{{ old('nama_kegiatan', $surat->nama_kegiatan ?? '') }}" placeholder="Contoh: Lomba O2SN Futsal / Tugas Ekstrakurikuler" required @if((isset($isDutyToday) && !$isDutyToday) || (isset($isVerified) && $isVerified)) disabled @endif>

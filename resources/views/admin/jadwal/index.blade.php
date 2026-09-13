@@ -39,7 +39,10 @@
                         </svg>
                     </button>
                     <div>
-                        <h1 class="dash-header-title">Akademik - Jadwal Pelajaran</h1>
+                        <h1 class="dash-header-title">
+                            <span class="jadwal-title-full">Akademik - Jadwal Pelajaran</span>
+                            <span class="jadwal-title-short">Jadwal Pelajaran</span>
+                        </h1>
                         <p class="dash-header-subtitle">Statistik Jadwal</p>
                     </div>
                 </div>
@@ -86,37 +89,36 @@
                  --------------------------------------------------------------- -->
             <div class="jadwal-controls-row">
                 <!-- Real-time Search Form -->
-                <div style="position: relative; width: 340px;">
-                    <svg style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #94a3b8; pointer-events: none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <div class="jadwal-search-box">
+                    <svg class="jadwal-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
-                    <input type="text" id="jadwalSearchInput" class="form-field-input" style="padding-left: 42px; border-radius: 14px;" placeholder="Cari Nama Jadwal" value="{{ request('search') }}" autocomplete="off">
+                    <input type="text" id="jadwalSearchInput" class="form-field-input jadwal-search-input" placeholder="Cari Nama Jadwal" value="{{ request('search') }}" autocomplete="off">
                 </div>
 
                 <!-- Action Buttons -->
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <!-- Kelola Jam & Pulang Button -->
-                    <a href="{{ route('jam.index') }}" class="btn-export-pill" style="background: #ffffff; color: var(--dash-navy); border: 1.5px solid var(--dash-navy); font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                <div class="jadwal-action-group">
+                    <a href="{{ route('jam.index') }}" class="btn-export-pill btn-kelola-jam" title="Kelola Jam & Waktu Pulang">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="10"></circle>
                             <polyline points="12 6 12 12 16 14"></polyline>
                         </svg>
-                        <span>Kelola Jam & Waktu Pulang</span>
+                        <span class="btn-label-full">Kelola Jam & Waktu Pulang</span>
+                        <span class="btn-label-short">Kelola Jam</span>
                     </a>
 
-                    <!-- Export CSV Button -->
                     <button type="button" class="btn-export-pill" onclick="exportJadwalCsv()" title="Unduh format CSV">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="7 10 12 15 17 10"></polyline>
                             <line x1="12" y1="15" x2="12" y2="3"></line>
                         </svg>
-                        <span>Export CSV</span>
+                        <span class="btn-label-full">Export CSV</span>
+                        <span class="btn-label-short">CSV</span>
                     </button>
 
-                    <!-- Export PDF Button -->
-                    <button type="button" class="btn-export-pill" onclick="exportJadwalPdf()" style="background: #dc2626; color: #ffffff; border: none;" title="Cetak / Unduh Format PDF">
+                    <button type="button" class="btn-export-pill btn-export-pdf" onclick="exportJadwalPdf()" title="Cetak / Unduh Format PDF">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                             <polyline points="14 2 14 8 20 8"></polyline>
@@ -124,21 +126,27 @@
                             <line x1="16" y1="17" x2="8" y2="17"></line>
                             <polyline points="10 9 9 9 8 9"></polyline>
                         </svg>
-                        <span>Export PDF</span>
+                        <span class="btn-label-full">Export PDF</span>
+                        <span class="btn-label-short">PDF</span>
                     </button>
 
-                    <!-- Tambah Jadwal Button -->
-                    <button type="button" class="btn-jadwal-tambah" onclick="openCreateModal()">
+                    <button type="button" class="btn-jadwal-tambah" onclick="openCreateModal()" title="Tambah Jadwal">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                         </svg>
-                        <span>Tambah Jadwal</span>
+                        <span class="btn-label-full">Tambah Jadwal</span>
+                        <span class="btn-label-short">Tambah</span>
                     </button>
                 </div>
             </div>
 
             <style>
+                .btn-label-short,
+                .jadwal-title-short {
+                    display: none;
+                }
+
                 .jam-tab-btn {
                     padding: 8px 16px;
                     font-size: 0.85rem;
@@ -151,7 +159,10 @@
                     transition: all 0.2s ease;
                     display: inline-flex;
                     align-items: center;
+                    justify-content: center;
                     gap: 6px;
+                    box-sizing: border-box;
+                    min-width: 0;
                 }
                 .jam-tab-btn.active {
                     background: var(--dash-navy);
@@ -163,7 +174,6 @@
                     background-color: #f8fafc;
                     border: 2px solid #cbd5e1;
                     border-radius: 5px;
-                    /* padding: 2px; */
                     vertical-align: top;
                     height: 115px;
                     min-width: 155px;
@@ -216,11 +226,147 @@
                     color: var(--dash-navy);
                     border-color: var(--dash-navy);
                 }
+
+                /* Page-level mobile polish for Jadwal */
+                @media (max-width: 992px) {
+                    .dash-main {
+                        overflow-x: hidden !important;
+                        max-width: 100vw !important;
+                    }
+
+                    .jadwal-controls-row {
+                        display: flex !important;
+                        flex-direction: column !important;
+                        align-items: stretch !important;
+                        gap: 10px !important;
+                        width: 100% !important;
+                    }
+
+                    .jadwal-search-box {
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        flex: none !important;
+                    }
+
+                    .jadwal-action-group {
+                        display: grid !important;
+                        grid-template-columns: 1fr 1fr !important;
+                        gap: 8px !important;
+                        width: 100% !important;
+                        flex: none !important;
+                    }
+
+                    .jadwal-action-group .btn-export-pill,
+                    .jadwal-action-group .btn-jadwal-tambah {
+                        width: 100% !important;
+                        min-width: 0 !important;
+                        max-width: 100% !important;
+                        flex: none !important;
+                        justify-content: center !important;
+                        white-space: nowrap !important;
+                        padding: 10px 12px !important;
+                        font-size: 0.8rem !important;
+                    }
+
+                    .jadwal-action-group .btn-kelola-jam {
+                        grid-column: 1 / -1;
+                    }
+
+                    .btn-label-full {
+                        display: none !important;
+                    }
+
+                    .btn-label-short {
+                        display: inline !important;
+                    }
+
+                    .jadwal-title-full {
+                        display: none !important;
+                    }
+
+                    .jadwal-title-short {
+                        display: inline !important;
+                    }
+
+                    .jadwal-view-switcher {
+                        display: flex !important;
+                        flex-direction: column !important;
+                        align-items: stretch !important;
+                        gap: 10px !important;
+                    }
+
+                    .jadwal-view-tabs {
+                        display: grid !important;
+                        grid-template-columns: 1fr 1fr !important;
+                        gap: 8px !important;
+                        width: 100% !important;
+                    }
+
+                    .jadwal-view-tabs .jam-tab-btn {
+                        width: 100% !important;
+                        padding: 10px 8px !important;
+                        font-size: 0.78rem !important;
+                    }
+
+                    .jadwal-view-tabs .jam-tab-btn span {
+                        overflow-wrap: anywhere;
+                        line-height: 1.2;
+                    }
+
+                    .jadwal-matrix-filter {
+                        width: 100% !important;
+                        display: flex !important;
+                        flex-direction: column !important;
+                        align-items: stretch !important;
+                        gap: 6px !important;
+                    }
+
+                    .jadwal-matrix-select {
+                        width: 100% !important;
+                        max-width: 100% !important;
+                    }
+
+                    #matrixViewCard,
+                    .kelas-matrix-block,
+                    .jadwal-card-container {
+                        max-width: 100% !important;
+                        min-width: 0 !important;
+                        box-sizing: border-box !important;
+                    }
+
+                    .kelas-matrix-block > div[style*="overflow-x"],
+                    .matrix-scroll-wrap {
+                        overflow-x: auto !important;
+                        -webkit-overflow-scrolling: touch;
+                        max-width: 100%;
+                    }
+
+                    .table-filter-bar {
+                        display: grid !important;
+                        grid-template-columns: 1fr !important;
+                        gap: 8px !important;
+                        width: 100% !important;
+                    }
+
+                    .table-filter-bar > div {
+                        width: 100% !important;
+                    }
+
+                    .table-filter-bar .btn-jadwal-filter-pill {
+                        width: 100% !important;
+                        justify-content: space-between !important;
+                    }
+
+                    .jadwal-card-body {
+                        padding: 14px 12px !important;
+                    }
+                }
+
                 @media (max-width: 768px) {
                     .matrix-cell-slot {
-                        min-width: 140px;
+                        min-width: 130px;
                         height: auto;
-                        min-height: 105px;
+                        min-height: 100px;
                         padding: 6px;
                     }
                     .matrix-drag-box {
@@ -228,13 +374,28 @@
                     }
                     .kelas-matrix-block {
                         padding: 12px !important;
+                        border-radius: 14px !important;
+                    }
+                    .kelas-matrix-block > div:first-child {
+                        flex-wrap: wrap !important;
+                        gap: 8px !important;
+                    }
+                }
+
+                @media (max-width: 480px) {
+                    .jadwal-action-group {
+                        grid-template-columns: 1fr 1fr !important;
+                    }
+
+                    .jadwal-view-tabs {
+                        grid-template-columns: 1fr !important;
                     }
                 }
             </style>
 
             <!-- View Mode Switcher -->
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-                <div style="display: flex; gap: 8px;">
+            <div class="jadwal-view-switcher">
+                <div class="jadwal-view-tabs">
                     <button type="button" id="btnViewMatrix" class="jam-tab-btn active" onclick="switchJadwalView('matrix')">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
@@ -259,9 +420,9 @@
                 </div>
 
                 <!-- Matrix Class Filter -->
-                <div id="matrixClassFilterWrapper" style="display: flex; align-items: center; gap: 10px;">
-                    <label style="font-weight: 700; font-size: 0.85rem; color: #475569;">Filter Kelas Matriks:</label>
-                    <select id="matrixClassSelect" class="form-field-input" style="width: 200px; padding: 6px 12px; border-radius: 10px;" onchange="filterMatrixByClass()">
+                <div id="matrixClassFilterWrapper" class="jadwal-matrix-filter">
+                    <label for="matrixClassSelect">Filter Kelas Matriks:</label>
+                    <select id="matrixClassSelect" class="form-field-input jadwal-matrix-select" onchange="filterMatrixByClass()">
                         <option value="">-- Semua Kelas --</option>
                         @foreach($kelases as $k)
                             <option value="{{ $k->id_kelas }}">{{ $k->tingkat }} {{ optional($k->jurusan)->kode_jurusan }} {{ $k->rombel }}</option>
@@ -404,8 +565,8 @@
                             <span style="font-size: 0.8rem; font-weight: 700; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px;">{{ $allJadwal->where('id_kelas', $kelas->id_kelas)->count() }} Mapel Terjadwal</span>
                         </div>
 
-                        <div style="overflow-x: auto;">
-                            <table class="matrix-grid-table" style="width: 100%; border-collapse: separate; border-spacing: 8px;">
+                        <div class="matrix-scroll-wrap" style="overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%;">
+                            <table class="matrix-grid-table" style="width: 100%; border-collapse: separate; border-spacing: 8px; min-width: 720px;">
                                 @php
                                     // === BUILD UNIFIED COLUMN LIST (JAM SLOTS) ===
                                     $slotsSK = $jamPelajarans->where('hari_kategori', 'Senin-Kamis')->sortBy('jam_mulai');
