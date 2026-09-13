@@ -142,7 +142,7 @@ class GuruMengajarController extends Controller
         $idGuru = $this->resolveGuruId();
         $guru = $idGuru ? Guru::find($idGuru) : null;
 
-        $daysList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        $daysList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
 
         $allJadwal = $this->jadwalQuery($idGuru)
             ->orderByRaw('COALESCE((select jam_mulai from jam_pelajaran where jam_pelajaran.id_jam = jadwal_pelajaran.id_jam), "00:00:00") asc')

@@ -296,7 +296,7 @@
                             <div style="margin-top: 6px; display: flex; flex-direction: column; gap: 10px;">
                                 <div style="display: flex; align-items: center; justify-content: space-between;">
                                     <span style="font-size: 0.85rem; font-weight: 800; color: #1e2538;">Daftar Pengampu</span>
-                                    <button type="button" class="btn-lihat-semua-pill" onclick="alert('Menampilkan seluruh daftar pengampu...')">Lihat Semua</button>
+                                    <button type="button" class="btn-lihat-semua-pill" id="btnLihatSemuaPengampu" onclick="showLihatSemuaPengampu()">Lihat Semua</button>
                                 </div>
 
                                 <div id="detailTeacherList" style="display: flex; flex-direction: column; gap: 10px; max-height: 180px; overflow-y: auto;">
@@ -323,10 +323,91 @@
 
     <!-- (Pop-up modal removed in favor of direct inline table row edit) -->
 
+    <!-- Modal: Lihat Semua Pengampu -->
+    <div id="modalLihatSemuaPengampu" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.45); align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:20px; width:100%; max-width:440px; padding:28px; box-shadow:0 20px 60px rgba(0,0,0,0.2); position:relative; max-height:85vh; display:flex; flex-direction:column;">
+            <!-- Header -->
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <svg width="20" height="20" fill="none" stroke="#1e3a5f" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <div>
+                        <div style="font-size:0.75rem; color:#64748b; font-weight:600;">Daftar Pengampu</div>
+                        <div style="font-size:1rem; font-weight:800; color:#1e2538;" id="modalMapelNameTitle">—</div>
+                    </div>
+                </div>
+                <button onclick="closeLihatSemuaModal()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#94a3b8; line-height:1;" title="Tutup">&times;</button>
+            </div>
+
+            <!-- Badge count -->
+            <div style="margin-bottom:16px;">
+                <span id="modalPengampuCount" style="background:#fce7f3; color:#9d174d; padding:4px 12px; border-radius:20px; font-size:0.8rem; font-weight:700;">0 Pengampu</span>
+            </div>
+
+            <!-- List (scrollable) -->
+            <div id="modalTeacherListFull" style="display:flex; flex-direction:column; gap:12px; overflow-y:auto; flex:1; padding-right:4px;">
+                <!-- diisi via JS -->
+            </div>
+        </div>
+    </div>
+
     <!-- Full Single-Page AJAX Scripts -->
     <script>
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         let editingMapelId = null;
+        let currentDetailMapelData = null; // menyimpan data mapel yang sedang aktif di panel detail
+
+        /* ---- Modal: Lihat Semua Pengampu ---- */
+        function showLihatSemuaPengampu() {
+            if (!currentDetailMapelData) return;
+            const modal = document.getElementById('modalLihatSemuaPengampu');
+            const title = document.getElementById('modalMapelNameTitle');
+            const countBadge = document.getElementById('modalPengampuCount');
+            const listEl = document.getElementById('modalTeacherListFull');
+            if (!modal || !listEl) return;
+
+            title.innerText = currentDetailMapelData.nama_mapel || '—';
+            countBadge.innerText = (currentDetailMapelData.jumlah_pengampu || 0) + ' Pengampu';
+
+            const gurus = currentDetailMapelData.gurus || [];
+            if (gurus.length === 0) {
+                listEl.innerHTML = `<div style="font-size:0.825rem; color:#94a3b8; font-weight:600; text-align:center; padding:20px 0;">Belum ada guru pengampu terdaftar.</div>`;
+            } else {
+                listEl.innerHTML = gurus.map((g, idx) => {
+                    const initial = (g.nama_guru || 'G').charAt(0).toUpperCase();
+                    return `
+                        <div style="display:flex; align-items:center; gap:12px; padding:10px 12px; background:#f8fafc; border-radius:12px;">
+                            <div class="teacher-avatar-circle" style="flex-shrink:0;">${initial}</div>
+                            <div>
+                                <div style="font-size:0.875rem; font-weight:700; color:#1e2538;">${g.nama_guru}</div>
+                                <div style="font-size:0.775rem; color:#64748b; font-weight:500;">Guru Pengampu</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLihatSemuaModal() {
+            const modal = document.getElementById('modalLihatSemuaPengampu');
+            if (modal) modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        // Tutup modal saat klik backdrop
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('modalLihatSemuaPengampu');
+            if (modal && e.target === modal) {
+                closeLihatSemuaModal();
+            }
+        });
 
         function toggleSubmenu(id) {
             const el = document.getElementById(id);
@@ -400,6 +481,9 @@
             })
             .then(res => res.json())
             .then(data => {
+                // Simpan data ke state untuk dipakai oleh modal "Lihat Semua"
+                currentDetailMapelData = data;
+
                 document.getElementById('detailNamaMapel').innerText = data.nama_mapel;
                 document.getElementById('detailJumlahPengampu').innerText = data.jumlah_pengampu + ' Pengampu';
 
@@ -545,10 +629,14 @@
                 const tbody = document.querySelector('#mapelMainTable tbody');
                 if (!tbody) return;
 
+                const offset = (resData.pagination && resData.pagination.current > 1)
+                    ? (resData.pagination.current - 1) * 10
+                    : 0;
+
                 if (!resData.data || resData.data.length === 0) {
                     tbody.innerHTML = `
                         <tr>
-                            <td colspan="4" style="text-align: center; padding: 30px; color: #847e73;">
+                            <td colspan="5" style="text-align: center; padding: 30px; color: #847e73;">
                                 Belum ada data mata pelajaran.
                             </td>
                         </tr>
@@ -556,7 +644,10 @@
                 } else {
                     tbody.innerHTML = resData.data.map((m, i) => `
                         <tr id="row-mapel-${m.id_mapel}">
-                            <td class="td-no">${i + 1}</td>
+                            <td style="text-align: center;" onclick="event.stopPropagation();">
+                                <input type="checkbox" class="mapel-row-checkbox" value="${m.id_mapel}" onchange="onMapelCheckboxChange(this)" style="width: 16px; height: 16px; cursor: pointer; accent-color: #dc2626;" ${selectedMapelIds.has(m.id_mapel) ? 'checked' : ''}>
+                            </td>
+                            <td class="td-no">${offset + i + 1}</td>
                             <td style="font-weight: 700; color: #1e2538; cursor: pointer;" class="td-nama-mapel" title="Klik untuk melihat detail mapel" onclick="loadMapelDetail(${m.id_mapel})">${m.nama_mapel}</td>
                             <td style="cursor: pointer;" onclick="loadMapelDetail(${m.id_mapel})">
                                 <span class="badge-pengampu-pill">${m.jumlah_pengampu} Pengampu</span>
@@ -589,25 +680,18 @@
             });
         }
 
-        /* ---- Real-Time Search (No Refresh) ---- */
+        /* ---- Real-Time Search (Global AJAX ke server, bukan filter DOM per halaman) ---- */
         (function() {
             const input = document.getElementById('mapelSearchInput');
             if (!input) return;
 
-            input.addEventListener('input', function() {
-                const q = this.value.toLowerCase().trim();
-                const tbody = document.querySelector('#mapelMainTable tbody');
-                if (!tbody) return;
+            let debounceTimer = null;
 
-                const rows = Array.from(tbody.querySelectorAll('tr'));
-                rows.forEach(function(row) {
-                    const name = (row.querySelector('.td-nama-mapel') || {}).textContent || '';
-                    if (q === '' || name.toLowerCase().includes(q)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
+            input.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function() {
+                    reloadMapelTable();
+                }, 350);
             });
         })();
 
@@ -807,6 +891,21 @@
                 setTimeout(() => el.remove(), 500);
             });
         }, 3000);
+
+        /* ---- Inisialisasi currentDetailMapelData dari data Blade default ---- */
+        @if($defaultMapel)
+        currentDetailMapelData = {
+            id_mapel: {{ $defaultMapel->id_mapel }},
+            nama_mapel: @json($defaultMapel->nama_mapel),
+            jumlah_pengampu: {{ $defaultTeachers->count() }},
+            gurus: [
+                @foreach($defaultTeachers as $gt)
+                { id_guru: {{ $gt->id_guru }}, nama_guru: @json($gt->nama_guru) },
+                @endforeach
+            ]
+        };
+        @endif
+
     </script>
     <script src="/js/ajax-pagination.js"></script>
     <script src="/js/sidebar-toggle.js"></script>
