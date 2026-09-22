@@ -307,11 +307,16 @@ class WaBotService
             }
         }
 
-        $env = [
-            'PATH' => implode($sep, $mergedDirs),
-        ];
+        $env = [];
+
+        foreach (getenv() as $key => $value) {
+        $env[$key] = $value;
+        }
+
+        $env['PATH'] = implode($sep, $mergedDirs);
 
         $pm2Home = config('services.wa_bot.pm2_home');
+
         if ($pm2Home) {
             $env['PM2_HOME'] = $pm2Home;
         }

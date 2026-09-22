@@ -33,4 +33,4 @@ Commits on Aug 24, 2026
 2.menambahkan flexibel ke break setting ke pengaturan jadwal sekolah
 3.membuat surat dispensasi
 4.menambahkan izin guru
-5.memnambahkan nomor telpon ke whatsapp
+5.menambahkan nomor telpon ke whatsapp

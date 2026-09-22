@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
@@ -115,6 +116,16 @@ class UserController extends Controller
         $rawPassword = $validated['password'];
         $validated['password'] = Hash::make($rawPassword);
         $validated['plain_password'] = $rawPassword;
+
+        // Auto-generate username dari name, pastikan unique
+        $baseUsername = Str::slug($validated['name'], '');
+        $username = $baseUsername;
+        $suffix = 1;
+        while (User::where('username', $username)->exists()) {
+            $username = $baseUsername . $suffix;
+            $suffix++;
+        }
+        $validated['username'] = $username;
 
         if (empty($validated['id_guru'])) {
             $validated['id_guru'] = null;
@@ -225,6 +236,18 @@ class UserController extends Controller
             $validated['plain_password'] = $rawPassword;
         } else {
             unset($validated['password']);
+        }
+
+        // Auto-generate ulang username hanya jika name berubah
+        if ($validated['name'] !== $user->name) {
+            $baseUsername = Str::slug($validated['name'], '');
+            $username = $baseUsername;
+            $suffix = 1;
+            while (User::where('username', $username)->where('id', '!=', $user->id)->exists()) {
+                $username = $baseUsername . $suffix;
+                $suffix++;
+            }
+            $validated['username'] = $username;
         }
 
         if (empty($validated['id_guru'])) {
