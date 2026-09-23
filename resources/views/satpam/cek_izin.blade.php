@@ -1,14 +1,14 @@
 @extends('layouts.satpam')
 
-@section('title', 'Cek Dispensasi Siswa')
-@section('page-title', 'Cek Dispensasi Siswa')
-@section('page-subtitle', 'Monitor status surat dispensasi keluar siswa hari ini')
+@section('title', 'Cek Siswa Keluar Gerbang')
+@section('page-title', 'Cek Siswa Keluar Gerbang')
+@section('page-subtitle', 'Monitor status siswa yang keluar gerbang hari ini')
 
 @section('content')
 
     <div class="sp-card">
         <div class="sp-card-header">
-            <h3 class="sp-card-title"><i class="fa-solid fa-user-check" style="color: var(--dash-navy);"></i> Daftar Surat Dispensasi Siswa</h3>
+            <h3 class="sp-card-title"><i class="fa-solid fa-user-check" style="color: var(--dash-navy);"></i> Daftar Siswa Keluar Gerbang</h3>
         </div>
 
         <div class="sp-card-body">
@@ -54,7 +54,7 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <div style="font-weight: 700; color: #1e293b;">{{ $dispen->nama_kegiatan ?? 'Dispensasi' }}</div>
+                                    <div style="font-weight: 700; color: #1e293b;">{{ $dispen->nama_kegiatan ?? 'Keluar Gerbang' }}</div>
                                     <div style="max-width: 260px; font-size: 0.8rem; color: #64748b; white-space: normal; line-height: 1.4;">{{ $dispen->alasan_dispensasi ?? '-' }}</div>
                                 </td>
                                 <td><span style="font-weight: 700; color: #1e293b;">{{ $jMulai }}</span></td>
@@ -80,7 +80,7 @@
                                 <td colspan="5">
                                     <div class="sp-empty-state">
                                         <div class="sp-empty-icon"><i class="fa-regular fa-folder-open"></i></div>
-                                        <div class="sp-empty-title">Belum Ada Data Surat Dispensasi Siswa</div>
+                                        <div class="sp-empty-title">Belum Ada Data Siswa Keluar Gerbang</div>
                                     </div>
                                 </td>
                             </tr>

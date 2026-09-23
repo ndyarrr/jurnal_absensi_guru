@@ -21,10 +21,10 @@ class JamPelajaranSeeder extends Seeder
             'hari_kategori'      => 'Senin-Kamis',
             'durasi_per_jam'     => 40,
             'jam_masuk'          => '07:00',
-            'jam_pulang'         => '14:30',
+            'jam_pulang'         => '15:00',
             'durasi_istirahat_1' => 20,
             'setelah_jam_ke_1'   => 4,
-            'durasi_istirahat_2' => 30,
+            'durasi_istirahat_2' => 60,
             'setelah_jam_ke_2'   => 7,
         ]);
         $ctrl->generateSlots($req1);
@@ -33,9 +33,11 @@ class JamPelajaranSeeder extends Seeder
             'hari_kategori'      => 'Jumat',
             'durasi_per_jam'     => 30,
             'jam_masuk'          => '07:00',
-            'jam_pulang'         => '11:30',
-            'durasi_istirahat_1' => 15,
-            'setelah_jam_ke_1'   => 3,
+            'jam_pulang'         => '15:30',
+            'durasi_istirahat_1' => 20,
+            'setelah_jam_ke_1'   => 5,
+            'durasi_istirahat_2' => 100,
+            'setelah_jam_ke_2'   => 8,
         ]);
         $ctrl->generateSlots($req2);
     }

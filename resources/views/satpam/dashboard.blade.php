@@ -2,14 +2,14 @@
 
 @section('title', 'Dashboard Satpam')
 @section('page-title', 'Dashboard Satpam')
-@section('page-subtitle', 'Monitor siswa yang mendapat dispensasi keluar sekolah hari ini')
+@section('page-subtitle', 'Monitor siswa yang keluar gerbang hari ini')
 
 @section('content')
 
     <section class="sp-stats-grid">
         <div class="sp-stat-card">
             <div class="sp-stat-value">{{ $stats['total_dispen'] }}</div>
-            <div class="sp-stat-label">Total Dispensasi Hari Ini</div>
+            <div class="sp-stat-label">Total Keluar Gerbang Hari Ini</div>
         </div>
         <div class="sp-stat-card">
             <div class="sp-stat-value">{{ $stats['disetujui'] }}</div>
@@ -29,7 +29,7 @@
 
         <div class="sp-card">
             <div class="sp-card-header">
-                <h3 class="sp-card-title"><i class="fa-solid fa-timeline" style="color: var(--dash-navy);"></i> Aktivitas Dispensasi Hari Ini</h3>
+                <h3 class="sp-card-title"><i class="fa-solid fa-timeline" style="color: var(--dash-navy);"></i> Aktivitas Keluar Gerbang Hari Ini</h3>
             </div>
             <div class="sp-card-body">
                 @forelse($aktivitasGerbang as $item)
@@ -52,8 +52,8 @@
                 @empty
                     <div class="sp-empty-state">
                         <div class="sp-empty-icon"><i class="fa-regular fa-clock"></i></div>
-                        <div class="sp-empty-title">Belum Ada Pengajuan Dispensasi Hari Ini</div>
-                        <p>Daftar permohonan dispensasi siswa hari ini akan muncul di sini.</p>
+                        <div class="sp-empty-title">Belum Ada Aktivitas Keluar Gerbang Hari Ini</div>
+                        <p>Daftar aktivitas keluar gerbang siswa hari ini akan muncul di sini.</p>
                     </div>
                 @endforelse
             </div>
@@ -69,8 +69,8 @@
                     <a href="{{ route('satpam.cek-izin') }}" class="sp-quick-btn navy">
                         <i class="fa-solid fa-user-check"></i>
                         <div>
-                            Cek Dispensasi Siswa
-                            <span class="sp-quick-btn-sub">Monitor status dispensasi siswa</span>
+                            Cek Siswa Keluar Gerbang
+                            <span class="sp-quick-btn-sub">Monitor status siswa yang keluar gerbang</span>
                         </div>
                     </a>
                 </div>
@@ -91,7 +91,7 @@
                         <div class="sp-verify-item" style="padding: 10px 0; border-bottom: 1px dashed #e2e8f0;">
                             <div>
                                 <div class="sp-activity-name" style="font-size: 0.875rem; font-weight: 800;">{{ optional($s)->nama_siswa ?? '-' }}</div>
-                                <div class="sp-activity-meta" style="font-size: 0.775rem;">Kelas {{ $kStr }} &middot; {{ $dispen->nama_kegiatan ?? 'Dispensasi' }}</div>
+                                <div class="sp-activity-meta" style="font-size: 0.775rem;">Kelas {{ $kStr }} &middot; {{ $dispen->nama_kegiatan ?? 'Keluar Gerbang' }}</div>
                                 <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">
                                     <i class="fa-regular fa-clock"></i> Jam: <strong>{{ $jMulai }}</strong> s/d <strong>{{ $jSelesai }}</strong>
                                 </div>
@@ -102,7 +102,7 @@
                         </div>
                     @empty
                         <div class="sp-empty-state" style="padding: 24px 12px;">
-                            <p style="font-size: 0.825rem;">Tidak ada siswa yang diizinkan dispensasi keluar hari ini.</p>
+                            <p style="font-size: 0.825rem;">Tidak ada siswa yang diizinkan keluar gerbang hari ini.</p>
                         </div>
                     @endforelse
                 </div>

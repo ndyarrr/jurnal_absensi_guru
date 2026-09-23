@@ -37,7 +37,7 @@
                     <li>
                         <a href="{{ route('satpam.cek-izin') }}" class="sp-nav-link {{ request()->routeIs('satpam.cek-izin') ? 'active' : '' }}">
                             <i class="fa-solid fa-user-check"></i>
-                            <span>Cek Dispensasi Siswa</span>
+                            <span>Cek Keluar Gerbang Siswa</span>
                         </a>
                     </li>
     
