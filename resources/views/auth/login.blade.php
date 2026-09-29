@@ -83,7 +83,6 @@
                         <div class="select-wrapper">
                             <select name="role" id="role" class="form-select">
                                 <option value="" selected disabled>Pilih Role</option>
-                                <option value="super_admin" {{ old('role') == 'super_admin' ? 'selected' : '' }}>Super Admin</option>
                                 <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
                                 <option value="guru_mengajar" {{ old('role') == 'guru_mengajar' || old('role') == 'guru' ? 'selected' : '' }}>Guru</option>
                                 <option value="waka" {{ old('role') == 'waka' ? 'selected' : '' }}>Waka</option>
@@ -107,8 +106,8 @@
                         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </button>
                     <div class="demo-tags-dropdown" id="demoDropdown">
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Administrator', 'password', 'super_admin')">Administrator (Super Admin)</button>
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('198101152003121003', '198101152003121003', 'guru_mengajar')">Guru (NIP: 198101152003121003)</button>
+                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Administrator', 'password', 'admin')">Administrator</button>
+                        <button type="button" class="demo-tag" onclick="fillQuickAccount('198501212022212037', '198501212022212037', 'guru_mengajar')">Guru (NIP: 198101152003121003)</button>
                         <button type="button" class="demo-tag" onclick="fillQuickAccount('Waka', 'password', 'waka')">Waka</button>
                         <button type="button" class="demo-tag" onclick="fillQuickAccount('Waka Kurikulum', 'password', 'waka_kurikulum')">Waka Kurikulum</button>
                         <button type="button" class="demo-tag" onclick="fillQuickAccount('Kepala Sekolah', 'password', 'kepala_sekolah')">Kepala Sekolah</button>
