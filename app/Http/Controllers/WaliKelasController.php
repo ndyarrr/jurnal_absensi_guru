@@ -448,6 +448,11 @@ class WaliKelasController extends Controller
                 ->where('tanggal_mulai', '<=', $endDate->toDateString())
                 ->where('tanggal_selesai', '>=', $startDate->toDateString())
                 ->get();
+                foreach ($siswaList as $siswa) {
+    $siswa->dispen_count = $dispenRecordsMonth
+        ->where('id_siswa', $siswa->id_siswa)
+        ->count();
+}
         }
 
         // Top 4 Stat Cards
@@ -657,7 +662,8 @@ class WaliKelasController extends Controller
             'distinctAlpaSiswa',
             'paddingDays',
             'calendarGrid',
-            'siswaList'
+            'siswaList',
+            'dispenRecordsMonth'
         ));
     }
 

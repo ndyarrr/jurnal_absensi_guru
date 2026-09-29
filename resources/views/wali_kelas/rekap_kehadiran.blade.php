@@ -922,6 +922,7 @@
                                 <th style="width: 9%; text-align: center;">SAKIT</th>
                                 <th style="width: 9%; text-align: center;">IZIN</th>
                                 <th style="width: 9%; text-align: center;">ALPA</th>
+                                <th style="width: 9%; text-align: center;">DISPEN</th>
                                 <th style="width: 13%; text-align: center;">KEHADIRAN</th>
                                 <th style="width: 14%; text-align: center;">STATUS</th>
                             </tr>
@@ -945,6 +946,7 @@
                                     <td style="text-align: center;">{{ $siswa->sakit_count }}</td>
                                     <td style="text-align: center;">{{ $siswa->izin_count }}</td>
                                     <td style="text-align: center;">{{ $siswa->alpa_count }}</td>
+                                    <td style="text-align: center;">{{ $siswa->dispen_count }}</td>
                                     <td style="text-align: center; color: #0284c7; font-weight: 800;">{{ $siswa->pct }}%</td>
                                     <td style="text-align: center;">
                                         <span class="wk-status-badge {{ $siswa->status_key }}">{{ $siswa->status_label }}</span>
