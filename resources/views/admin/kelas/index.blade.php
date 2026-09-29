@@ -234,7 +234,10 @@
                     <button type="button" class="btn-close-modal" onclick="toggleFormPanel()" title="Sembunyikan Form">&times;</button>
                 </div>
 
-                <form action="{{ route('kelas.store') }}" method="POST" class="form-grid-inline">
+                <form action="{{ route('kelas.store') }}" method="POST" class="form-grid-inline"
+                    data-confirm-type="create" data-confirm-title="Konfirmasi Tambah Kelas"
+                    data-confirm="Apakah Anda yakin ingin menambahkan kelas baru ini?">
+            
                     @csrf
                     <div class="form-field-group" style="margin-bottom: 0;">
                         <label for="create_tingkat">Tingkat Kelas</label>
@@ -592,7 +595,9 @@
                 <button type="button" class="btn-close-modal" onclick="closeEditModal()">&times;</button>
             </div>
 
-            <form id="editForm" method="POST" class="modal-form-grid">
+            <form id="editForm" method="POST" class="modal-form-grid"
+                data-confirm-type="update" data-confirm-title="Konfirmasi Simpan Perubahan"
+                data-confirm="Apakah Anda yakin ingin menyimpan perubahan data kelas ini?">
                 @csrf
                 @method('PUT')
 
@@ -912,5 +917,6 @@
     <script src="/js/ajax-pagination.js"></script>
     <script src="/js/sidebar-toggle.js"></script>
     <script src="/js/live-clock.js"></script>
+
 </body>
 </html>

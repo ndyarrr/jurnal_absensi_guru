@@ -238,7 +238,7 @@ class GuruPiketController extends Controller
 
         // 5. Check if id_guru is scheduled for today in JadwalPiket
         if ($idGuru) {
-            return \App\Models\JadwalPiket::where('hari', $todayName)
+            return \App\Models\JadwalPiket::bertugasHariIni()
                 ->where('id_guru', $idGuru)
                 ->exists();
         }

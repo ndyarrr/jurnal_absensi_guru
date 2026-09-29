@@ -1,0 +1,183 @@
+/* ==========================================================================
+   Modal Popup Form Component (shared)
+   Dipakai oleh modul lama (guru, siswa, kelas, mapel, jurusan) supaya
+   tampilan modal Tambah/Edit konsisten dengan modul ruangan & jam pelajaran.
+   ========================================================================== */
+
+:root {
+    --dash-navy: #23293b;
+    --dash-navy-hover: #171c2b;
+    --dash-cream-border: #e8e2d5;
+    --dash-text-dark: #1e2538;
+    --dash-border-subtle: #eeeaDF;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+    animation: fadeIn 0.2s ease;
+}
+
+.modal-content-card {
+    background-color: #ffffff;
+    border-radius: 24px;
+    width: 100%;
+    max-width: 520px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    padding: 28px 32px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--dash-border-subtle);
+    animation: slideUp 0.25s ease;
+    margin: auto;
+}
+
+.modal-content-card::-webkit-scrollbar { width: 6px; }
+.modal-content-card::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+.modal-content-card::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+.modal-content-card::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+@media (max-height: 768px) {
+    .modal-overlay { align-items: flex-start; padding: 16px 12px; }
+    .modal-content-card { max-height: calc(100vh - 32px); padding: 20px 24px; border-radius: 20px; }
+}
+
+.modal-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.modal-title-text {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--dash-text-dark);
+}
+
+.btn-close-modal {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+}
+.btn-close-modal:hover { color: #1e293b; }
+
+.modal-form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.form-field-group label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #2b2b2b;
+}
+
+.form-field-input {
+    width: 100%;
+    padding: 12px 16px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--dash-text-dark);
+    background-color: #f7f3eb;
+    border: 1px solid var(--dash-cream-border);
+    border-radius: 12px;
+    outline: none;
+}
+.form-field-input:focus {
+    border-color: var(--dash-navy);
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(35, 41, 59, 0.1);
+}
+
+.modal-actions-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.btn-modal-cancel {
+    background-color: #f1ebd9;
+    color: var(--dash-text-dark);
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-modal-submit {
+    background-color: var(--dash-navy);
+    color: #ffffff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+.btn-modal-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.action-btn-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background-color: #ffffff;
+    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+.action-btn-icon:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+.action-btn-icon.view:hover { background-color: #f1f5f9; color: #0f172a; border-color: #cbd5e1; }
+.action-btn-icon.edit:hover { background-color: #fef3c7; color: #d97706; border-color: #fde68a; }
+.action-btn-icon.delete:hover { background-color: #fef2f2; color: #dc2626; border-color: #fecaca; }
+.action-btn-icon:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+.dash-alert {
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+.dash-alert.success { background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+.dash-alert.error { background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }

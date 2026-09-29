@@ -16,8 +16,9 @@
         $kelasStr = $kelasWali ? ($kelasWali->tingkat . ' ' . optional($kelasWali->jurusan)->kode_jurusan . ' ' . $kelasWali->rombel) : null;
 
         $piketHari = ($idGuru && \Illuminate\Support\Facades\Schema::hasTable('jadwal_piket'))
-            ? \App\Models\JadwalPiket::where('id_guru', $idGuru)->pluck('hari')->toArray()
+            ? \App\Models\JadwalPiket::masihBerlaku()->where('id_guru', $idGuru)->pluck('hari')->unique()->values()->toArray()
             : [];
+       
         $hariStr = !empty($piketHari) ? implode(', ', $piketHari) : null;
 
         $availableRoles = [];
@@ -40,7 +41,7 @@
 
         // 3. Guru Piket - Only if explicitly assigned in `jadwal_piket` table OR primary role is guru_piket
         $isPiket = $idGuru && \Illuminate\Support\Facades\Schema::hasTable('jadwal_piket')
-            ? \App\Models\JadwalPiket::where('id_guru', $idGuru)->exists()
+            ? \App\Models\JadwalPiket::masihBerlaku()->where('id_guru', $idGuru)->exists()
             : false;
 
         if ($isPiket || $user->role === 'guru_piket') {

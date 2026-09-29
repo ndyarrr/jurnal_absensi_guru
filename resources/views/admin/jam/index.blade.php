@@ -510,7 +510,9 @@
                 <button type="button" class="btn-close-modal" onclick="closeCreateSlotModal()">&times;</button>
             </div>
 
-            <form action="{{ route('jam-pelajaran.store') }}" method="POST" class="modal-form-grid">
+            <form action="{{ route('jam-pelajaran.store') }}" method="POST" class="modal-form-grid"
+                data-confirm-type="create" data-confirm-title="Konfirmasi Tambah Jam Pelajaran"
+                data-confirm="Apakah Anda yakin ingin menambahkan slot jam pelajaran baru ini?">
                 @csrf
                 <input type="hidden" name="hari_kategori" value="{{ $activeTab }}">
 
@@ -569,7 +571,9 @@
                 <button type="button" class="btn-close-modal" onclick="closeEditSlotModal()">&times;</button>
             </div>
 
-            <form id="editSlotForm" method="POST" class="modal-form-grid">
+            <form id="editSlotForm" method="POST" class="modal-form-grid"
+                data-confirm-type="update" data-confirm-title="Konfirmasi Simpan Perubahan"
+                data-confirm="Apakah Anda yakin ingin menyimpan perubahan slot jam pelajaran ini?">
                 @csrf
                 @method('PUT')
 
@@ -822,5 +826,6 @@
     </script>
     <script src="/js/sidebar-toggle.js"></script>
     <script src="/js/live-clock.js"></script>
+
 </body>
 </html>

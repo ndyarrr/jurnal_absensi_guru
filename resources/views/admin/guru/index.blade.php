@@ -274,7 +274,9 @@
                 <button type="button" class="btn-close-modal" onclick="closeCreateModal()">&times;</button>
             </div>
 
-            <form action="{{ route('guru.store') }}" method="POST" class="modal-form-grid">
+            <form action="{{ route('guru.store') }}" method="POST" class="modal-form-grid"
+                data-confirm-type="create" data-confirm-title="Konfirmasi Tambah Guru"
+                data-confirm="Apakah Anda yakin ingin menambahkan data guru baru ini?">
                 @csrf
                 <div class="form-field-group">
                     <label for="create_nip">NIP</label>
@@ -322,7 +324,9 @@
                 <button type="button" class="btn-close-modal" onclick="closeEditModal()">&times;</button>
             </div>
 
-            <form id="editForm" method="POST" class="modal-form-grid">
+            <form id="editForm" method="POST" class="modal-form-grid"
+                data-confirm-type="update" data-confirm-title="Konfirmasi Simpan Perubahan"
+                data-confirm="Apakah Anda yakin ingin menyimpan perubahan data guru ini?">
                 @csrf
                 @method('PUT')
 

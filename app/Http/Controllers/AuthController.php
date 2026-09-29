@@ -60,7 +60,7 @@ class AuthController extends Controller
 
                 if ($selectedRole === 'guru_piket') {
                     if ($idGuru && \Illuminate\Support\Facades\Schema::hasTable('jadwal_piket')) {
-                        $isValidRole = \App\Models\JadwalPiket::where('id_guru', $idGuru)->exists();
+                        $isValidRole = \App\Models\JadwalPiket::masihBerlaku()->where('id_guru', $idGuru)->exists();
                     }
                 } elseif ($selectedRole === 'wali_kelas') {
                     if ($idGuru) {

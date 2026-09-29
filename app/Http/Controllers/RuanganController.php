@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Ruangan;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class RuanganController extends Controller
 {
@@ -53,7 +54,12 @@ class RuanganController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nama_ruangan' => 'required|string|max:50|unique:ruangan,nama_ruangan',
+            'nama_ruangan' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('ruangan', 'nama_ruangan')->whereNull('deleted_at'),
+            ],
             'keterangan'   => 'nullable|string|max:255',
         ], [
             'nama_ruangan.required' => 'Nama ruangan wajib diisi.',
@@ -72,7 +78,14 @@ class RuanganController extends Controller
     public function update(Request $request, Ruangan $ruangan)
     {
         $validated = $request->validate([
-            'nama_ruangan' => 'required|string|max:50|unique:ruangan,nama_ruangan,' . $ruangan->id_ruangan . ',id_ruangan',
+            'nama_ruangan' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('ruangan', 'nama_ruangan')
+                    ->ignore($ruangan->id_ruangan, 'id_ruangan')
+                    ->whereNull('deleted_at'),
+            ],
             'keterangan'   => 'nullable|string|max:255',
         ], [
             'nama_ruangan.required' => 'Nama ruangan wajib diisi.',

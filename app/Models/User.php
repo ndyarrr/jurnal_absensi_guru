@@ -207,7 +207,16 @@ class User extends Authenticatable
 
             // Check if assigned to Jadwal Piket
             if ($this->role !== 'guru_piket' && \Illuminate\Support\Facades\Schema::hasTable('jadwal_piket')) {
-                $piketHari = \App\Models\JadwalPiket::where('id_guru', $idGuru)->pluck('hari')->toArray();
+                $piketRows = \App\Models\JadwalPiket::masihBerlaku()->where('id_guru', $idGuru)->get();
+                $hariMingguan = $piketRows->whereNull('tanggal')->pluck('hari')->unique()->values()->all();
+                $hariIni = \Carbon\Carbon::now('Asia/Jakarta')->startOfDay();
+                $tanggalMendatang = $piketRows
+                    ->filter(fn ($r) => $r->tanggal && $r->tanggal->gte($hariIni))
+                    ->sortBy('tanggal')
+                    ->take(3)
+                    ->map(fn ($r) => $r->tanggal->format('d/m'))
+                    ->values()->all();
+                $piketHari = array_merge($hariMingguan, $tanggalMendatang);
                 if (!empty($piketHari)) {
                     $hariStr = implode(', ', $piketHari);
                     $badges[] = [

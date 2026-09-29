@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Jurnal & Absensi Guru')</title>
 
     <!-- Google Fonts & FontAwesome -->
@@ -16,6 +17,7 @@
     <link rel="stylesheet" href="{{ asset('css/components/forms.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/tables.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components/buttons.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/components/modal.css') }}">
 
     <!-- Page Specific Module CSS -->
     <link rel="stylesheet" href="{{ asset('css/modules/siswa.css') }}">
@@ -75,6 +77,8 @@
                 </div>
             </div>
         @endif
+
+        @yield('content')
 
     </main>
 

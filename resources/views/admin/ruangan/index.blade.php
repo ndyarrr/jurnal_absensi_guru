@@ -332,6 +332,12 @@
             var alertDiv = document.getElementById('createModalAlert');
             alertDiv.innerHTML = '';
 
+            showConfirmModal({
+                type: 'create',
+                title: 'Konfirmasi Tambah Ruangan',
+                message: 'Apakah Anda yakin ingin menambahkan ruangan baru ini?',
+                onConfirm: () => {
+
             fetch(form.action, {
                 method: 'POST',
                 headers: {
@@ -357,6 +363,8 @@
                     fetchRuanganAjax();
                 }
             });
+                }
+            });
         });
 
         document.getElementById('editForm').addEventListener('submit', function(e) {
@@ -364,6 +372,12 @@
             var form = this;
             var alertDiv = document.getElementById('editModalAlert');
             alertDiv.innerHTML = '';
+
+            showConfirmModal({
+                type: 'update',
+                title: 'Konfirmasi Simpan Perubahan',
+                message: 'Apakah Anda yakin ingin menyimpan perubahan data ruangan ini?',
+                onConfirm: () => {
 
             fetch(form.action, {
                 method: 'POST',
@@ -388,6 +402,8 @@
                     closeEditModal();
                     showToast(res.data.success, 'success');
                     fetchRuanganAjax();
+                }
+            });
                 }
             });
         });

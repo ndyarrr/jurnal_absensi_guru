@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Jurusan;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class JurusanController extends Controller
 {
@@ -26,6 +27,11 @@ class JurusanController extends Controller
         ]);
 
         Jurusan::create($validated);
+
+        if ($request->ajax()) {
+            return response()->json(['success' => 'Jurusan baru (' . $validated['kode_jurusan'] . ') berhasil ditambahkan']);
+        }
+
         return redirect()->back()->with('success', 'Jurusan baru (' . $validated['kode_jurusan'] . ') berhasil ditambahkan');
     }
 
@@ -53,11 +59,18 @@ class JurusanController extends Controller
     public function update(Request $request, Jurusan $jurusan)
     {
         $validated = $request->validate([
-            'kode_jurusan' => 'required|string|max:10|unique:jurusan,kode_jurusan,' . $jurusan->id_jurusan . ',id_jurusan',
+            'kode_jurusan' => [
+                'required', 'string', 'max:10',
+                Rule::unique('jurusan', 'kode_jurusan')->ignore($jurusan->id_jurusan, 'id_jurusan'),
+            ],
             'nama_jurusan' => 'required|string|max:100',
         ]);
 
         $jurusan->update($validated);
+
+        if ($request->ajax()) {
+            return response()->json(['success' => 'Jurusan berhasil diperbarui']);
+        }
 
         return redirect()->back()->with('success', 'Jurusan berhasil diperbarui');
     }
@@ -67,14 +80,21 @@ class JurusanController extends Controller
         $kelasCount = $jurusan->kelas()->count();
 
         if ($kelasCount > 0) {
-            return redirect()->back()->with(
-                'error',
-                'Jurusan "' . $jurusan->kode_jurusan . '" tidak dapat dihapus karena masih memiliki ' . $kelasCount . ' kelas terkait.'
-            );
+            $msg = 'Jurusan "' . $jurusan->kode_jurusan . '" tidak dapat dihapus karena masih memiliki ' . $kelasCount . ' kelas terkait.';
+
+            if (request()->ajax()) {
+                return response()->json(['error' => $msg], 422);
+            }
+
+            return redirect()->back()->with('error', $msg);
         }
 
         $kode = $jurusan->kode_jurusan;
         $jurusan->delete();
+
+        if (request()->ajax()) {
+            return response()->json(['success' => 'Jurusan "' . $kode . '" berhasil dihapus']);
+        }
 
         return redirect()->back()->with('success', 'Jurusan "' . $kode . '" berhasil dihapus');
     }

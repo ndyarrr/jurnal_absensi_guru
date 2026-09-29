@@ -189,7 +189,7 @@
                                         <td>
                                             <div class="action-icons-cell">
                                                 <!-- Edit Button (Inline Row Edit) -->
-                                                <button type="button" class="action-btn-icon edit" title="Edit Mapel" onclick="startInlineEditMapel({{ $m->id_mapel }}, '{{ addslashes($m->nama_mapel) }}')">
+                                                <button type="button" class="action-btn-icon edit" title="Edit Mapel" onclick="openEditMapelModal({{ $m->id_mapel }}, '{{ addslashes($m->nama_mapel) }}')">
                                                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -323,6 +323,29 @@
 
     <!-- (Pop-up modal removed in favor of direct inline table row edit) -->
 
+    <!-- Modal: Edit Mapel -->
+    <div class="modal-overlay" id="editMapelModal" style="display: none;">
+        <div class="modal-content-card" style="max-width: 420px;">
+            <div class="modal-header-bar">
+                <h3 class="modal-title-text">Edit Mapel</h3>
+                <button type="button" class="btn-close-modal" onclick="closeEditMapelModal()">&times;</button>
+            </div>
+            <div id="editMapelAlert"></div>
+            <form id="editMapelForm" class="modal-form-grid">
+                @csrf
+                @method('PUT')
+                <div class="form-field-group">
+                    <label for="edit_nama_mapel">Nama Mapel</label>
+                    <input type="text" name="nama_mapel" id="edit_nama_mapel" class="form-field-input" required autocomplete="off">
+                </div>
+                <div class="modal-actions-footer">
+                    <button type="button" class="btn-modal-cancel" onclick="closeEditMapelModal()">Batal</button>
+                    <button type="submit" class="btn-modal-submit">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal: Lihat Semua Pengampu -->
     <div id="modalLihatSemuaPengampu" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.45); align-items:center; justify-content:center;">
         <div style="background:#fff; border-radius:20px; width:100%; max-width:440px; padding:28px; box-shadow:0 20px 60px rgba(0,0,0,0.2); position:relative; max-height:85vh; display:flex; flex-direction:column;">
@@ -358,7 +381,6 @@
     <!-- Full Single-Page AJAX Scripts -->
     <script>
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        let editingMapelId = null;
         let currentDetailMapelData = null; // menyimpan data mapel yang sedang aktif di panel detail
 
         /* ---- Modal: Lihat Semua Pengampu ---- */
@@ -506,85 +528,35 @@
             });
         }
 
-        /* ---- Direct Inline Table Row Edit ---- */
-        function startInlineEditMapel(id, currentName) {
-            if (editingMapelId && editingMapelId !== id) {
-                cancelInlineEditMapel(editingMapelId);
-            }
+        /* ---- Edit Mapel via Modal Card ---- */
+        let editingMapelId = null;
 
+        function openEditMapelModal(id, currentName) {
             editingMapelId = id;
-
-            const row = document.getElementById('row-mapel-' + id);
-            if (!row) return;
-
-            const tdName = row.querySelector('.td-nama-mapel');
-            const tdAction = row.querySelector('.action-icons-cell');
-
-            if (tdName && tdAction) {
-                tdName.onclick = null;
-                tdName.style.cursor = 'default';
-                tdName.innerHTML = `
-                    <input type="text" id="inline-input-mapel-${id}" 
-                        class="form-field-input" 
-                        value="${currentName.replace(/"/g, '&quot;')}" 
-                        style="padding: 6px 12px; font-size: 0.875rem; height: 36px; border-radius: 8px; border: 1.5px solid var(--dash-navy); width: 100%; box-sizing: border-box;"
-                        onkeydown="handleInlineKeydown(event, ${id})"
-                        autocomplete="off">
-                `;
-
-                tdAction.innerHTML = `
-                    <button type="button" class="action-btn-icon" style="background-color: #dcfce7; color: #15803d; border: 1px solid #86efac;" title="Simpan (Enter)" onclick="saveInlineEditMapel(${id})">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                    </button>
-                    <button type="button" class="action-btn-icon" style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5;" title="Batal (Esc)" onclick="cancelInlineEditMapel(${id})">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </button>
-                `;
-
-                const input = document.getElementById(`inline-input-mapel-${id}`);
-                if (input) {
-                    input.focus();
-                    input.select();
-                }
-            }
+            document.getElementById('editMapelAlert').innerHTML = '';
+            document.getElementById('edit_nama_mapel').value = currentName;
+            document.getElementById('editMapelModal').style.display = 'flex';
+            setTimeout(() => document.getElementById('edit_nama_mapel').focus(), 50);
         }
 
-        function handleInlineKeydown(event, id) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                saveInlineEditMapel(id);
-            } else if (event.key === 'Escape') {
-                event.preventDefault();
-                cancelInlineEditMapel(id);
-            }
-        }
-
-        function cancelInlineEditMapel(id) {
+        function closeEditMapelModal() {
+            document.getElementById('editMapelModal').style.display = 'none';
             editingMapelId = null;
-            reloadMapelTable();
         }
 
-        function saveInlineEditMapel(id) {
-            const input = document.getElementById(`inline-input-mapel-${id}`);
-            if (!input) return;
+        document.getElementById('editMapelForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            if (!editingMapelId) return;
 
-            const newName = input.value.trim();
-            if (!newName) {
-                showToast('Nama mata pelajaran tidak boleh kosong.', 'error');
-                input.focus();
-                return;
-            }
+            const formData = new FormData(this);
+            const alertBox = document.getElementById('editMapelAlert');
 
-            const formData = new FormData();
-            formData.append('nama_mapel', newName);
-            formData.append('_method', 'PUT');
-
-            fetch('/mapel/' + id, {
+            showConfirmModal({
+                type: 'update',
+                title: 'Konfirmasi Simpan Perubahan',
+                message: 'Apakah Anda yakin ingin menyimpan perubahan mata pelajaran ini?',
+                onConfirm: () => {
+            fetch('/mapel/' + editingMapelId, {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -597,18 +569,21 @@
                 const data = await res.json();
                 if (!res.ok) {
                     const errMsg = data.error || (data.errors ? Object.values(data.errors).flat().join('<br>') : 'Gagal memperbarui data.');
-                    showToast(errMsg, 'error');
+                    alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 12px; font-weight: 600;">${errMsg}</div>`;
                 } else {
-                    editingMapelId = null;
+                    const savedId = editingMapelId;
+                    closeEditMapelModal();
                     showToast(data.success || 'Mata pelajaran berhasil diperbarui.');
                     reloadMapelTable();
-                    loadMapelDetail(id);
+                    loadMapelDetail(savedId);
                 }
             })
             .catch(() => {
-                showToast('Terjadi kesalahan koneksi server.', 'error');
+                alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 12px; font-weight: 600;">Terjadi kesalahan koneksi server.</div>`;
             });
-        }
+                }
+            });
+        });
 
         /* ---- Reload Main Mapel Table via AJAX ---- */
         function reloadMapelTable() {
@@ -654,7 +629,7 @@
                             </td>
                             <td>
                                 <div class="action-icons-cell">
-                                    <button type="button" class="action-btn-icon edit" title="Edit Mapel" onclick="startInlineEditMapel(${m.id_mapel}, '${m.nama_mapel.replace(/'/g, "\\'")}')">
+                                    <button type="button" class="action-btn-icon edit" title="Edit Mapel" onclick="openEditMapelModal(${m.id_mapel}, '${m.nama_mapel.replace(/'/g, "\\'")}')">
                                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -703,6 +678,12 @@
                 const formData = new FormData(this);
                 const alertBox = document.getElementById('createMapelAlert');
 
+                showConfirmModal({
+                    type: 'create',
+                    title: 'Konfirmasi Tambah Mapel',
+                    message: 'Apakah Anda yakin ingin menambahkan mata pelajaran baru ini?',
+                    onConfirm: () => {
+
                 fetch('/mapel', {
                     method: 'POST',
                     body: formData,
@@ -729,6 +710,8 @@
                 })
                 .catch(() => {
                     if (alertBox) alertBox.innerHTML = `<div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; margin-bottom: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px;"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> <span>Terjadi kesalahan koneksi server.</span></div>`;
+                });
+                   }
                 });
             });
         }

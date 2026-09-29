@@ -349,8 +349,8 @@
                                                 </svg>
                                             </button>
 
-                                            <!-- Edit Action (Inline Row Edit) -->
-                                            <button type="button" class="action-btn-icon edit" title="Edit Data Siswa" onclick="startInlineEditSiswa({{ $s->id_siswa }}, '{{ addslashes($s->nisn) }}', '{{ addslashes($s->nama_siswa) }}', '{{ $s->jenis_kelamin ?? '' }}', '{{ addslashes($s->no_telepon ?? '') }}', '{{ $s->id_kelas }}')">
+                                            <!-- Edit Action (Modal Card) -->
+                                            <button type="button" class="action-btn-icon edit" title="Edit Data Siswa" onclick="openEditSiswaModal({{ $s->id_siswa }}, '{{ addslashes($s->nisn) }}', '{{ addslashes($s->nama_siswa) }}', '{{ $s->jenis_kelamin ?? '' }}', '{{ addslashes($s->no_telepon ?? '') }}', '{{ $s->id_kelas }}')">
                                                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -404,7 +404,9 @@
                 <button type="button" class="btn-close-modal" onclick="closeCreateModal()">&times;</button>
             </div>
 
-            <form action="{{ route('siswa.store') }}" method="POST" class="modal-form-grid">
+            <form action="{{ route('siswa.store') }}" method="POST" class="modal-form-grid"
+                data-confirm-type="create" data-confirm-title="Konfirmasi Tambah Siswa"
+                data-confirm="Apakah Anda yakin ingin menambahkan data siswa baru ini?">
                 @csrf
                 <div class="form-field-group">
                     <label for="create_nisn">NISN (10 Digit)</label>
@@ -445,6 +447,65 @@
                 <div class="modal-actions-footer">
                     <button type="button" class="btn-modal-cancel" onclick="closeCreateModal()">Batal</button>
                     <button type="submit" class="btn-modal-submit">Simpan Siswa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================================================================
+         Edit Siswa Modal Popup
+         =================================================================== -->
+    <div class="modal-overlay" id="editSiswaModal" style="display: none;">
+        <div class="modal-content-card">
+            <div class="modal-header-bar">
+                <h3 class="modal-title-text">Edit Data Siswa</h3>
+                <button type="button" class="btn-close-modal" onclick="closeEditSiswaModal()">&times;</button>
+            </div>
+
+            <div id="editSiswaAlert"></div>
+
+                <form id="editSiswaForm" class="modal-form-grid">
+                @csrf
+                @method('PUT')
+                <div class="form-field-group">
+                    <label for="edit_nisn">NISN (10 Digit)</label>
+                    <input type="text" name="nisn" id="edit_nisn" class="form-field-input" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'')" required>
+                </div>
+
+                <div class="form-field-group">
+                    <label for="edit_nama_siswa">Nama Lengkap Siswa</label>
+                    <input type="text" name="nama_siswa" id="edit_nama_siswa" class="form-field-input" required>
+                </div>
+
+                <div class="form-field-group">
+                    <label for="edit_jenis_kelamin">Jenis Kelamin</label>
+                    <select name="jenis_kelamin" id="edit_jenis_kelamin" class="form-field-input">
+                        <option value="">-- Pilih Jenis Kelamin --</option>
+                        <option value="L">Laki-laki (L)</option>
+                        <option value="P">Perempuan (P)</option>
+                    </select>
+                </div>
+
+                <div class="form-field-group">
+                    <label for="edit_no_telepon">No. Telepon</label>
+                    <input type="text" name="no_telepon" id="edit_no_telepon" class="form-field-input" maxlength="20" inputmode="tel">
+                </div>
+
+                <div class="form-field-group">
+                    <label for="edit_id_kelas">Kelas</label>
+                    <select name="id_kelas" id="edit_id_kelas" class="form-field-input" required>
+                        <option value="">-- Pilih Kelas --</option>
+                        @foreach($kelasList as $k)
+                            <option value="{{ $k->id_kelas }}">
+                                {{ $k->tingkat }} {{ optional($k->jurusan)->kode_jurusan }} {{ $k->rombel }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="modal-actions-footer">
+                    <button type="button" class="btn-modal-cancel" onclick="closeEditSiswaModal()">Batal</button>
+                    <button type="submit" class="btn-modal-submit">Simpan Perubahan</button>
                 </div>
             </form>
         </div>
@@ -608,120 +669,75 @@
             document.getElementById('importModal').style.display = 'none';
         }
 
-        /* ---- Inline Table Row Edit for Siswa ---- */
-        function startInlineEditSiswa(id, nisn, nama, jk, noTelp, idKelas) {
-            if (editingSiswaId && editingSiswaId !== id) {
-                cancelInlineEditSiswa(editingSiswaId);
-            }
+        /* ---- Edit Siswa via Modal Card ---- */
+        function openEditSiswaModal(id, nisn, nama, jk, noTelp, idKelas) {
             editingSiswaId = id;
-
-            const row = document.getElementById('row-siswa-' + id);
-            if (!row) return;
-
-            const tdNisn = row.querySelector('.td-siswa-nisn');
-            const tdNama = row.querySelector('.td-siswa-nama');
-            const tdJk = row.querySelector('.td-siswa-jk');
-            const tdTelp = row.querySelector('.td-siswa-telepon');
-            const tdKelas = row.querySelector('.td-siswa-kelas');
-            const tdAksi = row.querySelector('.action-icons-cell');
-
-            if (tdNisn && tdNama && tdKelas && tdAksi) {
-                tdNisn.innerHTML = `<input type="text" id="inline-nisn-${id}" class="form-field-input" value="${nisn}" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\\D/g,'')" style="padding: 4px 8px; font-size: 0.825rem; font-family: monospace; width: 100%; border-radius: 6px; border: 1.5px solid var(--dash-navy);" autocomplete="off">`;
-                
-                tdNama.innerHTML = `<input type="text" id="inline-nama-${id}" class="form-field-input" value="${nama.replace(/"/g, '&quot;')}" style="padding: 4px 8px; font-size: 0.85rem; font-weight: 700; width: 100%; border-radius: 6px; border: 1.5px solid var(--dash-navy);" autocomplete="off">`;
-
-                if (tdJk) {
-                    tdJk.innerHTML = `
-                        <select id="inline-jk-${id}" class="form-field-input" style="padding: 4px; font-size: 0.825rem; width: 100%; border-radius: 6px; border: 1.5px solid var(--dash-navy);">
-                            <option value="">-</option>
-                            <option value="L" ${jk === 'L' ? 'selected' : ''}>L</option>
-                            <option value="P" ${jk === 'P' ? 'selected' : ''}>P</option>
-                        </select>
-                    `;
-                }
-
-                if (tdTelp) {
-                    tdTelp.innerHTML = `<input type="text" id="inline-telp-${id}" class="form-field-input" value="${(noTelp || '').replace(/"/g, '&quot;')}" placeholder="08..." style="padding: 4px 8px; font-size: 0.825rem; width: 100%; border-radius: 6px; border: 1.5px solid var(--dash-navy);" autocomplete="off">`;
-                }
-
-                let selectOptionsHtml = '<option value="">-- Pilih Kelas --</option>';
-                KELAS_OPTIONS.forEach(k => {
-                    const selected = (k.id == idKelas) ? 'selected' : '';
-                    selectOptionsHtml += `<option value="${k.id}" ${selected}>${k.label}</option>`;
-                });
-                tdKelas.innerHTML = `<select id="inline-kelas-${id}" class="form-field-input" style="padding: 4px 8px; font-size: 0.825rem; width: 100%; border-radius: 6px; border: 1.5px solid var(--dash-navy);">${selectOptionsHtml}</select>`;
-
-                tdAksi.innerHTML = `
-                    <button type="button" class="action-btn-icon" style="background-color: #dcfce7; color: #15803d; border: 1px solid #86efac;" title="Simpan" onclick="saveInlineEditSiswa(${id})">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                    </button>
-                    <button type="button" class="action-btn-icon" style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5;" title="Batal" onclick="cancelInlineEditSiswa(${id})">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </button>
-                `;
-
-                const input = document.getElementById(`inline-nama-${id}`);
-                if (input) input.focus();
-            }
+            document.getElementById('editSiswaAlert').innerHTML = '';
+            document.getElementById('edit_nisn').value = nisn;
+            document.getElementById('edit_nama_siswa').value = nama;
+            document.getElementById('edit_jenis_kelamin').value = jk || '';
+            document.getElementById('edit_no_telepon').value = noTelp || '';
+            document.getElementById('edit_id_kelas').value = idKelas;
+            document.getElementById('editSiswaModal').style.display = 'flex';
         }
 
-        function cancelInlineEditSiswa(id) {
+        function closeEditSiswaModal() {
+            document.getElementById('editSiswaModal').style.display = 'none';
             editingSiswaId = null;
-            window.location.reload();
         }
 
-        function saveInlineEditSiswa(id) {
-            const nisn = document.getElementById(`inline-nisn-${id}`).value.trim();
-            const nama = document.getElementById(`inline-nama-${id}`).value.trim();
-            const jk = document.getElementById(`inline-jk-${id}`) ? document.getElementById(`inline-jk-${id}`).value : '';
-            const noTelp = document.getElementById(`inline-telp-${id}`) ? document.getElementById(`inline-telp-${id}`).value.trim() : '';
-            const idKelas = document.getElementById(`inline-kelas-${id}`).value;
+        document.getElementById('editSiswaForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            if (!editingSiswaId) return;
+
+            const form = this;
+            const nisn = document.getElementById('edit_nisn').value.trim();
+            const nama = document.getElementById('edit_nama_siswa').value.trim();
+            const idKelas = document.getElementById('edit_id_kelas').value;
+            const alertBox = document.getElementById('editSiswaAlert');
+            alertBox.innerHTML = '';
 
             if (!nisn || !nama || !idKelas) {
-                alert('Mohon lengkapi NISN, Nama Siswa, dan Kelas.');
+                alertBox.innerHTML = '<div style="background-color:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:10px 14px;border-radius:10px;font-size:0.85rem;font-weight:600;">Mohon lengkapi NISN, Nama Siswa, dan Kelas.</div>';
                 return;
             }
-
             if (nisn.length !== 10) {
-                alert('NISN harus berisi tepat 10 digit angka (saat ini ' + nisn.length + ' digit).');
+                alertBox.innerHTML = '<div style="background-color:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:10px 14px;border-radius:10px;font-size:0.85rem;font-weight:600;">NISN harus berisi tepat 10 digit angka (saat ini ' + nisn.length + ' digit).</div>';
                 return;
             }
 
-            const formData = new FormData();
-            formData.append('nisn', nisn);
-            formData.append('nama_siswa', nama);
-            formData.append('jenis_kelamin', jk);
-            formData.append('no_telepon', noTelp);
-            formData.append('id_kelas', idKelas);
-            formData.append('_method', 'PUT');
+            showConfirmModal({
+                type: 'update',
+                title: 'Konfirmasi Simpan Perubahan',
+                message: 'Apakah Anda yakin ingin menyimpan perubahan data siswa ini?',
+                onConfirm: function () {
+                    const formData = new FormData(form);
 
-            fetch('/siswa/' + id, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfTokenSiswa
+                    fetch('/siswa/' + editingSiswaId, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfTokenSiswa
+                        }
+                    })
+                    .then(async res => {
+                        const data = await res.json();
+                        if (!res.ok) {
+                            const errMsg = data.error || (data.errors ? Object.values(data.errors).flat().join('<br>') : 'Gagal memperbarui data siswa.');
+                            alertBox.innerHTML = '<div style="background-color:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:10px 14px;border-radius:10px;font-size:0.85rem;font-weight:600;">' + errMsg + '</div>';
+                        } else {
+                            editingSiswaId = null;
+                            window.location.reload();
+                        }
+                    })
+                    .catch(() => {
+                        alertBox.innerHTML = '<div style="background-color:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:10px 14px;border-radius:10px;font-size:0.85rem;font-weight:600;">Terjadi kesalahan koneksi server.</div>';
+                    });
                 }
-            })
-            .then(async res => {
-                const data = await res.json();
-                if (!res.ok) {
-                    alert(data.error || (data.errors ? Object.values(data.errors).flat().join('\n') : 'Gagal memperbarui data siswa.'));
-                } else {
-                    editingSiswaId = null;
-                    window.location.reload();
-                }
-            })
-            .catch(() => {
-                alert('Terjadi kesalahan koneksi server.');
             });
-        }
+        });
 
         function openViewModal(id) {
             fetch('/siswa/' + id)

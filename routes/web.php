@@ -111,6 +111,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/siswa/import', [SiswaController::class, 'import'])->name('siswa.import');
         Route::post('/siswa/bulk-delete', [SiswaController::class, 'bulkDelete'])->name('siswa.bulk-delete');
         Route::resource('siswa', SiswaController::class);
+        Route::post('/jadwal-piket/import', [JadwalPiketController::class, 'import'])->name('jadwal-piket.import');
+        Route::get('/jadwal-piket/export/csv', [JadwalPiketController::class, 'exportCsv'])->name('jadwal-piket.export-csv');
         Route::resource('jadwal-piket', JadwalPiketController::class);
         Route::post('/users/bulk-delete', [UserController::class, 'bulkDelete'])->name('users.bulk-delete');
         Route::resource('users', UserController::class);

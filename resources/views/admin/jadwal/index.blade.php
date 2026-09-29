@@ -2243,5 +2243,7 @@
     <script src="/js/ajax-pagination.js"></script>
     <script src="/js/sidebar-toggle.js"></script>
     <script src="/js/live-clock.js"></script>
+
+    @include('partials.confirm-modal')
 </body>
 </html>

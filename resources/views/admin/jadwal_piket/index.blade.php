@@ -104,6 +104,26 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             position: relative;
         }
+
+        .pk-weekbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+        .pk-nav-btn { background: #ffffff; border: 1px solid #cbd5e1; color: #334155; padding: 9px 14px; border-radius: 10px; font-weight: 700; font-size: 0.825rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+        .pk-nav-btn:hover { background: #f1f5f9; }
+        .pk-week-label { text-align: center; padding: 0 8px; }
+        .pk-week-range { font-weight: 800; color: #1e2538; font-size: 1rem; }
+        .pk-week-today { font-size: 0.75rem; font-weight: 700; color: #2563eb; text-decoration: none; }
+        .pk-import-btn { margin-left: auto; background: #16a34a; color: #fff; border: none; padding: 10px 16px; border-radius: 10px; font-weight: 800; font-size: 0.825rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(22,163,74,.25); }
+        .pk-role { padding: 10px 0 6px; border-top: 1px dashed #e2e8f0; }
+        .pk-role:first-child { border-top: none; padding-top: 0; }
+        .pk-role-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .pk-role-name { font-size: 0.72rem; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; padding: 3px 9px; border-radius: 8px; color: #fff; }
+        .pk-role-jam { font-size: 0.7rem; color: #64748b; font-weight: 700; }
+        .pk-role-add { margin-left: auto; background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; width: 26px; height: 26px; border-radius: 8px; font-weight: 800; cursor: pointer; line-height: 1; }
+        .pk-role-add:hover { background: #e2e8f0; }
+        .pk-role-empty { font-size: 0.78rem; color: #94a3b8; padding: 2px 4px 6px; }
+        .pk-teacher-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 12px; margin-bottom: 6px; }
+        .pk-report { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; border-radius: 16px; padding: 16px 20px; margin-bottom: 24px; font-size: 0.85rem; }
+        .pk-report ul { margin: 8px 0 0 18px; padding: 0; }
+        .pk-report li { margin-bottom: 4px; }
     </style>
 </head>
 <body class="dashboard-body">
@@ -122,7 +142,7 @@
 
                 <div>
                     <h1 class="dash-header-title" style="font-size: 1.65rem;">Jadwal Guru Piket</h1>
-                    <p class="dash-header-subtitle">Penugasan Harian Guru Piket (Senin - Jumat)</p>
+                    <p class="dash-header-subtitle">Penugasan Guru Piket per tanggal &amp; peran (Senin - Jumat)</p>
                 </div>
             </div>
 
@@ -144,10 +164,22 @@
             </div>
         </header>
 
-        <!-- Subheader Info -->
+        <!-- Navigasi Minggu -->
+        <div class="pk-weekbar">
+            <a href="{{ route('jadwal-piket.index', ['minggu' => $prevMinggu]) }}" class="pk-nav-btn"><i class="fa-solid fa-chevron-left"></i> Minggu sebelumnya</a>
+            <div class="pk-week-label">
+                <div class="pk-week-range">{{ $senin->translatedFormat('d M') }} &ndash; {{ $jumat->translatedFormat('d M Y') }}</div>
+                <a href="{{ route('jadwal-piket.index') }}" class="pk-week-today">Ke minggu ini</a>
+            </div>
+            <a href="{{ route('jadwal-piket.index', ['minggu' => $nextMinggu]) }}" class="pk-nav-btn">Minggu berikutnya <i class="fa-solid fa-chevron-right"></i></a>
+            <button type="button" class="pk-import-btn" onclick="openImportModal()"><i class="fa-solid fa-file-import"></i> Impor Lembar Piket</button>
+            <a href="{{ route('jadwal-piket.export-csv', ['minggu' => $senin->toDateString()]) }}" class="pk-nav-btn" style="border-color:#16a34a;color:#16a34a;"><i class="fa-solid fa-file-csv"></i> Export CSV (minggu ini)</a>
+            <a href="{{ route('jadwal-piket.export-csv', ['semua' => 1]) }}" class="pk-nav-btn"><i class="fa-solid fa-file-csv"></i> Export Semua</a>
+        </div>
+
         <div style="margin-bottom: 20px;">
             <p style="font-size: 0.875rem; color: #64748b; font-weight: 600;">
-                Kelola petugas Guru Piket harian. Hanya guru yang terdaftar bertugas pada hari berkenaan yang diizinkan menerbitkan dispensasi/surat izin. Klik <strong>+ Tambah</strong> pada kartu hari untuk menambah penugasan.
+                Jadwal piket diisi <strong>per tanggal</strong> dan <strong>per peran</strong> sesuai lembar piket sekolah. Hanya guru yang terdaftar bertugas pada tanggal berkenaan yang diizinkan menerbitkan dispensasi/surat izin. Klik <strong>+</strong> pada peran untuk menambah satu petugas, atau pakai <strong>Impor Lembar Piket</strong> untuk memasukkan banyak sekaligus. ({{ $totalPetugas }} penugasan di minggu ini)
             </p>
         </div>
 
@@ -166,55 +198,83 @@
             </div>
         @endif
 
-        <!-- 5 Days Schedule Grid (Senin - Jumat) -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
-            @foreach($days as $day)
-                @php
-                    $isToday = (\Carbon\Carbon::now('Asia/Jakarta')->translatedFormat('l') === $day);
-                    $list = $jadwalGrouped[$day] ?? collect();
-                @endphp
+        @if($errors->any())
+            <div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 16px 20px; border-radius: 16px; margin-bottom: 24px; font-weight: 700; font-size: 0.9rem;">
+                @foreach($errors->all() as $err)<div>{{ $err }}</div>@endforeach
+            </div>
+        @endif
+
+        @if(!empty($importReport) && !empty($importReport['errors']))
+            <div class="pk-report">
+                <strong>Rincian impor:</strong> {{ $importReport['tambah'] }} ditambahkan, {{ $importReport['sudah_ada'] }} sudah ada (dilewati), {{ count($importReport['errors']) }} baris gagal.
+                <ul>
+                    @foreach(array_slice($importReport['errors'], 0, 50) as $e)
+                        <li>{{ $e }}</li>
+                    @endforeach
+                    @if(count($importReport['errors']) > 50)
+                        <li>&hellip; dan {{ count($importReport['errors']) - 50 }} baris lainnya.</li>
+                    @endif
+                </ul>
+                <div style="margin-top: 8px;">Perbaiki baris yang gagal lalu impor ulang &mdash; data yang sudah masuk tidak akan dobel.</div>
+            </div>
+        @endif
+
+        @php
+            $warnaPeran = [
+                'Petugas KBM Pagi'      => '#2563eb',
+                'Koordinator KBM Pagi'  => '#1e40af',
+                'Petugas KBM Siang'     => '#d97706',
+                'Koordinator KBM Siang' => '#92400e',
+                'Piket Waka'            => '#9333ea',
+            ];
+        @endphp
+
+        <!-- 5 Hari (Senin - Jumat) untuk minggu terpilih -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px;">
+            @foreach($hariList as $d)
+                @php $isToday = $d['is_today']; @endphp
 
                 <div class="piket-day-card" @if($isToday) style="border: 2px solid #2563eb; box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);" @endif>
                     <div class="piket-day-header" @if($isToday) style="background: linear-gradient(135deg, #2563eb, #1d4ed8);" @endif>
                         <div class="piket-day-title">
-                            <i class="fa-solid fa-calendar-day"></i> HARI {{ strtoupper($day) }}
+                            <i class="fa-solid fa-calendar-day"></i>
+                            <span>{{ strtoupper($d['hari']) }} <span style="font-weight: 600; opacity: .85; font-size: .9rem;">&middot; {{ $d['tanggal']->translatedFormat('d M Y') }}</span></span>
                             @if($isToday)
                                 <span style="background: #ffffff; color: #1d4ed8; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 800;">HARI INI</span>
                             @endif
                         </div>
-                        <button type="button" onclick="openAssignModal('{{ $day }}')" style="background: rgba(255,255,255,0.2); border: none; color: #ffffff; padding: 5px 12px; border-radius: 8px; font-weight: 700; font-size: 0.775rem; cursor: pointer; transition: background 0.2s;">
+                        <button type="button" onclick='openAssignModal(@json($d['tanggal']->toDateString()), @json($d['hari'] . ', ' . $d['tanggal']->translatedFormat('d F Y')), "")' style="background: rgba(255,255,255,0.2); border: none; color: #ffffff; padding: 5px 12px; border-radius: 8px; font-weight: 700; font-size: 0.775rem; cursor: pointer;">
                             + Tambah
                         </button>
                     </div>
 
                     <div class="piket-day-body">
-                        @forelse($list as $item)
-                            <div class="piket-teacher-item">
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div class="piket-avatar">
-                                        {{ strtoupper(mb_substr(optional($item->guru)->nama_guru ?? 'G', 0, 2)) }}
-                                    </div>
-                                    <div>
-                                        <div style="font-weight: 800; font-size: 0.9rem; color: #1e2538;">{{ optional($item->guru)->nama_guru ?? 'Guru Piket' }}</div>
-                                        <div style="font-size: 0.75rem; color: #64748b;">
-                                            NIP: {{ optional($item->guru)->nip ?? '-' }} . {{ $item->keterangan ?? 'Petugas Piket' }}
-                                        </div>
-                                    </div>
+                        @foreach($peranList as $peran => $jam)
+                            @php $items = $d['per_peran'][$peran]; @endphp
+                            <div class="pk-role">
+                                <div class="pk-role-head">
+                                    <span class="pk-role-name" style="background: {{ $warnaPeran[$peran] ?? '#475569' }};">{{ $peran }}</span>
+                                    @if($jam)<span class="pk-role-jam">{{ $jam }}</span>@endif
+                                    <button type="button" class="pk-role-add" title="Tambah {{ $peran }}" onclick='openAssignModal(@json($d['tanggal']->toDateString()), @json($d['hari'] . ', ' . $d['tanggal']->translatedFormat('d F Y')), @json($peran))'>+</button>
                                 </div>
+                                @forelse($items as $item)
+                                    @include('admin.jadwal_piket._row', ['item' => $item])
+                                @empty
+                                    <div class="pk-role-empty">Belum ada petugas.</div>
+                                @endforelse
+                            </div>
+                        @endforeach
 
-                                <form action="{{ route('jadwal-piket.destroy', $item->id_piket) }}" method="POST" data-confirm-type="delete" data-confirm="Apakah Anda yakin ingin menghapus penugasan piket ini?">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" style="background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 0.8rem;" title="Hapus Tugas">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </form>
+                        @if($d['lainnya']->isNotEmpty())
+                            <div class="pk-role">
+                                <div class="pk-role-head">
+                                    <span class="pk-role-name" style="background: #64748b;">Tanpa peran (jadwal lama)</span>
+                                </div>
+                                @foreach($d['lainnya'] as $item)
+                                    @include('admin.jadwal_piket._row', ['item' => $item])
+                                @endforeach
                             </div>
-                        @empty
-                            <div style="text-align: center; color: #94a3b8; padding: 24px 12px; font-size: 0.85rem;">
-                                Belum ada Guru Piket terdaftar untuk hari {{ $day }}.
-                            </div>
-                        @endforelse
+                        @endif
                     </div>
                 </div>
             @endforeach
@@ -233,14 +293,21 @@
 
             <form action="{{ route('jadwal-piket.store') }}" method="POST">
                 @csrf
-                <input type="hidden" name="hari" id="modal_input_hari" value="Senin">
+                <input type="hidden" name="tanggal" id="modal_input_tanggal" value="">
 
-                <!-- Display Locked Target Day -->
                 <div style="margin-bottom: 18px;">
-                    <label style="display: block; font-size: 0.85rem; font-weight: 800; color: #1e2538; margin-bottom: 6px;">Hari Tugas Piket</label>
-                    <div id="modal_display_hari" style="font-size: 1rem; font-weight: 800; color: #2563eb; background: #eff6ff; padding: 12px 16px; border-radius: 12px; border: 1px solid #bfdbfe; display: flex; align-items: center; gap: 8px;">
-                        <i class="fa-solid fa-calendar-day"></i> Hari: Senin
-                    </div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 800; color: #1e2538; margin-bottom: 6px;">Tanggal Tugas Piket</label>
+                    <div id="modal_display_tanggal" style="font-size: 1rem; font-weight: 800; color: #2563eb; background: #eff6ff; padding: 12px 16px; border-radius: 12px; border: 1px solid #bfdbfe; display: flex; align-items: center; gap: 8px;"></div>
+                </div>
+
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 800; color: #1e2538; margin-bottom: 6px;">Peran</label>
+                    <select name="peran" id="modal_input_peran" required style="width: 100%; padding: 11px 14px; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff;">
+                        <option value="">-- Pilih peran --</option>
+                        @foreach($peranList as $peran => $jam)
+                            <option value="{{ $peran }}">{{ $peran }}@if($jam) ({{ $jam }})@endif</option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <div style="margin-bottom: 18px;">
@@ -250,7 +317,7 @@
                         <input type="text" class="form-field-input ss-input" id="assign_piket_input" placeholder="Ketik untuk cari" autocomplete="off" onclick="openPiketDropdown()" onkeyup="filterPiketDropdown()" required>
                         <div class="ss-dropdown" id="assign_piket_dropdown">
                             @foreach($guruList as $g)
-                                <div class="ss-option" data-value="{{ $g->id_guru }}" onclick="pickPiketGuru('{{ $g->id_guru }}','{{ addslashes($g->nama_guru) }} (NIP: {{ $g->nip ?? '-' }})')">
+                                <div class="ss-option" data-value="{{ $g->id_guru }}" onclick='pickPiketGuru(@json((string) $g->id_guru), @json($g->nama_guru . " (NIP: " . ($g->nip ?? "-") . ")"))'>
                                     <strong>{{ $g->nama_guru }}</strong>
                                     <small style="color: #64748b;">NIP: {{ $g->nip ?? '-' }}</small>
                                 </div>
@@ -260,26 +327,65 @@
                 </div>
 
                 <div style="margin-bottom: 24px;">
-                    <label style="display: block; font-size: 0.85rem; font-weight: 800; color: #1e2538; margin-bottom: 6px;">Keterangan / Pos Tugas (Opsional)</label>
-                    <input type="text" name="keterangan" class="form-field-input" style="width: 100%; padding: 11px 14px; border-radius: 10px; border: 1px solid #cbd5e1;" placeholder="Contoh: Petugas Piket Utama Hari Ini">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 800; color: #1e2538; margin-bottom: 6px;">Keterangan (Opsional)</label>
+                    <input type="text" name="keterangan" class="form-field-input" style="width: 100%; padding: 11px 14px; border-radius: 10px; border: 1px solid #cbd5e1;" placeholder="Kosongkan untuk memakai nama peran">
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 12px;">
-                    <button type="button" onclick="closeAssignModal()" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; padding: 10px 18px; border-radius: 10px; font-weight: 700; cursor: pointer;">
-                        Batal
-                    </button>
-                    <button type="submit" style="background: #2563eb; color: #ffffff; border: none; padding: 10px 22px; border-radius: 10px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);">
-                        Simpan Penugasan
-                    </button>
+                    <button type="button" onclick="closeAssignModal()" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; padding: 10px 18px; border-radius: 10px; font-weight: 700; cursor: pointer;">Batal</button>
+                    <button type="submit" style="background: #2563eb; color: #ffffff; border: none; padding: 10px 22px; border-radius: 10px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);">Simpan Penugasan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Impor Lembar Piket -->
+    <div id="importModal" class="pk-modal" onclick="closeImportModal()">
+        <div class="pk-modal-content" style="max-width: 680px; max-height: 90vh; overflow-y: auto;" onclick="event.stopPropagation()">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+                <h3 style="font-size: 1.2rem; font-weight: 800; color: #1e2538;">
+                    <i class="fa-solid fa-file-import" style="color: #16a34a; margin-right: 8px;"></i>Impor Lembar Piket
+                </h3>
+                <button type="button" onclick="closeImportModal()" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #64748b;">&times;</button>
+            </div>
+
+            <p style="font-size: 0.82rem; color: #475569; margin-bottom: 10px;">
+                Satu baris = satu petugas, dengan 3 kolom: <strong>tanggal</strong>, <strong>peran</strong>, <strong>nama guru</strong>. Pemisah kolom: <strong>Tab</strong> (tempel dari Excel/Sheets), <strong>;</strong> atau <strong>|</strong>. (Jangan pakai koma, karena gelar guru memakai koma.)
+            </p>
+<pre style="background: #0f172a; color: #e2e8f0; padding: 12px 14px; border-radius: 10px; font-size: 0.72rem; overflow-x: auto; margin-bottom: 10px;">28 September 2026 ; Petugas KBM Pagi ; Siti Khoiriyah, S.Pd
+28 September 2026 ; Koordinator KBM Pagi ; Dwi Rini Manfaati, S.Pd
+28 September 2026 ; Petugas KBM Siang ; Elysa Yuli Nur'aini, S.Si
+28 September 2026 ; Koordinator KBM Siang ; Dwi Kuswanto, S.Pd
+28 September 2026 ; Piket Waka ; Setiyo Winarko, S.Pd</pre>
+            <ul style="font-size: 0.78rem; color: #64748b; margin: 0 0 14px 18px; padding: 0;">
+                <li>Tanggal boleh <code>2026-09-28</code>, <code>28/09/2026</code>, atau <code>Senin, 28 September 2026</code>.</li>
+                <li>Peran: Petugas/Koordinator KBM Pagi/Siang, atau Piket Waka.</li>
+                <li>Guru harus sudah ada di <strong>Data Guru</strong> (gelar boleh berbeda sedikit). Yang belum ada akan dilaporkan.</li>
+                <li>Aman diulang: penugasan yang sudah ada dilewati.</li>
+            </ul>
+
+            <form action="{{ route('jadwal-piket.import') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <textarea name="data" rows="9" style="width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-family: ui-monospace, Consolas, monospace; font-size: 0.78rem; margin-bottom: 12px;" placeholder="Tempel data di sini...">{{ old('data') }}</textarea>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 0.8rem; font-weight: 800; color: #1e2538; margin-bottom: 6px;">Atau unggah file .csv / .txt (opsional)</label>
+                    <input type="file" name="file_csv" accept=".csv,.txt">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                    <button type="button" onclick="closeImportModal()" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; padding: 10px 18px; border-radius: 10px; font-weight: 700; cursor: pointer;">Batal</button>
+                    <button type="submit" style="background: #16a34a; color: #ffffff; border: none; padding: 10px 22px; border-radius: 10px; font-weight: 800; cursor: pointer;">Impor</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        function openAssignModal(day = 'Senin') {
-            document.getElementById('modal_input_hari').value = day;
-            document.getElementById('modal_display_hari').innerHTML = '<i class="fa-solid fa-calendar-day"></i> Hari Tugas: <strong>' + day + '</strong>';
+        function openAssignModal(tanggalIso, label, peran) {
+            document.getElementById('modal_input_tanggal').value = tanggalIso;
+            document.getElementById('modal_display_tanggal').innerHTML = '<i class="fa-solid fa-calendar-day"></i> ' + label;
+            document.getElementById('modal_input_peran').value = peran || '';
             document.getElementById('assignModal').style.display = 'flex';
             resetPiketDropdown();
         }
@@ -287,6 +393,9 @@
         function closeAssignModal() {
             document.getElementById('assignModal').style.display = 'none';
         }
+
+        function openImportModal() { document.getElementById('importModal').style.display = 'flex'; }
+        function closeImportModal() { document.getElementById('importModal').style.display = 'none'; }
 
         function resetPiketDropdown() {
             document.getElementById('assign_id_guru').value = '';
@@ -349,5 +458,6 @@
         }
         setInterval(updateLiveClock, 1000);
     </script>
+
 </body>
 </html>
