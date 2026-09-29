@@ -50,7 +50,8 @@ class JadwalPiketController extends Controller
         return view('admin.jadwal_piket.index', compact('days', 'jadwalGrouped', 'guruList', 'totalPetugas'));
     }
 
-    /**
+    /** 
+     * 
      * Simpan penugasan Guru Piket baru.
      */
     public function store(Request $request)

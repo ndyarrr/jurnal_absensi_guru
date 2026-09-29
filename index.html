@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Detail Permohonan Izin</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <main class="page">
+
+        <!-- Dekorasi Background -->
+        <div class="decoration top-left"></div>
+        <div class="decoration bottom-right"></div>
+
+
+        <!-- Card Utama -->
+        <section class="card-wrapper">
+
+            <div class="card">
+
+                <div class="information-box">
+
+                    <!-- Nama Guru -->
+                    <div class="info-row">
+
+                        <div class="icon-box">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <circle cx="12" cy="7" r="4"></circle>
+                                <path d="M5 21c0-4 3-7 7-7s7 3 7 7"></path>
+                            </svg>
+                        </div>
+
+                        <div class="info-content">
+                            <div class="label">
+                                NAMA GURU PEMOHON
+                            </div>
+
+                            <div class="value">
+                                Trisno Wibowo, S.Pd., M.M.
+                            </div>
+
+                            <div class="sub-value">
+                                NUPTK: 19850915210011001
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <!-- Jenis Izin -->
+                    <div class="info-row">
+
+                        <div class="icon-box">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M20 13l-7 7-10-10V3h7z"></path>
+                                <circle cx="7.5" cy="7.5" r="1"></circle>
+                            </svg>
+                        </div>
+
+                        <div class="info-content">
+
+                            <div class="label">
+                                JENIS / KATEGORI IZIN
+                            </div>
+
+                            <div class="value">
+                                Dinas
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Tanggal Izin -->
+                    <div class="info-row">
+
+                        <div class="icon-box">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+                                <path d="M16 3v4"></path>
+                                <path d="M8 3v4"></path>
+                                <path d="M3 10h18"></path>
+                            </svg>
+                        </div>
+
+                        <div class="info-content">
+
+                            <div class="label">
+                                TANGGAL IZIN
+                            </div>
+
+                            <div class="value">
+                                07 September 2026 · 1 hari
+                            </div>
+
+                            <div class="sub-value">
+                                (Durasi 1 hari)
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Keterangan -->
+                    <div class="info-row">
+
+                        <div class="icon-box">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <rect x="5" y="4" width="14" height="17" rx="2"></rect>
+                                <path d="M9 4h6v3H9z"></path>
+                                <path d="M8 13l2 2 4-4"></path>
+                            </svg>
+                        </div>
+
+                        <div class="info-content">
+
+                            <div class="label">
+                                KETERANGAN / ALASAN
+                            </div>
+
+                            <div class="value">
+                                dsds
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Lampiran -->
+                    <div class="info-row">
+
+                        <div class="icon-box">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M21 11.5l-8.5 8.5a6 6 0 01-8.5-8.5L13 2.5a4 4 0 015.5 5.8l-9 9a2 2 0 01-2.8-2.8l8.4-8.4"></path>
+                            </svg>
+                        </div>
+
+                        <div class="info-content">
+
+                            <div class="label">
+                                LAMPIRAN BUKTI DOKUMEN
+                            </div>
+
+                            <div class="sub-value italic">
+                                Tidak ada dokumen dilampirkan
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Status -->
+                    <div class="info-row status-row">
+
+                        <div class="icon-box">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="9"></circle>
+                                <path d="M12 7v5l3 2"></path>
+                            </svg>
+                        </div>
+
+                        <div class="info-content">
+
+                            <div class="label">
+                                Status Persetujuan
+                            </div>
+
+                            <div class="status">
+
+                                <span class="status-icon"></span>
+
+                                Menunggu Persetujuan
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Tombol -->
+                <div class="actions">
+
+                    <button
+                        class="btn btn-approve"
+                        onclick="approveRequest()"
+                    >
+
+                        <span class="button-icon">✓</span>
+
+                        Setujui Permohonan Izin
+
+                    </button>
+
+
+                    <button
+                        class="btn btn-reject"
+                        onclick="rejectRequest()"
+                    >
+
+                        <span class="button-icon">✕</span>
+
+                        Tolak Permohonan Izin
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- Tombol Panah Bawah -->
+            <button
+                class="scroll-button"
+                onclick="scrollToBottom()"
+            >
+                ↓
+            </button>
+
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+
+</body>
+</html>

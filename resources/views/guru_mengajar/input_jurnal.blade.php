@@ -89,7 +89,6 @@
                                 <th style="width: 50px; text-align: center; padding: 14px;">#</th>
                                 <th style="padding: 14px;">Nama Siswa</th>
                                 <th style="width: 240px; text-align: center; padding: 14px;">Status Kehadiran</th>
-                                <th style="padding: 14px;">Keterangan</th>
                                 <th style="width: 150px; text-align: center; padding: 14px;">Surat / Bukti</th>
                             </tr>
                         </thead>
@@ -158,15 +157,41 @@
                                         <input type="hidden" name="presensi[{{ $idx }}][id_siswa]" value="{{ $s->id_siswa }}">
                                     </td>
                                     <td style="padding: 14px;">
-                                        <div class="gm-radio-group" style="justify-content: center;">
-                                            <label class="gm-radio-label hadir"><input type="radio" name="presensi[{{ $idx }}][status]" value="Hadir" {{ $statusVal === 'Hadir' ? 'checked' : '' }}> H</label>
-                                            <label class="gm-radio-label sakit"><input type="radio" name="presensi[{{ $idx }}][status]" value="Sakit" {{ $statusVal === 'Sakit' ? 'checked' : '' }}> S</label>
-                                            <label class="gm-radio-label izin"><input type="radio" name="presensi[{{ $idx }}][status]" value="Izin" {{ $statusVal === 'Izin' ? 'checked' : '' }}> I</label>
-                                            <label class="gm-radio-label alpa"><input type="radio" name="presensi[{{ $idx }}][status]" value="Alpa" {{ $statusVal === 'Alpa' ? 'checked' : '' }}> A</label>
-                                        </div>
-                                    </td>
-                                    <td style="padding: 14px;">
-                                        <input type="text" name="presensi[{{ $idx }}][keterangan]" class="gm-input" style="padding: 8px 12px; font-size: 0.85rem; width: 100%;" placeholder="Keterangan..." value="{{ $ketVal }}">
+                                        <div class="gm-radio-group" style="justify-content: center; flex-wrap: wrap;">
+    <label class="gm-radio-label hadir">
+        <input type="radio" name="presensi[{{ $idx }}][status]" value="Hadir" {{ $statusVal === 'Hadir' ? 'checked' : '' }}> H
+    </label>
+
+    <label class="gm-radio-label sakit">
+        <input type="radio" name="presensi[{{ $idx }}][status]" value="Sakit" {{ $statusVal === 'Sakit' ? 'checked' : '' }}> S
+    </label>
+
+    <label class="gm-radio-label izin">
+        <input type="radio" name="presensi[{{ $idx }}][status]" value="Izin" {{ $statusVal === 'Izin' ? 'checked' : '' }}> I
+    </label>
+
+    <label class="gm-radio-label alpa">
+        <input type="radio" name="presensi[{{ $idx }}][status]" value="Alpa" {{ $statusVal === 'Alpa' ? 'checked' : '' }}> A
+    </label>
+
+    <label class="gm-radio-label">
+        <input type="radio" name="presensi[{{ $idx }}][status]" value="Dispen Masuk" {{ $statusVal === 'Dispen Masuk' ? 'checked' : '' }}> DM
+    </label>
+
+    <label class="gm-radio-label">
+        <input type="radio" name="presensi[{{ $idx }}][status]" value="Dispen Keluar" {{ $statusVal === 'Dispen Keluar' ? 'checked' : '' }}> DK
+    </label>
+</div>
+ @if($dispen)
+    <div style="margin-top: 8px; text-align: center;">
+        <button type="button"
+            class="gm-btn"
+            style="background: #fef3c7; color: #b45309; border: 1px solid #fde047; padding: 5px 12px; font-size: 0.75rem; font-weight: 700; border-radius: 8px;"
+            onclick="openDetailSuratModal('{{ $s->nama_siswa }}', {{ json_encode($suratData) }})">
+            <i class="fa-solid fa-file-circle-check"></i> Dispen
+        </button>
+    </div>
+@endif
                                     </td>
                                     <td style="text-align: center; padding: 14px;">
                                         @if($hasSurat && $suratData)
@@ -181,7 +206,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" style="text-align: center; padding: 30px; color: #94a3b8;">
+                                    <td colspan="4" style="text-align: center; padding: 30px; color: #94a3b8;">
                                         Belum ada data siswa terdaftar di kelas ini.
                                     </td>
                                 </tr>
