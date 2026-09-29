@@ -14,6 +14,7 @@ class DetailKetidakhadiran extends Model
         'id_siswa',
         'status',
         'kategori',
+        'jenis_dispen',
         'bukti_surat',
         'catatan',
         'id_guru_piket',

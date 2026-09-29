@@ -131,42 +131,5 @@
             </div>
         </div>
 
-        @if($izin->status_approval === 'pending')
-            <div class="btn-action-group">
-                <form action="{{ route('izin.approval.approve', ['id' => $izin->id_izin_guru, 'token' => $izin->approval_token]) }}" method="POST">
-                    @csrf
-                    <button type="submit" class="btn-action btn-approve" onclick="return confirm('Apakah Anda yakin ingin MENSETUJUI permohonan izin ini?')">
-                        <i class="fa-solid fa-check-circle"></i> Setujui Permohonan Izin
-                    </button>
-                </form>
-
-                <button type="button" class="btn-action btn-reject" onclick="toggleRejectBox()">
-                    <i class="fa-solid fa-xmark-circle"></i> Tolak Permohonan Izin
-                </button>
-
-                <div class="reject-reason-box" id="rejectBox">
-                    <form action="{{ route('izin.approval.reject', ['id' => $izin->id_izin_guru, 'token' => $izin->approval_token]) }}" method="POST">
-                        @csrf
-                        <label style="font-size: 0.8rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Catatan Alasan Penolakan (Opsional)</label>
-                        <textarea name="catatan_approver" rows="3" placeholder="Contoh: Tugas mengajar jam ke-3 tidak ada pengganti..."></textarea>
-                        <button type="submit" class="btn-action" style="background: var(--danger); color: white;" onclick="return confirm('Apakah Anda yakin ingin MENOLAK permohonan izin ini?')">
-                            Kirim Penolakan
-                        </button>
-                    </form>
-                </div>
-            </div>
-        @endif
-    </div>
-</div>
-
-<script>
-    function toggleRejectBox() {
-        const box = document.getElementById('rejectBox');
-        if (box) {
-            box.style.display = (box.style.display === 'block') ? 'none' : 'block';
-        }
-    }
-</script>
-
-</body>
-</html>
+    
+        

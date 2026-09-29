@@ -98,7 +98,7 @@ class IzinGuru extends Model
     {
         if (!$this->approval_token) {
             return '#';
-        }
+    
         return route('izin.approval.show', ['id' => $this->id_izin_guru, 'token' => $this->approval_token]);
     }
 

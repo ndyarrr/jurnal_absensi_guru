@@ -274,12 +274,23 @@ class GuruMengajarController extends Controller
         $existingDetails = [];
         if ($jurnal) {
             $statusReverse = ['S' => 'Sakit', 'I' => 'Izin', 'A' => 'Alpa'];
-            foreach ($jurnal->detailKetidakhadiran as $d) {
-                $existingDetails[$d->id_siswa] = [
-                    'status' => $statusReverse[$d->status] ?? 'Alpa',
-                    'keterangan' => $d->catatan ?? '',
-                ];
-            }
+
+foreach ($jurnal->detailKetidakhadiran as $d) {
+    $status = $statusReverse[$d->status] ?? 'Alpa';
+
+    if ($d->kategori === 'dispensasi') {
+        if ($d->jenis_dispen === 'masuk') {
+            $status = 'Dispen Masuk';
+        } elseif ($d->jenis_dispen === 'keluar') {
+            $status = 'Dispen Keluar';
+        }
+    }
+
+    $existingDetails[$d->id_siswa] = [
+        'status' => $status,
+        'keterangan' => $d->catatan ?? '',
+    ];
+}
         }
 
         $waktuStr = optional($jadwal->jamPelajaran)->jam_mulai
@@ -411,8 +422,8 @@ class GuruMengajarController extends Controller
             'catatan' => 'nullable|string|max:255',
             'presensi' => 'nullable|array',
             'presensi.*.id_siswa' => 'required_with:presensi|exists:siswa,id_siswa',
-            'presensi.*.status' => 'required_with:presensi|in:Hadir,Sakit,Izin,Alpa',
-            'presensi.*.keterangan' => 'nullable|string|max:255',
+            'presensi.*.status' => 'required_with:presensi|in:Hadir,Sakit,Izin,Alpa,Dispen Masuk,Dispen Keluar',
+'presensi.*.keterangan' => 'nullable|string|max:255',
         ]);
 
         // Pastikan jadwal ini benar-benar milik guru yang login
@@ -449,19 +460,32 @@ class GuruMengajarController extends Controller
 
         $jurnal->detailKetidakhadiran()->delete();
 
-        $statusMap = ['Sakit' => 'S', 'Izin' => 'I', 'Alpa' => 'A'];
-        foreach ($presensi as $p) {
-            if ($p['status'] === 'Hadir') {
-                continue;
-            }
-            $jurnal->detailKetidakhadiran()->create([
-                'id_siswa' => $p['id_siswa'],
-                'status' => $statusMap[$p['status']] ?? 'A',
-                'kategori' => $p['status'] === 'Sakit' ? 'sakit' : ($p['status'] === 'Izin' ? 'izin_ortu' : 'alpa'),
-                'catatan' => $p['keterangan'] ?? null,
-                'waktu_input' => Carbon::now('Asia/Jakarta'),
-            ]);
-        }
+$statusMap = [
+    'Sakit' => 'S',
+    'Izin' => 'I',
+    'Alpa' => 'A',
+    'Dispen Masuk' => 'I',
+    'Dispen Keluar' => 'I',
+];
+
+foreach ($presensi as $p) {
+    if ($p['status'] === 'Hadir') {
+        continue;
+    }
+
+    $jurnal->detailKetidakhadiran()->create([
+    'id_siswa' => $p['id_siswa'],
+    'status' => $statusMap[$p['status']] ?? 'A',
+    'kategori' => in_array($p['status'], ['Dispen Masuk', 'Dispen Keluar'], true)
+        ? 'dispensasi'
+        : ($p['status'] === 'Sakit' ? 'sakit' : ($p['status'] === 'Izin' ? 'izin_ortu' : 'alpa')),
+    'jenis_dispen' => $p['status'] === 'Dispen Masuk'
+        ? 'masuk'
+        : ($p['status'] === 'Dispen Keluar' ? 'keluar' : null),
+    'catatan' => $p['keterangan'] ?? null,
+    'waktu_input' => Carbon::now('Asia/Jakarta'),
+]);
+}
 
         return redirect()->route('guru-mengajar.dashboard')->with('success', 'Jurnal & presensi berhasil disimpan.');
     }
