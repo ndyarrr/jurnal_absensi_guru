@@ -586,25 +586,40 @@
                     </div>
 
                     <!-- Center: Guru Piket -->
-                    <div style="width: 30%;">
-                        <div style="text-transform: uppercase;">GURU PIKET</div>
-                        <div style="height: 60px;"></div>
-                        <div style="border-top: 1.5px solid #000000; padding-top: 4px; min-width: 140px; margin: 0 auto;" id="slip_guru_piket"></div>
-                    </div>
+<div style="width: 30%;">
+    <div style="text-transform: uppercase;">GURU PIKET</div>
+
+    <div style="height: 60px; display: flex; align-items: center; justify-content: center;">
+        <img id="slip_ttd_guru_piket"
+             src=""
+             alt="TTD Guru Piket"
+             style="max-height: 55px; max-width: 130px; object-fit: contain; display: none;">
+    </div>
+
+    <div style="border-top: 1.5px solid #000000; padding-top: 4px; min-width: 140px; margin: 0 auto;" id="slip_guru_piket"></div>
+</div>
 
                     <!-- Right: Tulungagung & Ttd Siswa -->
                     <div style="width: 38%;">
-                        <div>TULUNGAGUNG, <span id="slip_tanggal" style="border-bottom: 1px dotted #000000; padding: 0 4px;"></span></div>
-                        <div style="text-transform: uppercase; margin-top: 2px;">TANDA TANGAN SISWA</div>
-                        <div style="height: 50px;"></div>
-                        <div style="border-top: 1.5px solid #000000; padding-top: 4px; min-width: 140px; margin: 0 auto;"></div>
+                    <div>TULUNGAGUNG, <span id="slip_tanggal" style="border-bottom: 1px dotted #000000; padding: 0 4px;"></span></div>
+<div style="text-transform: uppercase; margin-top: 2px;">TANDA TANGAN SISWA</div>
+
+<div style="height: 50px; display: flex; align-items: center; justify-content: center;">
+    <img id="slip_ttd_siswa"
+         src=""
+         alt="TTD Siswa"
+         style="max-height: 48px; max-width: 130px; object-fit: contain; display: none;">
+</div>
+
+<div style="border-top: 1.5px solid #000000; padding-top: 4px; min-width: 140px; margin: 0 auto;"></div>
                     </div>
                 </div>
             </div>
 
             <!-- Modal Action Buttons -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
-                <button type="button" onclick="closeSlipModal()" style="background: #ffffff; border: 1px solid #cbd5e1; color: #475569; padding: 10px 20px; border-radius: 10px; font-weight: 700; cursor: pointer;">
+                <button type="button" onclick="close
+                ipModal()" style="background: #ffffff; border: 1px solid #cbd5e1; color: #475569; padding: 10px 20px; border-radius: 10px; font-weight: 700; cursor: pointer;">
                     Tutup
                 </button>
                 <button type="button" onclick="printSlip()" style="background: var(--pk-navy); color: #ffffff; border: none; padding: 11px 24px; border-radius: 10px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px;">
@@ -755,12 +770,23 @@
             }
         });
 
-        function showSlipModal(id, nama, kelas, jamKe, alasan, tanggal, guruPiket, wakasek) {
+        function showSlipModal(id, nama, kelas, jamKe, alasan, tanggal, guruPiket, wakasek, ttdSiswa, ttdGuru) {
             document.getElementById('slip_nama').textContent = nama || '-';
             document.getElementById('slip_kelas').textContent = kelas || '-';
-            document.getElementById('slip_jam_ke').textContent = jamKe || '-';
+            document.getElementById('slip_jam_ke').textContent = jamKe || '-'
             document.getElementById('slip_alasan').textContent = alasan || '-';
             document.getElementById('slip_tanggal').textContent = tanggal || '-';
+            const ttdSiswaEl = document.getElementById('slip_ttd_siswa');
+if (ttdSiswaEl) {
+    ttdSiswaEl.src = ttdSiswa || '';
+    ttdSiswaEl.style.display = ttdSiswa ? 'block' : 'none';
+}
+
+const ttdGuruEl = document.getElementById('slip_ttd_guru_piket');
+if (ttdGuruEl) {
+    ttdGuruEl.src = ttdGuru || '';
+    ttdGuruEl.style.display = ttdGuru ? 'block' : 'none';
+}
             document.getElementById('slip_guru_piket').textContent = guruPiket && guruPiket !== '-' ? guruPiket : '';
             document.getElementById('slip_wakasek').textContent = wakasek && wakasek !== '-' ? wakasek : '';
 
@@ -798,3 +824,4 @@
     </script>
 </body>
 </html>
+
