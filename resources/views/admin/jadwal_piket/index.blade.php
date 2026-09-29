@@ -258,7 +258,7 @@
                                     <button type="button" class="pk-role-add" title="Tambah {{ $peran }}" onclick='openAssignModal(@json($d['tanggal']->toDateString()), @json($d['hari'] . ', ' . $d['tanggal']->translatedFormat('d F Y')), @json($peran))'>+</button>
                                 </div>
                                 @forelse($items as $item)
-                                    @include('admin.jadwal_piket._row', ['item' => $item])
+                                    @include('admin.jadwal_piket.row', ['item' => $item])
                                 @empty
                                     <div class="pk-role-empty">Belum ada petugas.</div>
                                 @endforelse
@@ -271,7 +271,7 @@
                                     <span class="pk-role-name" style="background: #64748b;">Tanpa peran (jadwal lama)</span>
                                 </div>
                                 @foreach($d['lainnya'] as $item)
-                                    @include('admin.jadwal_piket._row', ['item' => $item])
+                                    @include('admin.jadwal_piket.row', ['item' => $item])
                                 @endforeach
                             </div>
                         @endif
