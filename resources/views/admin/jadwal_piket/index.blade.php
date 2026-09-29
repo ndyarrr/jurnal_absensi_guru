@@ -291,7 +291,10 @@
                 <button type="button" onclick="closeAssignModal()" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #64748b;">&times;</button>
             </div>
 
-            <form action="{{ route('jadwal-piket.store') }}" method="POST">
+            <form action="{{ route('jadwal-piket.store') }}" method="POST"
+                data-confirm-type="create"
+                data-confirm-title="Konfirmasi Penugasan Guru Piket"
+                data-confirm-message="Apakah kamu yakin ingin menyimpan penugasan guru piket ini?">
                 @csrf
                 <input type="hidden" name="tanggal" id="modal_input_tanggal" value="">
 
@@ -334,6 +337,66 @@
                 <div style="display: flex; justify-content: flex-end; gap: 12px;">
                     <button type="button" onclick="closeAssignModal()" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; padding: 10px 18px; border-radius: 10px; font-weight: 700; cursor: pointer;">Batal</button>
                     <button type="submit" style="background: #2563eb; color: #ffffff; border: none; padding: 10px 22px; border-radius: 10px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);">Simpan Penugasan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Edit Penugasan Guru Piket -->
+    <div id="editPiketModal" class="pk-modal" onclick="closeEditPiketModal()">
+        <div class="pk-modal-content" onclick="event.stopPropagation()">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                <h3 style="font-size: 1.2rem; font-weight: 800; color: #1e2538;">
+                    <i class="fa-solid fa-pen-to-square" style="color: #2563eb; margin-right: 8px;"></i>Edit Penugasan Guru Piket
+                </h3>
+                <button type="button" onclick="closeEditPiketModal()" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #64748b;">&times;</button>
+            </div>
+
+            <form id="editPiketForm" action="" method="POST"
+                data-confirm-type="update" data-confirm-title="Konfirmasi Simpan Perubahan"
+                data-confirm="Apakah Anda yakin ingin menyimpan perubahan penugasan piket ini?">
+                @csrf
+                @method('PUT')
+
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 800; color: #1e2538; margin-bottom: 6px;">Tanggal Tugas Piket</label>
+                    <div id="edit_piket_tanggal" style="font-size: 1rem; font-weight: 800; color: #2563eb; background: #eff6ff; padding: 12px 16px; border-radius: 12px; border: 1px solid #bfdbfe; display: flex; align-items: center; gap: 8px;"></div>
+                </div>
+
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 800; color: #1e2538; margin-bottom: 6px;">Peran</label>
+                    <select name="peran" id="edit_piket_peran" required style="width: 100%; padding: 11px 14px; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff;">
+                        <option value="">-- Pilih peran --</option>
+                        @foreach($peranList as $peran => $jam)
+                            <option value="{{ $peran }}">{{ $peran }}@if($jam) ({{ $jam }})@endif</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 800; color: #1e2538; margin-bottom: 6px;">Pilih Guru Piket</label>
+                    <input type="hidden" name="id_guru" id="edit_piket_id_guru" value="" required>
+                    <div class="searchable-select" id="edit_piket_ss">
+                        <input type="text" class="form-field-input ss-input" id="edit_piket_input" placeholder="Ketik untuk cari" autocomplete="off" onclick="openEditPiketDropdown()" onkeyup="filterEditPiketDropdown()" required>
+                        <div class="ss-dropdown" id="edit_piket_dropdown">
+                            @foreach($guruList as $g)
+                                <div class="ss-option" data-value="{{ $g->id_guru }}" onclick='pickEditPiketGuru(@json((string) $g->id_guru), @json($g->nama_guru . " (NIP: " . ($g->nip ?? "-") . ")"))'>
+                                    <strong>{{ $g->nama_guru }}</strong>
+                                    <small style="color: #64748b;">NIP: {{ $g->nip ?? '-' }}</small>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 800; color: #1e2538; margin-bottom: 6px;">Keterangan (Opsional)</label>
+                    <input type="text" name="keterangan" id="edit_piket_keterangan" class="form-field-input" style="width: 100%; padding: 11px 14px; border-radius: 10px; border: 1px solid #cbd5e1;" placeholder="Kosongkan untuk memakai nama peran">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                    <button type="button" onclick="closeEditPiketModal()" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; padding: 10px 18px; border-radius: 10px; font-weight: 700; cursor: pointer;">Batal</button>
+                    <button type="submit" style="background: #2563eb; color: #ffffff; border: none; padding: 10px 22px; border-radius: 10px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);">Simpan Perubahan</button>
                 </div>
             </form>
         </div>
@@ -442,6 +505,60 @@
         document.addEventListener('click', function(e) {
             const ss = document.getElementById('assign_piket_ss');
             const dd = document.getElementById('assign_piket_dropdown');
+            if (ss && dd && !ss.contains(e.target)) {
+                dd.classList.remove('ss-open');
+            }
+        }, true);
+
+        const editPiketUrlTemplate = @json(route('jadwal-piket.update', '__ID__'));
+
+        function openEditPiketModal(btn) {
+            const d = btn.dataset;
+            document.getElementById('editPiketForm').action = editPiketUrlTemplate.replace('__ID__', d.id);
+            document.getElementById('edit_piket_tanggal').innerHTML = '<i class="fa-solid fa-calendar-day"></i> ' + d.label;
+            document.getElementById('edit_piket_peran').value = d.peran || '';
+            document.getElementById('edit_piket_id_guru').value = d.guruId || '';
+            document.getElementById('edit_piket_input').value = d.guruId ? d.guruLabel : '';
+            document.getElementById('edit_piket_keterangan').value = d.keterangan || '';
+            document.getElementById('edit_piket_dropdown').classList.remove('ss-open');
+            document.getElementById('editPiketModal').style.display = 'flex';
+        }
+
+        function closeEditPiketModal() {
+            document.getElementById('editPiketModal').style.display = 'none';
+        }
+
+        function openEditPiketDropdown() {
+            const input = document.getElementById('edit_piket_input');
+            const dd = document.getElementById('edit_piket_dropdown');
+            const rect = input.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+
+            dd.classList.remove('ss-up', 'ss-down');
+            dd.classList.add(spaceBelow < 220 && spaceAbove > spaceBelow ? 'ss-up' : 'ss-down');
+            dd.classList.add('ss-open');
+            filterEditPiketDropdown();
+        }
+
+        function filterEditPiketDropdown() {
+            const query = document.getElementById('edit_piket_input').value.toLowerCase();
+            const dd = document.getElementById('edit_piket_dropdown');
+            dd.querySelectorAll('.ss-option').forEach(item => {
+                item.style.display = item.textContent.toLowerCase().includes(query) ? 'flex' : 'none';
+            });
+            dd.classList.add('ss-open');
+        }
+
+        function pickEditPiketGuru(value, label) {
+            document.getElementById('edit_piket_id_guru').value = value;
+            document.getElementById('edit_piket_input').value = value ? label : '';
+            document.getElementById('edit_piket_dropdown').classList.remove('ss-open');
+        }
+
+        document.addEventListener('click', function(e) {
+            const ss = document.getElementById('edit_piket_ss');
+            const dd = document.getElementById('edit_piket_dropdown');
             if (ss && dd && !ss.contains(e.target)) {
                 dd.classList.remove('ss-open');
             }

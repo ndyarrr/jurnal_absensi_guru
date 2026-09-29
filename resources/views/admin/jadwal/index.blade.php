@@ -1910,20 +1910,40 @@
         /* ---- Submit Create Form (AJAX) ---- */
         const createJadwalFormEl = document.getElementById('createJadwalForm');
         if (createJadwalFormEl) {
-            createJadwalFormEl.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const formData = new FormData(this);
-                const alertBox = document.getElementById('createModalAlert');
+        createJadwalFormEl.addEventListener('submit', function(e) {
 
-                fetch('/jadwal', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken
-                    }
-                })
+        if (this.dataset.confirmed !== 'true') {
+            e.preventDefault();
+
+            showConfirmModal({
+                type: 'create',
+                title: 'Konfirmasi Tambah Jadwal',
+                message: 'Apakah kamu yakin ingin menambahkan jadwal pelajaran ini?',
+                onConfirm: () => {
+                    this.dataset.confirmed = 'true';
+                    this.requestSubmit();
+                }
+            });
+
+            return;
+        }
+
+        delete this.dataset.confirmed;
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const alertBox = document.getElementById('createModalAlert');
+
+        fetch('/jadwal', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            }
+        })
+       
                 .then(async res => {
                     const data = await res.json();
                     if (res.status === 409 || data.confirm_overwrite) {
@@ -1989,8 +2009,26 @@
         /* ---- Submit Edit Form (AJAX) ---- */
         const editJadwalFormEl = document.getElementById('editJadwalForm');
         if (editJadwalFormEl) {
-            editJadwalFormEl.addEventListener('submit', function(e) {
-                e.preventDefault();
+        editJadwalFormEl.addEventListener('submit', function(e) {
+
+        if (this.dataset.confirmed !== 'true') {
+            e.preventDefault();
+
+            showConfirmModal({
+                type: 'update',
+                title: 'Konfirmasi Edit Jadwal',
+                message: 'Apakah kamu yakin ingin menyimpan perubahan jadwal ini?',
+                onConfirm: () => {
+                    this.dataset.confirmed = 'true';
+                    this.requestSubmit();
+                }
+            });
+
+            return;
+        }
+
+        delete this.dataset.confirmed;
+        e.preventDefault();
                 const id = document.getElementById('edit_id_jadwal').value;
                 const formData = new FormData(this);
                 formData.append('_method', 'PUT');

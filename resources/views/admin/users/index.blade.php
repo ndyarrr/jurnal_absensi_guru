@@ -357,7 +357,7 @@
                 <button type="button" class="btn-close-modal" onclick="closeCreateModal()">&times;</button>
             </div>
 
-            <form action="{{ route('users.store') }}" method="POST" enctype="multipart/form-data" class="modal-form-grid" onsubmit="return validateUserForm('create')">
+            <form action="{{ route('users.store') }}" method="POST" enctype="multipart/form-data" class="modal-form-grid" onsubmit="return handleUserFormSubmit(event, 'create')">
                 @csrf
                 <div class="form-field-group">
                     <label for="create_avatar">Foto Profil (Opsional)</label>
@@ -444,7 +444,7 @@
                 <button type="button" class="btn-close-modal" onclick="closeEditModal()">&times;</button>
             </div>
 
-            <form id="editForm" method="POST" enctype="multipart/form-data" class="modal-form-grid" onsubmit="return validateUserForm('edit')">
+            <form id="editForm" method="POST" enctype="multipart/form-data" class="modal-form-grid" onsubmit="return handleUserFormSubmit(event, 'edit')">
                 @csrf
                 @method('PUT')
 
@@ -602,6 +602,40 @@
             return true;
         }
 
+    function handleUserFormSubmit(e, prefix) {
+    if (!validateUserForm(prefix)) {
+        e.preventDefault();
+        return false;
+    }
+
+    const form = e.currentTarget;
+
+    if (form.dataset.confirmed !== 'true') {
+        e.preventDefault();
+
+        const isCreate = prefix === 'create';
+
+        showConfirmModal({
+            type: isCreate ? 'create' : 'update',
+            title: isCreate
+                ? 'Konfirmasi Tambah Pengguna'
+                : 'Konfirmasi Edit Pengguna',
+            message: isCreate
+                ? 'Apakah kamu yakin ingin menambahkan pengguna ini?'
+                : 'Apakah kamu yakin ingin menyimpan perubahan data pengguna ini?',
+            onConfirm: () => {
+                form.dataset.confirmed = 'true';
+                form.requestSubmit();
+            }
+        });
+
+        return false;
+    }
+
+    delete form.dataset.confirmed;
+    return true;
+}
+    
         /* ---- Role change: update teacher profile requirement & hint ---- */
         function handleRoleChange(prefix) {
             const roleVal = document.getElementById(prefix + '_role').value;

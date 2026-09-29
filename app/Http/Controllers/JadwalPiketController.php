@@ -408,6 +408,48 @@ class JadwalPiketController extends Controller
     }
 
     /** Hapus penugasan piket. */
+    /** Ubah penugasan piket (guru, peran, keterangan). Tanggal tidak diubah. */
+    public function update(Request $request, $id)
+    {
+        $this->ensureTableExists();
+
+        $jadwal = JadwalPiket::findOrFail($id);
+
+        $request->validate([
+            'id_guru'    => 'required|exists:guru,id_guru',
+            'peran'      => 'required|in:' . implode(',', array_keys(JadwalPiket::PERAN)),
+            'keterangan' => 'nullable|string|max:255',
+        ], [
+            'id_guru.required' => 'Pilih guru yang bertugas.',
+            'id_guru.exists'   => 'Guru yang dipilih tidak valid.',
+            'peran.required'   => 'Pilih peran piket.',
+            'peran.in'         => 'Peran piket tidak valid.',
+        ]);
+
+        $guru = Guru::findOrFail($request->id_guru);
+        $tanggal = $jadwal->tanggal;
+
+        if ($tanggal && JadwalPiket::where('tanggal', $tanggal->toDateString())
+            ->where('id_guru', $guru->id_guru)
+            ->where('id_piket', '!=', $jadwal->id_piket)
+            ->exists()) {
+            return back()->with('error', "{$guru->nama_guru} sudah terdaftar piket pada {$tanggal->translatedFormat('l, d F Y')}.");
+        }
+
+        $jadwal->update([
+            'id_guru'    => $guru->id_guru,
+            'peran'      => $request->peran,
+            'keterangan' => $request->keterangan ?: $request->peran,
+        ]);
+
+        $this->syncUserAccountForPiket($guru);
+
+        $label = $tanggal ? $tanggal->translatedFormat('l, d F Y') : "hari {$jadwal->hari}";
+
+        return redirect()->route('jadwal-piket.index', $tanggal ? ['minggu' => $tanggal->toDateString()] : [])
+            ->with('success', "Penugasan piket {$guru->nama_guru} ({$request->peran}) pada {$label} berhasil diperbarui.");
+    }
+
     public function destroy($id)
     {
         $this->ensureTableExists();
