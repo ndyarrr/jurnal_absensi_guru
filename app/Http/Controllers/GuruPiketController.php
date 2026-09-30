@@ -191,7 +191,7 @@ class GuruPiketController extends Controller
     }
 
     /**
-     * Helper to check if current user (Guru Mapel / Wali Kelas / Guru Piket) is scheduled for Piket Duty today (or is admin).
+     * Cek apakah user terjadwal piket pada hari DAN jam saat ini (admin selalu boleh).
      */
     private function isTeacherDutyToday($user): bool
     {
@@ -199,51 +199,11 @@ class GuruPiketController extends Controller
             return false;
         }
 
-        // 1. Admin & Super Admin always have full access
         if (method_exists($user, 'isAdmin') && $user->isAdmin()) {
             return true;
         }
 
-        $dayMap = [
-            'Monday'    => 'Senin',
-            'Tuesday'   => 'Selasa',
-            'Wednesday' => 'Rabu',
-            'Thursday'  => 'Kamis',
-            'Friday'    => 'Jumat',
-            'Saturday'  => 'Sabtu',
-            'Sunday'    => 'Minggu',
-        ];
-        $englishDay = Carbon::now('Asia/Jakarta')->format('l');
-        $todayName = $dayMap[$englishDay] ?? 'Senin';
-
-        // 3. Resolve id_guru via user relation, direct attribute, or name matching
-        $idGuru = $user->id_guru;
-        if (!$idGuru && $user->guru) {
-            $idGuru = $user->guru->id_guru;
-        }
-
-        if (!$idGuru && !empty($user->name)) {
-            $matchedGuru = \App\Models\Guru::where('nama_guru', $user->name)
-                ->orWhere('nama_guru', 'like', '%' . $user->name . '%')
-                ->first();
-            if ($matchedGuru) {
-                $idGuru = $matchedGuru->id_guru;
-            }
-        }
-
-        // 4. Fallback: If table doesn't exist or table has 0 records, allow access
-        if (!\Illuminate\Support\Facades\Schema::hasTable('jadwal_piket') || \App\Models\JadwalPiket::count() === 0) {
-            return true;
-        }
-
-        // 5. Check if id_guru is scheduled for today in JadwalPiket
-        if ($idGuru) {
-            return \App\Models\JadwalPiket::bertugasHariIni()
-                ->where('id_guru', $idGuru)
-                ->exists();
-        }
-
-        return false;
+        return $user->sedangBertugasPiket();
     }
 
     /**

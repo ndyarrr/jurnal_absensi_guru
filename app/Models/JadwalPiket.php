@@ -34,6 +34,17 @@ class JadwalPiket extends Model
         'Piket Waka'            => '',
     ];
 
+    /**
+     * Rentang jam tugas tiap peran (mulai inclusive, selesai exclusive, WIB).
+     * Peran yang tidak ada di sini (Piket Waka) atau baris lama tanpa peran = bertugas seharian.
+     */
+    public const JAM_PERAN = [
+        'Petugas KBM Pagi'      => ['07:00', '11:00'],
+        'Koordinator KBM Pagi'  => ['07:00', '11:00'],
+        'Petugas KBM Siang'     => ['11:00', '15:00'],
+        'Koordinator KBM Siang' => ['11:00', '15:00'],
+    ];
+
     public const HARI_ID = [
         1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu', 4 => 'Kamis', 5 => 'Jumat',
         6 => 'Sabtu', 7 => 'Minggu',
@@ -95,6 +106,66 @@ class JadwalPiket extends Model
         return $query->where(function ($q) use ($hariIni) {
             $q->whereNull('tanggal')->orWhereDate('tanggal', '>=', $hariIni);
         });
+    }
+
+    /** Rentang jam [mulai, selesai] baris ini, atau null jika bertugas seharian. */
+    public function rentangJam(): ?array
+    {
+        return self::JAM_PERAN[$this->peran] ?? null;
+    }
+
+    /** Apakah baris ini sedang berlangsung pada waktu $sekarang (hari sudah dianggap cocok). */
+    public function sedangBerlangsung(Carbon $sekarang): bool
+    {
+        $rentang = $this->rentangJam();
+        if ($rentang === null) {
+            return true;
+        }
+
+        $jam = $sekarang->format('H:i');
+
+        return $jam >= $rentang[0] && $jam < $rentang[1];
+    }
+
+    /** Semua baris piket milik guru yang berlaku pada tanggal $sekarang (semua jam). */
+    public static function jadwalGuruHariIni($idGuru, ?Carbon $sekarang = null)
+    {
+        $sekarang = $sekarang ?: Carbon::now('Asia/Jakarta');
+
+        if (!$idGuru || !\Illuminate\Support\Facades\Schema::hasTable('jadwal_piket')) {
+            return collect();
+        }
+
+        return static::berlakuPada($sekarang)->where('id_guru', $idGuru)->get();
+    }
+
+    /** True hanya jika guru terjadwal piket pada hari DAN jam saat ini. */
+    public static function guruSedangBertugas($idGuru, ?Carbon $sekarang = null): bool
+    {
+        $sekarang = $sekarang ?: Carbon::now('Asia/Jakarta');
+
+        return static::jadwalGuruHariIni($idGuru, $sekarang)
+            ->contains(fn (self $baris) => $baris->sedangBerlangsung($sekarang));
+    }
+
+    /** Pesan penolakan yang menjelaskan kenapa guru belum boleh masuk tampilan piket. */
+    public static function pesanTidakBertugas($idGuru, ?Carbon $sekarang = null): string
+    {
+        $sekarang = $sekarang ?: Carbon::now('Asia/Jakarta');
+        $hari = self::namaHari($sekarang);
+        $pesan = "Anda tidak terjadwal piket pada hari {$hari} pukul " . $sekarang->format('H.i') . ' WIB.';
+
+        $hariIni = static::jadwalGuruHariIni($idGuru, $sekarang);
+        if ($hariIni->isNotEmpty()) {
+            $daftar = $hariIni->map(function (self $b) {
+                $r = $b->rentangJam();
+                $jam = $r ? str_replace(':', '.', $r[0]) . ' - ' . str_replace(':', '.', $r[1]) : 'seharian';
+                return ($b->peran ?: 'Piket') . ' (' . $jam . ')';
+            })->implode(', ');
+            $pesan .= " Jadwal piket Anda hari ini: {$daftar}.";
+        }
+
+        return $pesan;
     }
 
     public function scopeBertugasHariIni($query)

@@ -121,6 +121,33 @@ class User extends Authenticatable
         return $this->belongsTo(Guru::class, 'id_guru', 'id_guru');
     }
 
+    /** Cari id_guru akun ini: kolom id_guru, relasi guru, atau kecocokan nama. */
+    public function resolveIdGuru(): ?int
+    {
+        if ($this->id_guru) {
+            return (int) $this->id_guru;
+        }
+
+        if ($this->guru) {
+            return (int) $this->guru->id_guru;
+        }
+
+        if (!empty($this->name)) {
+            $matched = \App\Models\Guru::where('nama_guru', $this->name)->first();
+            if ($matched) {
+                return (int) $matched->id_guru;
+            }
+        }
+
+        return null;
+    }
+
+    /** True jika guru ini terjadwal piket pada hari dan jam sekarang (WIB). */
+    public function sedangBertugasPiket(): bool
+    {
+        return \App\Models\JadwalPiket::guruSedangBertugas($this->resolveIdGuru());
+    }
+
     public function getRoleLabelAttribute(): string
     {
         $role = $this->role;

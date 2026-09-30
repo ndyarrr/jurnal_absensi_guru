@@ -55,18 +55,21 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/guru-mengajar/izin/{id}', [\App\Http\Controllers\GuruMengajarController::class, 'destroyIzin'])->name('guru-mengajar.izin.destroy');
 
     // Dedicated Routes for Guru Piket
-    Route::get('/guru-piket/dashboard', [\App\Http\Controllers\GuruPiketController::class, 'dashboard'])->name('guru-piket.dashboard');
-    Route::get('/guru-piket/input-surat', [\App\Http\Controllers\GuruPiketController::class, 'inputSuratIzin'])->name('guru-piket.input-surat');
-    Route::post('/guru-piket/input-surat', [\App\Http\Controllers\GuruPiketController::class, 'storeSuratIzin'])->name('guru-piket.store-surat');
-    Route::get('/guru-piket/input-dispensasi', [\App\Http\Controllers\GuruPiketController::class, 'inputDispensasi'])->name('guru-piket.input-dispensasi');
-    Route::post('/guru-piket/input-dispensasi', [\App\Http\Controllers\GuruPiketController::class, 'storeDispensasi'])->name('guru-piket.store-dispensasi');
-    Route::get('/guru-piket/digital-surat', [\App\Http\Controllers\GuruPiketController::class, 'digitalisasiSurat'])->name('guru-piket.digital-surat');
-    Route::get('/guru-piket/surat-izin-masuk', [\App\Http\Controllers\GuruPiketController::class, 'suratIzinMasuk'])->name('guru-piket.surat-izin-masuk');
-    Route::post('/guru-piket/surat-izin-masuk', [\App\Http\Controllers\GuruPiketController::class, 'storeSuratIzinMasuk'])->name('guru-piket.store-surat-izin-masuk');
-    Route::delete('/guru-piket/surat-izin-masuk/{id}', [\App\Http\Controllers\GuruPiketController::class, 'destroySuratIzinMasuk'])->name('guru-piket.destroy-surat-izin-masuk');
-    Route::get('/guru-piket/export/csv', [\App\Http\Controllers\GuruPiketController::class, 'exportCsv'])->name('guru-piket.export-csv');
-    Route::post('/guru-piket/dispensasi/{id}/ttd-siswa', [\App\Http\Controllers\GuruPiketController::class, 'simpanTtdSiswa'])->name('guru-piket.dispensasi.ttd-siswa');
-    Route::post('/guru-piket/dispensasi/{id}/ttd-guru', [\App\Http\Controllers\GuruPiketController::class, 'simpanTtdGuru'])->name('guru-piket.dispensasi.ttd-guru');
+    // Hanya guru yang terjadwal piket pada hari & jam ini (admin dikecualikan)
+    Route::middleware([\App\Http\Middleware\EnsureGuruPiketBertugas::class])->group(function () {
+        Route::get('/guru-piket/dashboard', [\App\Http\Controllers\GuruPiketController::class, 'dashboard'])->name('guru-piket.dashboard');
+        Route::get('/guru-piket/input-surat', [\App\Http\Controllers\GuruPiketController::class, 'inputSuratIzin'])->name('guru-piket.input-surat');
+        Route::post('/guru-piket/input-surat', [\App\Http\Controllers\GuruPiketController::class, 'storeSuratIzin'])->name('guru-piket.store-surat');
+        Route::get('/guru-piket/input-dispensasi', [\App\Http\Controllers\GuruPiketController::class, 'inputDispensasi'])->name('guru-piket.input-dispensasi');
+        Route::post('/guru-piket/input-dispensasi', [\App\Http\Controllers\GuruPiketController::class, 'storeDispensasi'])->name('guru-piket.store-dispensasi');
+        Route::get('/guru-piket/digital-surat', [\App\Http\Controllers\GuruPiketController::class, 'digitalisasiSurat'])->name('guru-piket.digital-surat');
+        Route::get('/guru-piket/surat-izin-masuk', [\App\Http\Controllers\GuruPiketController::class, 'suratIzinMasuk'])->name('guru-piket.surat-izin-masuk');
+        Route::post('/guru-piket/surat-izin-masuk', [\App\Http\Controllers\GuruPiketController::class, 'storeSuratIzinMasuk'])->name('guru-piket.store-surat-izin-masuk');
+        Route::delete('/guru-piket/surat-izin-masuk/{id}', [\App\Http\Controllers\GuruPiketController::class, 'destroySuratIzinMasuk'])->name('guru-piket.destroy-surat-izin-masuk');
+        Route::get('/guru-piket/export/csv', [\App\Http\Controllers\GuruPiketController::class, 'exportCsv'])->name('guru-piket.export-csv');
+        Route::post('/guru-piket/dispensasi/{id}/ttd-siswa', [\App\Http\Controllers\GuruPiketController::class, 'simpanTtdSiswa'])->name('guru-piket.dispensasi.ttd-siswa');
+        Route::post('/guru-piket/dispensasi/{id}/ttd-guru', [\App\Http\Controllers\GuruPiketController::class, 'simpanTtdGuru'])->name('guru-piket.dispensasi.ttd-guru');
+    });
 
     // Dedicated Routes for Satpam
     Route::get('/satpam/dashboard', [\App\Http\Controllers\SatpamController::class, 'dashboard'])->name('satpam.dashboard');

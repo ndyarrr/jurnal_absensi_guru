@@ -15,11 +15,14 @@
         $kelasWali = $idGuru ? \App\Models\Kelas::where('id_guru_wali', $idGuru)->first() : null;
         $kelasStr = $kelasWali ? ($kelasWali->tingkat . ' ' . optional($kelasWali->jurusan)->kode_jurusan . ' ' . $kelasWali->rombel) : null;
 
-        $piketHari = ($idGuru && \Illuminate\Support\Facades\Schema::hasTable('jadwal_piket'))
-            ? \App\Models\JadwalPiket::masihBerlaku()->where('id_guru', $idGuru)->pluck('hari')->unique()->values()->toArray()
-            : [];
-       
-        $hariStr = !empty($piketHari) ? implode(', ', $piketHari) : null;
+        // Tampilan Guru Piket hanya muncul saat guru terjadwal piket pada hari & jam ini
+        $piketSekarang = $idGuru
+            ? \App\Models\JadwalPiket::jadwalGuruHariIni($idGuru)
+                ->filter(fn ($b) => $b->sedangBerlangsung(\Carbon\Carbon::now('Asia/Jakarta')))
+            : collect();
+        $hariStr = $piketSekarang->isNotEmpty()
+            ? $piketSekarang->map(fn ($b) => $b->peran ?: 'Piket')->unique()->implode(', ')
+            : null;
 
         $availableRoles = [];
 
@@ -39,12 +42,8 @@
             ];
         }
 
-        // 3. Guru Piket - Only if explicitly assigned in `jadwal_piket` table OR primary role is guru_piket
-        $isPiket = $idGuru && \Illuminate\Support\Facades\Schema::hasTable('jadwal_piket')
-            ? \App\Models\JadwalPiket::masihBerlaku()->where('id_guru', $idGuru)->exists()
-            : false;
-
-        if ($isPiket || $user->role === 'guru_piket') {
+        // 3. Guru Piket - hanya jika terjadwal piket pada hari dan jam ini
+        if ($piketSekarang->isNotEmpty()) {
             $availableRoles[] = [
                 'key' => 'guru_piket',
                 'label' => 'Guru Piket' . ($hariStr ? ' (' . $hariStr . ')' : ''),

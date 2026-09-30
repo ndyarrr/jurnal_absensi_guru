@@ -52,17 +52,23 @@ class AuthController extends Controller
                 if (in_array($selectedRole, ['admin', 'super_admin'], true)) {
                     $isValidRole = true;
                 }
+            } elseif ($selectedRole === 'guru_piket') {
+                // Guru Piket hanya boleh masuk jika terjadwal pada hari & jam ini
+                $isValidRole = $user->sedangBertugasPiket();
+
+                if (! $isValidRole && \Illuminate\Support\Facades\Hash::check($request->input('password'), $user->password)) {
+                    // Pesan detail hanya ditampilkan jika password benar
+                    return back()->withErrors([
+                        'username' => \App\Models\JadwalPiket::pesanTidakBertugas($user->resolveIdGuru()),
+                    ])->onlyInput('username', 'role');
+                }
             } elseif ($user->role === $selectedRole) {
                 $isValidRole = true;
             } else {
                 // Resolve id_guru for checking active assignments
                 $idGuru = $user->id_guru ?: optional($user->guru)->id_guru;
 
-                if ($selectedRole === 'guru_piket') {
-                    if ($idGuru && \Illuminate\Support\Facades\Schema::hasTable('jadwal_piket')) {
-                        $isValidRole = \App\Models\JadwalPiket::masihBerlaku()->where('id_guru', $idGuru)->exists();
-                    }
-                } elseif ($selectedRole === 'wali_kelas') {
+                if ($selectedRole === 'wali_kelas') {
                     if ($idGuru) {
                         $isValidRole = \App\Models\Kelas::where('id_guru_wali', $idGuru)->exists();
                     }
@@ -157,6 +163,13 @@ class AuthController extends Controller
         $isTeacherUser = in_array($user->role, ['guru', 'guru_mengajar', 'wali_kelas', 'guru_piket'], true) || $user->isAdmin() || $user->id_guru || $user->guru;
         if (!$isTeacherUser) {
             return back()->with('error', 'Fitur beralih tampilan ini hanya untuk pengguna akun Guru/Admin.');
+        }
+
+        if ($targetRole === 'guru_piket' && !$user->isAdmin() && !$user->sedangBertugasPiket()) {
+            if (session('active_role') === 'guru_piket') {
+                session()->forget('active_role');
+            }
+            return back()->with('error', \App\Models\JadwalPiket::pesanTidakBertugas($user->resolveIdGuru()));
         }
 
         session(['active_role' => $targetRole]);

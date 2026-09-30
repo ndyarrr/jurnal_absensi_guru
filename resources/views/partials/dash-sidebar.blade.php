@@ -214,7 +214,7 @@
                 </li>
             @endif
 
-            @if(Auth::check() && Auth::user()->isGuruPiket())
+            @if(Auth::check() && !Auth::user()->isAdmin() && Auth::user()->sedangBertugasPiket() && (Auth::user()->isGuruPiket() || session('active_role') === 'guru_piket'))
                 <li class="dash-menu-item {{ request()->routeIs('guru-piket.surat-izin-masuk') ? 'active' : '' }}">
                     <a href="{{ route('guru-piket.surat-izin-masuk') }}" class="dash-menu-link" @if(request()->routeIs('guru-piket.surat-izin-masuk')) style="background-color: var(--dash-navy); color: #ffffff; font-weight: 700;" @endif>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="width: 20px; height: 20px; flex-shrink: 0;">

@@ -174,7 +174,7 @@ class DashboardController extends Controller
                 return redirect()->route('guru-mengajar.dashboard');
             } elseif ($active === 'wali_kelas') {
                 return redirect()->route('wali-kelas.dashboard');
-            } elseif ($active === 'guru_piket') {
+            } elseif ($active === 'guru_piket' && $this->isTeacherDutyToday($user)) {
                 return redirect()->route('guru-piket.dashboard');
             }
         }
@@ -189,7 +189,7 @@ class DashboardController extends Controller
         }
 
         // 3. Check if user is assigned as Guru Piket or scheduled for Piket Duty today
-        if ($user->isGuruPiket() || $this->isTeacherDutyToday($user)) {
+        if ($this->isTeacherDutyToday($user)) {
             return redirect()->route('guru-piket.dashboard');
         }
 
@@ -214,48 +214,15 @@ class DashboardController extends Controller
     }
 
     /**
-     * Helper to verify if user is scheduled on duty today (guru piket).
+     * Helper: apakah user terjadwal piket pada hari dan jam saat ini.
      */
     private function isTeacherDutyToday($user): bool
     {
-        if (!$user) return false;
-        if ($user->isAdmin()) return false;
-
-        $idGuru = $user->id_guru;
-        if (!$idGuru && $user->guru) {
-            $idGuru = $user->guru->id_guru;
-        }
-
-        if (!$idGuru && !empty($user->name)) {
-            $matchedGuru = \App\Models\Guru::where('nama_guru', $user->name)->first();
-            if ($matchedGuru) {
-                $idGuru = $matchedGuru->id_guru;
-            }
-        }
-
-        if (!$idGuru) {
+        if (!$user || $user->isAdmin()) {
             return false;
         }
 
-        if (!\Illuminate\Support\Facades\Schema::hasTable('jadwal_piket')) {
-            return false;
-        }
-
-        $dayMap = [
-            'Monday'    => 'Senin',
-            'Tuesday'   => 'Selasa',
-            'Wednesday' => 'Rabu',
-            'Thursday'  => 'Kamis',
-            'Friday'    => 'Jumat',
-            'Saturday'  => 'Sabtu',
-            'Sunday'    => 'Minggu',
-        ];
-        $englishDay = Carbon::now('Asia/Jakarta')->format('l');
-        $todayName = $dayMap[$englishDay] ?? 'Senin';
-
-        return \App\Models\JadwalPiket::where('hari', $todayName)
-            ->where('id_guru', $idGuru)
-            ->exists();
+        return $user->sedangBertugasPiket();
     }
 
     /**
