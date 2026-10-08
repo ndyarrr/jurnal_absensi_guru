@@ -77,6 +77,15 @@ class SuratDispensasi extends Model
         return $this->belongsTo(Siswa::class, 'id_siswa')->withTrashed();
     }
 
+    public function siswaList()
+    {
+        return $this->hasMany(
+            \App\Models\SuratDispensasiSiswa::class,
+            'id_dispen',
+            'id_dispen'
+        )->with('siswa');
+    }
+
     public function guru()
     {
         return $this->belongsTo(Guru::class, 'id_guru', 'id_guru')->withTrashed();
@@ -141,4 +150,5 @@ class SuratDispensasi extends Model
         }
         return route('dispensasi.approval.show', ['id' => $this->id_dispen, 'token' => $this->barcode_token]);
     }
+
 }

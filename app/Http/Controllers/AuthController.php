@@ -63,6 +63,10 @@ class AuthController extends Controller
             return redirect()->intended(route($authUser->role === 'kepala_sekolah' ? 'kepsek.dashboard' : 'approver.dashboard'));
         }
 
+        if ($authUser->isOrangTua()) {
+            return redirect()->intended(route('orang-tua.dashboard'));
+        }
+
         // Guru, Wali Kelas, Guru Piket, Satpam, dll → diarahkan oleh DashboardController::roleDashboard
         return redirect()->intended(route('role.dashboard'));
     }

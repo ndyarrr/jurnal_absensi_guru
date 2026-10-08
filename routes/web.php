@@ -75,6 +75,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/satpam/dashboard', [\App\Http\Controllers\SatpamController::class, 'dashboard'])->name('satpam.dashboard');
     Route::get('/satpam/cek-izin', [\App\Http\Controllers\SatpamController::class, 'cekIzin'])->name('satpam.cek-izin');
 
+    // Portal Orang Tua (read-only, dibatasi ke anak yang ditautkan ke akun)
+    Route::middleware([\App\Http\Middleware\EnsureUserIsOrangTua::class])->prefix('orang-tua')->name('orang-tua.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\OrangTuaController::class, 'dashboard'])->name('dashboard');
+        Route::get('/kehadiran', [\App\Http\Controllers\OrangTuaController::class, 'kehadiran'])->name('kehadiran');
+        Route::get('/surat', [\App\Http\Controllers\OrangTuaController::class, 'surat'])->name('surat');
+    });
+
     // Dedicated Routes for Waka, Waka SDM, and Kepala Sekolah (Approver Dashboard)
     Route::middleware([\App\Http\Middleware\EnsureUserIsApprover::class])->prefix('approver')->name('approver.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\ApproverDashboardController::class, 'index'])->name('dashboard');
@@ -124,6 +131,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/jadwal-piket/import', [JadwalPiketController::class, 'import'])->name('jadwal-piket.import');
         Route::get('/jadwal-piket/export/csv', [JadwalPiketController::class, 'exportCsv'])->name('jadwal-piket.export-csv');
         Route::resource('jadwal-piket', JadwalPiketController::class);
+        Route::get('/users/cari-siswa', [UserController::class, 'cariSiswa'])->name('users.cari-siswa');
+        Route::get('/users/{user}/anak', [UserController::class, 'anak'])->whereNumber('user')->name('users.anak');
         Route::post('/users/bulk-delete', [UserController::class, 'bulkDelete'])->name('users.bulk-delete');
         Route::resource('users', UserController::class);
         Route::get('/pengguna', [UserController::class, 'index'])->name('pengguna.index');

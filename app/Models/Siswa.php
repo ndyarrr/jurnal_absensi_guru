@@ -24,6 +24,14 @@ class Siswa extends Model
         return $this->belongsTo(Kelas::class, 'id_kelas')->withTrashed();
     }
 
+    /** Akun orang tua yang ditautkan ke siswa ini. */
+    public function orangTua()
+    {
+        return $this->belongsToMany(User::class, 'orang_tua_siswa', 'id_siswa', 'id_user', 'id_siswa', 'id')
+            ->withPivot('hubungan')
+            ->withTimestamps();
+    }
+
     public function ketidakhadiran()
     {
         return $this->hasMany(DetailKetidakhadiran::class, 'id_siswa');
