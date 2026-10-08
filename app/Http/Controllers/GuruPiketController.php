@@ -448,7 +448,8 @@ class GuruPiketController extends Controller
         }
 
         $request->validate([
-            'id_siswa' => 'required|exists:siswa,id_siswa',
+            'id_siswa' => 'required|array|min:1',
+'id_siswa.*' => 'required|exists:siswa,id_siswa',
             'nama_kegiatan' => 'required|string|max:255',
             'lokasi_kegiatan' => 'nullable|string|max:255',
             'tanggal_mulai' => 'required|date',
@@ -461,7 +462,13 @@ class GuruPiketController extends Controller
             'ttd_guru_data' => 'nullable|string',
         ]);
 
-        $siswa = Siswa::with('kelas')->findOrFail($request->id_siswa);
+        $siswaList = Siswa::with('kelas')
+    ->whereIn('id_siswa', $request->id_siswa)
+    ->get();
+
+if ($siswaList->isEmpty()) {
+    return back()->with('error', 'Belum ada siswa yang dipilih.');
+}
 
         $existingDispen = $request->filled('id_dispen') ? SuratDispensasi::find($request->input('id_dispen')) : null;
         $filePath = $existingDispen ? $existingDispen->file_surat : null;
@@ -493,12 +500,14 @@ class GuruPiketController extends Controller
                 $nomorSurat = $this->generateUniqueNomorSurat();
             }
         }
-
+        
+        foreach ($siswaList->groupBy('id_kelas') as $idKelas => $siswaGroup) {
+    $nomorSurat = $this->generateUniqueNomorSurat();
         $dispen = SuratDispensasi::create([
             'nomor_surat' => $nomorSurat,
             'tipe_pemohon' => 'siswa',
-            'id_siswa' => $siswa->id_siswa,
-            'id_kelas' => $siswa->id_kelas,
+            'id_siswa' => null,
+            'id_kelas' => $idKelas,
             'nama_kegiatan' => $request->nama_kegiatan,
             'lokasi_kegiatan' => $request->lokasi_kegiatan ?? 'Lingkungan Sekolah/Luar',
             'tanggal_mulai' => $request->tanggal_mulai,
@@ -513,20 +522,32 @@ class GuruPiketController extends Controller
             'created_at' => Carbon::now('Asia/Jakarta'),
         ]);
 
+        foreach ($siswaGroup as $siswa) {
+    \App\Models\SuratDispensasiSiswa::create([
+        'id_dispen' => $dispen->id_dispen,
+        'id_siswa' => $siswa->id_siswa,
+    ]);
+}
+
         // Process Base64 TTD Siswa
-        if ($request->filled('ttd_siswa_data')) {
-            $base64Siswa = preg_replace('/^data:image\/png;base64,/', '', $request->input('ttd_siswa_data'));
-            $binarySiswa = base64_decode($base64Siswa, true);
-            if ($binarySiswa !== false && strlen($binarySiswa) > 100) {
-                $filenameSiswa = 'ttd_surat_dispensasi/siswa_' . $dispen->id_dispen . '_' . Carbon::now('Asia/Jakarta')->format('Ymd_His') . '.png';
-                Storage::disk('public')->put($filenameSiswa, $binarySiswa);
-                $dispen->update([
-                    'ttd_siswa_path' => $filenameSiswa,
-                    'ttd_siswa_signed_at' => Carbon::now('Asia/Jakarta'),
-                    'ttd_siswa_signed_name' => $siswa->nama_siswa,
-                ]);
-            }
-        }
+if ($siswaGroup->count() === 1 && $request->filled('ttd_siswa_data')) {
+    $siswa = $siswaGroup->first();
+
+    $base64Siswa = preg_replace('/^data:image\/png;base64,/', '', $request->input('ttd_siswa_data'));
+    $binarySiswa = base64_decode($base64Siswa, true);
+
+    if ($binarySiswa !== false && strlen($binarySiswa) > 100) {
+        $filenameSiswa = 'ttd_surat_dispensasi/siswa_' . $dispen->id_dispen . '_' . Carbon::now('Asia/Jakarta')->format('Ymd_His') . '.png';
+
+        Storage::disk('public')->put($filenameSiswa, $binarySiswa);
+
+        $dispen->update([
+            'ttd_siswa_path' => $filenameSiswa,
+            'ttd_siswa_signed_at' => Carbon::now('Asia/Jakarta'),
+            'ttd_siswa_signed_name' => $siswa->nama_siswa,
+        ]);
+    }
+}
 
         // Process Base64 TTD Guru
         if ($request->filled('ttd_guru_data')) {
@@ -544,12 +565,13 @@ class GuruPiketController extends Controller
         }
 
         // Kirim notifikasi pengumuman ke Pos Satpam/Gerbang
-        $this->kirimPengumumanKeSatpam($dispen, $siswa);
+$this->kirimPengumumanKeSatpam($dispen, $siswaGroup->first());
+}
 
-        return redirect()->route('guru-piket.digital-surat')
-            ->with('success', "Surat dispensasi untuk {$siswa->nama_siswa} ({$request->nama_kegiatan}) beserta TTD Digital berhasil diterbitkan dan terverifikasi!");
-    }
-
+// Semua siswa sudah selesai diproses
+return redirect()->route('guru-piket.digital-surat')
+    ->with('success', "{$siswaList->count()} surat dispensasi siswa ({$request->nama_kegiatan}) berhasil diterbitkan dan terverifikasi!");
+}
     /**
      * Halaman Digitalisasi Surat Piket ("Mengatasi Surat Numpuk").
      */

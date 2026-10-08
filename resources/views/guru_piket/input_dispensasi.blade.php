@@ -415,17 +415,54 @@
                         </select>
                     </div>
 
+                    
                     <div class="pk-form-group" id="siswa_group" style="margin-bottom: 0; display: none;">
-                        <label class="pk-label"><i class="fa-solid fa-user-graduate" style="margin-right: 6px; color: var(--pk-amber);"></i>2. Pilih Nama Siswa</label>
-                        <select name="id_siswa" id="select_siswa" class="pk-select" @if((isset($isDutyToday) && !$isDutyToday) || (isset($isVerified) && $isVerified)) disabled @endif>
-                            <option value="">-- Pilih Nama Siswa --</option>
-                            @foreach($siswaList as $s)
-                                <option value="{{ $s->id_siswa }}" data-kelas-id="{{ $s->id_kelas }}" @if(isset($surat) && $surat->id_siswa == $s->id_siswa) selected @endif>
-                                    {{ $s->nama_siswa }} - NISN: {{ $s->nisn ?? '-' }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+    <label class="pk-label">
+        <i class="fa-solid fa-user-graduate" style="margin-right: 6px; color: var(--pk-amber);"></i>
+        2. Pilih Nama Siswa
+    </label>
+
+    <div
+    id="select_siswa"
+    style="
+        max-height: 220px;
+        overflow-y: auto;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        padding: 10px;
+        background: #fff;
+    "
+>
+    @foreach($siswaList as $s)
+        <label
+            class="siswa-checkbox"
+            data-kelas-id="{{ $s->id_kelas }}"
+            style="
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 8px 6px;
+                cursor: pointer;
+                border-radius: 6px;
+            "
+        >
+            <input
+                type="checkbox"
+                name="id_siswa[]"
+                value="{{ $s->id_siswa }}"
+                @if(isset($surat) && $surat->id_siswa == $s->id_siswa) checked @endif
+                @if((isset($isDutyToday) && !$isDutyToday) || (isset($isVerified) && $isVerified)) disabled @endif
+            >
+
+            <span>
+                {{ $s->nama_siswa }} - NISN: {{ $s->nisn ?? '-' }}
+            </span>
+        </label>
+    @endforeach
+</div>
+
+    
+</div>
                 </div>
 
                 <!-- Nama Kegiatan & Lokasi -->
@@ -723,36 +760,40 @@
         }
 
         function filterSiswaByKelas(kelasId) {
-            const siswaGroup = document.getElementById('siswa_group');
-            const siswaSelect = document.getElementById('select_siswa');
-            if (!siswaSelect) return;
-            const options = siswaSelect.querySelectorAll('option');
+    const siswaGroup = document.getElementById('siswa_group');
+    const siswaContainer = document.getElementById('select_siswa');
 
-            siswaSelect.value = '';
+    if (!siswaContainer) return;
 
-            if (!kelasId) {
-                siswaGroup.style.display = 'none';
-                siswaSelect.removeAttribute('required');
-                options.forEach(opt => opt.style.display = 'block');
-                return;
+    const siswaItems = siswaContainer.querySelectorAll('.siswa-checkbox');
+
+    if (!kelasId) {
+        siswaGroup.style.display = 'none';
+
+        siswaItems.forEach(item => {
+            item.style.display = 'flex';
+        });
+
+        return;
+    }
+
+    siswaGroup.style.display = 'block';
+
+    siswaItems.forEach(item => {
+        const optKelasId = item.getAttribute('data-kelas-id');
+
+        if (optKelasId === kelasId) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            if (checkbox) {
+                checkbox.checked = false;
             }
-
-            siswaGroup.style.display = 'block';
-            siswaSelect.setAttribute('required', 'required');
-
-            options.forEach(option => {
-                if (!option.value) {
-                    option.style.display = 'block';
-                    return;
-                }
-                const optKelasId = option.getAttribute('data-kelas-id');
-                if (optKelasId === kelasId) {
-                    option.style.display = 'block';
-                } else {
-                    option.style.display = 'none';
-                }
-            });
         }
+    });
+}
 
         function initSignatureCanvas(canvasId, inputId) {
             const canvas = document.getElementById(canvasId);

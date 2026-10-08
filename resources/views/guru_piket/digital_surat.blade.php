@@ -296,16 +296,51 @@
                     <tbody>
                         @forelse($dispensasiList as $dispen)
                             @php
-                                $namaKelas = optional(optional($dispen->siswa)->kelas)->tingkat
-                                    . ' ' . optional(optional(optional($dispen->siswa)->kelas)->jurusan)->kode_jurusan
-                                    . ' ' . optional(optional($dispen->siswa)->kelas)->rombel;
-                            @endphp
+    $siswaSurat = collect();
+
+    if (method_exists($dispen, 'siswaList')) {
+        $siswaSurat = collect($dispen->siswaList ?? [])
+            ->map(fn($item) => $item->siswa)
+            ->filter();
+    }
+
+    // Fallback untuk surat lama yang masih memakai satu siswa
+    if ($siswaSurat->isEmpty() && $dispen->siswa) {
+        $siswaSurat = collect([$dispen->siswa]);
+    }
+
+    $siswaPertama = $siswaSurat->first();
+
+    $namaKelas = $siswaPertama && $siswaPertama->kelas
+        ? trim(
+            ($siswaPertama->kelas->tingkat ?? '') . ' ' .
+            (optional($siswaPertama->kelas->jurusan)->kode_jurusan ?? '') . ' ' .
+            ($siswaPertama->kelas->rombel ?? '')
+        )
+        : '-';
+
+    $namaSiswaModal = $siswaSurat
+        ->pluck('nama_siswa')
+        ->values()
+        ->toArray();
+
+    $nisnSiswaModal = $siswaSurat
+        ->map(fn($siswa) => $siswa->nisn ?? '-')
+        ->values()
+        ->toArray();
+@endphp
                             <tr>
                                 <td><span style="font-weight: 800; font-size: 0.85rem; color: var(--pk-navy);">{{ $dispen->nomor_surat }}</span></td>
                                 <td>
-                                    <div style="font-weight: 800; color: var(--pk-navy);">{{ optional($dispen->siswa)->nama_siswa ?? 'Siswa' }}</div>
-                                    <div style="font-size: 0.775rem; color: #64748b;">{{ trim($namaKelas) ?: '-' }}</div>
-                                </td>
+    <div style="font-weight: 800; color: var(--pk-navy);">
+        @foreach($siswaSurat as $siswa)
+            <div>{{ $siswa->nama_siswa }}</div>
+        @endforeach
+    </div>
+    <div style="font-size: 0.775rem; color: #64748b;">
+        {{ trim($namaKelas) ?: '-' }}
+    </div>
+</td>
                                 <td>
                                     <div style="font-weight: 700;">{{ $dispen->nama_kegiatan }}</div>
                                     <div style="font-size: 0.775rem; color: #64748b;">{{ $dispen->lokasi_kegiatan ?? 'Lingkungan Sekolah' }}</div>
@@ -319,9 +354,30 @@
                                 </td>
                                 <td>
                                     <div style="display: flex; gap: 6px; align-items: center;">
-                                        <button type="button" onclick="showDispenModal('{{ $dispen->id_dispen }}', '{{ $dispen->nomor_surat }}', '{{ addslashes(optional($dispen->siswa)->nama_siswa ?? 'Siswa') }}', '{{ optional($dispen->siswa)->nisn ?? '-' }}', '{{ trim($namaKelas) ?: '-' }}', '{{ addslashes($dispen->nama_kegiatan) }}', '{{ addslashes($dispen->lokasi_kegiatan ?? 'Lingkungan Sekolah') }}', '{{ $dispen->tanggal_mulai }}', '{{ $dispen->jam_mulai }} - {{ $dispen->jam_selesai }}', '{{ addslashes($dispen->alasan_dispensasi ?? '-') }}', '{{ $dispen->barcode_token }}', '{{ $dispen->ttd_siswa_url ? addslashes($dispen->ttd_siswa_url) : '' }}', '{{ addslashes($dispen->ttd_siswa_signed_name ?? '') }}', '{{ $dispen->ttd_siswa_signed_at ? $dispen->ttd_siswa_signed_at->format('d/m/Y H:i') : '' }}', '{{ $dispen->ttd_guru_url ? addslashes($dispen->ttd_guru_url) : '' }}', '{{ addslashes($dispen->ttd_guru_signed_name ?? $namaGuruPiket) }}')" style="background: #fce7f3; border: 1px solid #f472b6; color: #be185d; padding: 6px 14px; border-radius: 10px; font-weight: 800; font-size: 0.775rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
-                                            <i class="fa-solid fa-envelope-open-text" style="color: #ec4899;"></i> Surat
-                                        </button>
+                                        <button
+    type="button"
+    onclick='showDispenModal(
+        @json($dispen->id_dispen),
+        @json($dispen->nomor_surat),
+        @json($namaSiswaModal),
+        @json($nisnSiswaModal),
+        @json(trim($namaKelas) ?: "-"),
+        @json($dispen->nama_kegiatan),
+        @json($dispen->lokasi_kegiatan ?? "Lingkungan Sekolah"),
+        @json($dispen->tanggal_mulai),
+        @json($dispen->jam_mulai . " - " . $dispen->jam_selesai),
+        @json($dispen->alasan_dispensasi ?? "-"),
+        @json($dispen->barcode_token),
+        @json($dispen->ttd_siswa_url ?? ""),
+        @json($dispen->ttd_siswa_signed_name ?? ""),
+        @json($dispen->ttd_siswa_signed_at ? $dispen->ttd_siswa_signed_at->format("d/m/Y H:i") : ""),
+        @json($dispen->ttd_guru_url ?? ""),
+        @json($dispen->ttd_guru_signed_name ?? $namaGuruPiket)
+    )'
+    style="background: #fce7f3; border: 1px solid #f472b6; color: #be185d; padding: 6px 14px; border-radius: 10px; font-weight: 800; font-size: 0.775rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;"
+>
+    <i class="fa-solid fa-envelope-open-text" style="color: #ec4899;"></i> Surat
+</button>
                                         <a href="{{ route('guru-piket.input-dispensasi', ['id' => $dispen->id_dispen]) }}" style="background: #e0f2fe; border: 1px solid #7dd3fc; color: #0369a1; padding: 6px 12px; border-radius: 10px; font-weight: 800; font-size: 0.775rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
                                             <i class="fa-solid fa-eye"></i> Detail
                                         </a>
@@ -736,41 +792,75 @@
         }
 
         function showDispenModal(idDispen, noSurat, siswa, nisn, kelas, kegiatan, lokasi, tanggal, jam, alasan, token, ttdUrl, ttdSignedName, ttdSignedAt, ttdGuruUrl, ttdGuruSignedName) {
-            document.getElementById('dp_no_surat_formal').innerText = 'Nomor: ' + noSurat;
-            document.getElementById('dp_no_surat_footer').innerText = noSurat;
-            document.getElementById('dp_nama_siswa').innerText = siswa;
-            document.getElementById('dp_nisn').innerText = nisn;
-            document.getElementById('dp_kelas').innerText = kelas;
-            document.getElementById('dp_kegiatan').innerText = kegiatan;
-            document.getElementById('dp_lokasi').innerText = lokasi;
-            document.getElementById('dp_waktu').innerText = tanggal + ' (' + jam + ' WIB)';
-            document.getElementById('dp_alasan').innerText = alasan;
+    document.getElementById('dp_no_surat_formal').innerText = 'Nomor: ' + noSurat;
+    document.getElementById('dp_no_surat_footer').innerText = noSurat;
 
-            // Tanggal tanda tangan: nama kota + tanggal hari ini
-            const now = new Date();
-            const day = String(now.getDate()).padStart(2, '0');
-            const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-            const month = monthNames[now.getMonth()];
-            const year = now.getFullYear();
-            document.getElementById('dp_kota_tgl').innerText = 'Kota, ' + day + ' ' + month + ' ' + year;
+    // Nama siswa bisa berupa array untuk surat dengan banyak siswa
+    const namaSiswaList = Array.isArray(siswa) ? siswa : [siswa];
+    const nisnSiswaList = Array.isArray(nisn) ? nisn : [nisn];
 
-            renderTtdSiswaArea(idDispen, siswa, ttdUrl || '', ttdSignedName || '', ttdSignedAt || '');
+    document.getElementById('dp_nama_siswa').innerHTML = namaSiswaList
+        .map(nama => `<div>${escapeHtml(nama)}</div>`)
+        .join('');
 
-            const guruArea = document.getElementById('dp_ttd_guru_area');
-            const guruNameEl = document.getElementById('dp_ttd_guru');
-            if (guruArea) {
-                if (ttdGuruUrl) {
-                    guruArea.innerHTML = `<img src="${ttdGuruUrl}" alt="TTD Guru" style="max-height: 60px; max-width: 100%; display:block; margin:0 auto;">`;
-                } else {
-                    guruArea.innerHTML = `<div style="height:54px;"></div>`;
-                }
-            }
-            if (guruNameEl) {
-                guruNameEl.innerHTML = `( ${ttdGuruSignedName || '{{ $namaGuruPiket }}'} )`;
-            }
+    document.getElementById('dp_nisn').innerHTML = nisnSiswaList
+        .map(nisnValue => `<div>${escapeHtml(nisnValue || '-')}</div>`)
+        .join('');
 
-            document.getElementById('dispenModal').style.display = 'flex';
+    document.getElementById('dp_kelas').innerText = kelas;
+    document.getElementById('dp_kegiatan').innerText = kegiatan;
+    document.getElementById('dp_lokasi').innerText = lokasi;
+    document.getElementById('dp_waktu').innerText = tanggal + ' (' + jam + ' WIB)';
+    document.getElementById('dp_alasan').innerText = alasan;
+
+    // Tanggal tanda tangan: nama kota + tanggal hari ini
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const monthNames = [
+        'Januari','Februari','Maret','April','Mei','Juni',
+        'Juli','Agustus','September','Oktober','November','Desember'
+    ];
+    const month = monthNames[now.getMonth()];
+    const year = now.getFullYear();
+
+    document.getElementById('dp_kota_tgl').innerText =
+        'Kota, ' + day + ' ' + month + ' ' + year;
+
+    // TTD siswa
+    // Untuk surat multi-siswa, TTD siswa tetap mengikuti data surat yang tersedia.
+    renderTtdSiswaArea(
+        idDispen,
+        namaSiswaList.length === 1 ? namaSiswaList[0] : namaSiswaList.join(', '),
+        ttdUrl || '',
+        ttdSignedName || '',
+        ttdSignedAt || ''
+    );
+
+    // TTD Guru Piket
+    const guruArea = document.getElementById('dp_ttd_guru_area');
+    const guruNameEl = document.getElementById('dp_ttd_guru');
+
+    if (guruArea) {
+        if (ttdGuruUrl) {
+            guruArea.innerHTML = `<img src="${ttdGuruUrl}" alt="TTD Guru" style="max-height: 60px; max-width: 100%; display:block; margin:0 auto;">`;
+        } else {
+            guruArea.innerHTML = `<div style="height:54px;"></div>`;
         }
+    }
+
+    if (guruNameEl) {
+        guruNameEl.innerHTML = `( ${ttdGuruSignedName || '{{ $namaGuruPiket }}'} )`;
+    }
+
+    document.getElementById('dispenModal').style.display = 'flex';
+}
+
+function escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = value ?? '';
+    return div.innerHTML;
+}
+            
 
         function closeDispenModal() {
             if (dpSignaturePad) { try { dpSignaturePad.off(); } catch (e) {} dpSignaturePad = null; }
