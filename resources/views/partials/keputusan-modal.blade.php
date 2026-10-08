@@ -4,12 +4,12 @@
         <form method="POST" id="formSetujui" action="">
             @csrf
             <div class="modal-head">
-                <span id="modalSetujuiTitle"><i class="fa-solid fa-circle-check" style="color:#10b981;"></i> Setujui Izin Guru</span>
+                <span id="modalSetujuiTitle"><i class="fa-solid fa-circle-check" style="color:#10b981;"></i> Setujui <span data-fill="jenis-title">Izin Guru</span></span>
                 <button type="button" class="modal-close" data-close-modal aria-label="Tutup">&times;</button>
             </div>
             <div class="modal-body">
                 <p style="font-size:.88rem; color:#374151; margin-bottom:14px;">
-                    Anda akan menyetujui izin <strong data-fill="guru">-</strong>
+                    Anda akan menyetujui <span data-fill="jenis">izin</span> <strong data-fill="guru">-</strong>
                     (<span data-fill="periode">-</span>). Anda tetap bisa membatalkan keputusan ini nanti.
                 </p>
             </div>
@@ -26,12 +26,12 @@
         <form method="POST" id="formTolak" action="">
             @csrf
             <div class="modal-head">
-                <span id="modalTolakTitle"><i class="fa-solid fa-circle-xmark" style="color:#ef4444;"></i> Tolak Izin Guru</span>
+                <span id="modalTolakTitle"><i class="fa-solid fa-circle-xmark" style="color:#ef4444;"></i> Tolak <span data-fill="jenis-title">Izin Guru</span></span>
                 <button type="button" class="modal-close" data-close-modal aria-label="Tutup">&times;</button>
             </div>
             <div class="modal-body">
                 <p style="font-size:.88rem; color:#374151; margin-bottom:14px;">
-                    Anda akan menolak izin <strong data-fill="guru">-</strong>
+                    Anda akan menolak <span data-fill="jenis">izin</span> <strong data-fill="guru">-</strong>
                     (<span data-fill="periode">-</span>). Anda tetap bisa membatalkan keputusan ini nanti.
                 </p>
             </div>
@@ -52,6 +52,10 @@
         form.setAttribute('action', trigger.getAttribute('data-action'));
         modal.querySelectorAll('[data-fill="guru"]').forEach(function (el) { el.textContent = trigger.getAttribute('data-guru') || '-'; });
         modal.querySelectorAll('[data-fill="periode"]').forEach(function (el) { el.textContent = trigger.getAttribute('data-periode') || '-'; });
+        var jenis = trigger.getAttribute('data-jenis') || 'izin';
+        var jenisTitle = trigger.getAttribute('data-jenis-title') || 'Izin Guru';
+        modal.querySelectorAll('[data-fill="jenis"]').forEach(function (el) { el.textContent = jenis; });
+        modal.querySelectorAll('[data-fill="jenis-title"]').forEach(function (el) { el.textContent = jenisTitle; });
         modal.classList.add('open');
     }
     function closeAll() {

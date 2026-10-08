@@ -1491,6 +1491,24 @@ class GuruPiketController extends Controller
     }
 
     /**
+     * Nama guru yang terjadwal sebagai "Piket Waka" pada hari ini (dari Jadwal Piket).
+     * Jika ada lebih dari satu, digabung dengan koma. Null jika tidak ada jadwal.
+     */
+    private function namaPiketWakaHariIni(): ?string
+    {
+        $nama = \App\Models\JadwalPiket::with('guru')
+            ->berlakuPada(Carbon::now('Asia/Jakarta'))
+            ->where('peran', 'Piket Waka')
+            ->get()
+            ->map(fn ($j) => optional($j->guru)->nama_guru)
+            ->filter()
+            ->unique()
+            ->values();
+
+        return $nama->isEmpty() ? null : $nama->implode(', ');
+    }
+
+    /**
      * Halaman Surat Ijin Masuk / Meninggalkan Kelas.
      */
     public function suratIzinMasuk(Request $request)
@@ -1503,6 +1521,8 @@ class GuruPiketController extends Controller
         $namaGuruPiket = $guru
             ? $guru->nama_guru
             : ($user->name ?? 'Guru Piket Hari Ini');
+
+        $namaPiketWaka = $this->namaPiketWakaHariIni();
 
         Carbon::setLocale('id');
 
@@ -1552,6 +1572,7 @@ class GuruPiketController extends Controller
             compact(
                 'user',
                 'namaGuruPiket',
+                'namaPiketWaka',
                 'todayFormatted',
                 'todayName',
                 'isDutyToday',
@@ -1656,7 +1677,8 @@ class GuruPiketController extends Controller
                     'SURAT IJIN MASUK KELAS / MENINGGALKAN KELAS',
                 'tanggal' => $todayStr,
                 'nama_piket_wakasek' =>
-                    $request->nama_piket_wakasek,
+                    $request->nama_piket_wakasek
+                    ?: $this->namaPiketWakaHariIni(),
                 'nama_guru_piket' =>
                     $namaGuruPiket,
                 'id_user_piket' =>

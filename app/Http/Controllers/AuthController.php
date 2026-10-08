@@ -83,9 +83,18 @@ class AuthController extends Controller
             return redirect()->route('login');
         }
 
-        $allowedRoles = ['admin', 'guru_mengajar', 'wali_kelas', 'guru_piket'];
+        $allowedRoles = ['admin', 'approver', 'guru_mengajar', 'wali_kelas', 'guru_piket'];
         if (!in_array($targetRole, $allowedRoles, true)) {
             return back()->with('error', 'Peran/Tampilan yang dipilih tidak valid.');
+        }
+
+        // Kembali ke tampilan Waka / Waka Kurikulum
+        if ($targetRole === 'approver') {
+            if (!in_array($user->role, ['waka', 'waka_kurikulum', 'waka_sdm'], true)) {
+                return back()->with('error', 'Tampilan ini hanya untuk akun Waka / Waka Kurikulum.');
+            }
+            session()->forget('active_role');
+            return redirect()->route('approver.dashboard')->with('success', 'Berhasil beralih ke tampilan ' . $user->role_label . '.');
         }
 
         if ($targetRole === 'admin') {

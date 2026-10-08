@@ -375,7 +375,7 @@
 
                 <div class="form-field-group">
                     <label for="create_password">Password</label>
-                    <input type="password" name="password" id="create_password" class="form-field-input" placeholder="Minimal 6 karakter" required>
+                    <input type="text" name="password" id="create_password" class="form-field-input" placeholder="Minimal 6 karakter" required style="-webkit-text-security: disc; text-security: disc;" autocomplete="off" autocapitalize="off" spellcheck="false" readonly onfocus="this.removeAttribute('readonly')">
                 </div>
 
                 <div class="form-field-group">
@@ -489,8 +489,15 @@
 
 
                 <div class="form-field-group">
-                    <label for="edit_password">Password Baru (Kosongkan jika tidak diubah)</label>
-                    <input type="password" name="password" id="edit_password" class="form-field-input" placeholder="Opsional">
+                    <label>Password</label>
+                    <div id="edit_pw_closed">
+                        <button type="button" class="btn-modal-cancel" onclick="toggleEditPassword(true)" style="width: 100%;">Ubah Password</button>
+                        <small style="color: #64748b; margin-top: 4px; display: block;">Password akun tidak akan berubah kecuali Anda menekan tombol ini.</small>
+                    </div>
+                    <div id="edit_pw_open" style="display: none;">
+                        <input type="text" name="password" id="edit_password" class="form-field-input" placeholder="Masukkan password baru (min. 6 karakter)" style="-webkit-text-security: disc; text-security: disc;" autocomplete="off" disabled>
+                        <a href="#" onclick="toggleEditPassword(false); return false;" style="font-size: 0.8rem; font-weight: 700; color: #dc2626; margin-top: 6px; display: inline-block;">Batal ubah password</a>
+                    </div>
                 </div>
 
                 <div class="form-field-group">
@@ -896,6 +903,7 @@
             document.getElementById('editForm').action = '/users/' + id;
             document.getElementById('edit_name').value = name;
             document.getElementById('edit_role').value = role;
+            toggleEditPassword(false);
             document.getElementById('edit_id_guru').value = idGuru || '';
 
             // Reset avatar file input & remove checkbox
@@ -947,6 +955,16 @@
             }
 
             document.getElementById('editModal').style.display = 'flex';
+        }
+
+        /* Password edit hanya ikut terkirim jika tombol "Ubah Password" ditekan */
+        function toggleEditPassword(show) {
+            const pw = document.getElementById('edit_password');
+            document.getElementById('edit_pw_open').style.display = show ? 'block' : 'none';
+            document.getElementById('edit_pw_closed').style.display = show ? 'none' : 'block';
+            pw.value = '';
+            pw.disabled = !show;
+            if (show) pw.focus();
         }
 
         function updateEditGuruDropdown(currentUserId) {

@@ -84,13 +84,21 @@ Route::middleware(['auth'])->group(function () {
 
     // Dedicated Routes for Waka, Waka SDM, and Kepala Sekolah (Approver Dashboard)
     Route::middleware([\App\Http\Middleware\EnsureUserIsApprover::class])->prefix('approver')->name('approver.')->group(function () {
-        Route::get('/dashboard', [\App\Http\Controllers\ApproverDashboardController::class, 'index'])->name('dashboard');
         Route::post('/izin/{id}/setujui', [\App\Http\Controllers\ApproverDashboardController::class, 'approveIzin'])->name('izin.approve');
         Route::post('/izin/{id}/tolak', [\App\Http\Controllers\ApproverDashboardController::class, 'rejectIzin'])->name('izin.reject');
         Route::post('/izin/{id}/reset', [\App\Http\Controllers\ApproverDashboardController::class, 'resetIzin'])->name('izin.reset');
         Route::post('/dispensasi/{id}/setujui', [\App\Http\Controllers\ApproverDashboardController::class, 'approveDispensasi'])->name('dispensasi.approve');
         Route::post('/dispensasi/{id}/tolak', [\App\Http\Controllers\ApproverDashboardController::class, 'rejectDispensasi'])->name('dispensasi.reject');
         Route::post('/dispensasi/{id}/reset', [\App\Http\Controllers\ApproverDashboardController::class, 'resetDispensasi'])->name('dispensasi.reset');
+    });
+
+    // Dashboard & Persetujuan Izin (Guru + Siswa) khusus Waka dan Waka Kurikulum
+    Route::middleware([\App\Http\Middleware\EnsureUserIsWaka::class])->prefix('approver')->name('approver.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\WakaDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/izin-guru', [\App\Http\Controllers\WakaDashboardController::class, 'izinGuruIndex'])->name('izin-guru.index');
+        Route::get('/izin-guru/{id}', [\App\Http\Controllers\WakaDashboardController::class, 'izinGuruShow'])->whereNumber('id')->name('izin-guru.show');
+        Route::get('/izin-siswa', [\App\Http\Controllers\WakaDashboardController::class, 'izinSiswaIndex'])->name('izin-siswa.index');
+        Route::get('/izin-siswa/{id}', [\App\Http\Controllers\WakaDashboardController::class, 'izinSiswaShow'])->whereNumber('id')->name('izin-siswa.show');
     });
 
     // Dashboard & Persetujuan Izin Guru khusus Kepala Sekolah

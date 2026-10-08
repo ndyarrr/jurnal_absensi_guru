@@ -150,7 +150,7 @@ class ApproverDashboardController extends Controller
             $izin->disetujui_waka_oleh = $user->id;
             $izin->tgl_disetujui_waka = now();
             $msg = 'Permohonan izin guru berhasil DISETUJUI oleh Waka Kesiswaan.';
-        } elseif ($user->role === 'waka_kurikulum') {
+        } elseif (in_array($user->role, ['waka_kurikulum', 'waka_sdm'], true)) {
             $izin->status_waka_kurikulum = 'disetujui';
             $izin->disetujui_waka_kurikulum_oleh = $user->id;
             $izin->tgl_disetujui_waka_kurikulum = now();
@@ -188,7 +188,7 @@ class ApproverDashboardController extends Controller
             $izin->status_waka = 'ditolak';
             $izin->disetujui_waka_oleh = $user->id;
             $izin->tgl_disetujui_waka = now();
-        } elseif ($user->role === 'waka_kurikulum') {
+        } elseif (in_array($user->role, ['waka_kurikulum', 'waka_sdm'], true)) {
             $izin->status_waka_kurikulum = 'ditolak';
             $izin->disetujui_waka_kurikulum_oleh = $user->id;
             $izin->tgl_disetujui_waka_kurikulum = now();
@@ -222,7 +222,7 @@ class ApproverDashboardController extends Controller
             $izin->status_waka = 'pending';
             $izin->disetujui_waka_oleh = null;
             $izin->tgl_disetujui_waka = null;
-        } elseif ($user->role === 'waka_kurikulum') {
+        } elseif (in_array($user->role, ['waka_kurikulum', 'waka_sdm'], true)) {
             $izin->status_waka_kurikulum = 'pending';
             $izin->disetujui_waka_kurikulum_oleh = null;
             $izin->tgl_disetujui_waka_kurikulum = null;
@@ -268,7 +268,7 @@ class ApproverDashboardController extends Controller
             $dispen->disetujui_waka_oleh = $user->id;
             $dispen->tgl_disetujui_waka = now();
             $msg = 'Surat dispensasi siswa berhasil DISETUJUI oleh Waka Kesiswaan.';
-        } elseif ($user->role === 'waka_kurikulum') {
+        } elseif (in_array($user->role, ['waka_kurikulum', 'waka_sdm'], true)) {
             $dispen->status_waka_kurikulum = 'disetujui';
             $dispen->disetujui_waka_kurikulum_oleh = $user->id;
             $dispen->tgl_disetujui_waka_kurikulum = now();
@@ -316,7 +316,7 @@ class ApproverDashboardController extends Controller
             $dispen->status_waka = 'ditolak';
             $dispen->disetujui_waka_oleh = $user->id;
             $dispen->tgl_disetujui_waka = now();
-        } elseif ($user->role === 'waka_kurikulum') {
+        } elseif (in_array($user->role, ['waka_kurikulum', 'waka_sdm'], true)) {
             $dispen->status_waka_kurikulum = 'ditolak';
             $dispen->disetujui_waka_kurikulum_oleh = $user->id;
             $dispen->tgl_disetujui_waka_kurikulum = now();
@@ -350,7 +350,7 @@ class ApproverDashboardController extends Controller
             $dispen->status_waka = 'pending';
             $dispen->disetujui_waka_oleh = null;
             $dispen->tgl_disetujui_waka = null;
-        } elseif ($user->role === 'waka_kurikulum') {
+        } elseif (in_array($user->role, ['waka_kurikulum', 'waka_sdm'], true)) {
             $dispen->status_waka_kurikulum = 'pending';
             $dispen->disetujui_waka_kurikulum_oleh = null;
             $dispen->tgl_disetujui_waka_kurikulum = null;

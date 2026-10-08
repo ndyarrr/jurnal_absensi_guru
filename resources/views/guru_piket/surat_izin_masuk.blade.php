@@ -495,10 +495,10 @@
                     <input type="text" name="nama_guru_piket" id="sim_input_guru_piket" class="form-control" value="{{ $namaGuruPiket }}" readonly>
                 </div>
 
-                <!-- PIKET WAKASEK (Optional) -->
+                <!-- PIKET WAKASEK -->
                 <div>
-                    <label class="form-label" for="sim_input_wakasek">PIKET WAKASEK (Opsional)</label>
-                    <input type="text" name="nama_piket_wakasek" id="sim_input_wakasek" class="form-control" placeholder="Nama Piket Wakasek (jika ada)" @if(isset($isDutyToday) && !$isDutyToday) disabled @endif>
+                    <label class="form-label" for="sim_input_wakasek">PIKET WAKASEK</label>
+                    <input type="text" name="nama_piket_wakasek" id="sim_input_wakasek" class="form-control" value="{{ $namaPiketWaka ?? '' }}" readonly @if(isset($isDutyToday) && !$isDutyToday) disabled @endif>
                 </div>
 
                 <!-- ALASAN -->
@@ -824,4 +824,3 @@ if (ttdGuruEl) {
     </script>
 </body>
 </html>
-

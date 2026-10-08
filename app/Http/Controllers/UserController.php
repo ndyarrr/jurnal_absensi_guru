@@ -139,7 +139,7 @@ class UserController extends Controller
         }
 
         // Roles yang hanya boleh 1 user
-        $singletonRoles = ['waka', 'waka_kurikulum', 'kepala_sekolah'];
+        $singletonRoles = ['kepala_sekolah'];
         if (in_array($validated['role'], $singletonRoles)) {
             $roleLabels = ['waka' => 'Waka', 'waka_kurikulum' => 'Waka Kurikulum', 'kepala_sekolah' => 'Kepala Sekolah'];
             $exists = User::where('role', $validated['role'])->exists();
@@ -345,7 +345,7 @@ class UserController extends Controller
         }
 
         // Roles yang hanya boleh 1 user — cek jika role BERUBAH ke singleton role
-        $singletonRoles = ['waka', 'waka_kurikulum', 'kepala_sekolah'];
+        $singletonRoles = ['kepala_sekolah'];
         if (in_array($validated['role'], $singletonRoles) && $validated['role'] !== $user->role) {
             $roleLabels = ['waka' => 'Waka', 'waka_kurikulum' => 'Waka Kurikulum', 'kepala_sekolah' => 'Kepala Sekolah'];
             $exists = User::where('role', $validated['role'])->where('id', '!=', $user->id)->exists();
