@@ -25,114 +25,46 @@ class AuthController extends Controller
         $request->validate([
             'username' => ['required', 'string'],
             'password' => ['required', 'string'],
-            'role'     => ['nullable', 'string'],
         ], [
             'username.required' => 'NIP / Username wajib diisi.',
             'password.required' => 'Password wajib diisi.',
         ]);
 
-        // Cari user berdasarkan kolom 'username' (NIP untuk guru, name untuk admin/lainnya)
-        $user = User::where('username', $request->input('username'))->first();
-
-        if (! $user) {
-            return back()->withErrors([
-                'username' => 'NIP/Username, role atau password salah.',
-            ])->onlyInput('username', 'role');
-        }
-
-
-
-        // Validasi role jika dipilih pada form login
-        if ($request->filled('role')) {
-            $selectedRole = $request->input('role');
-            $isValidRole = false;
-
-            // 1. Akun Admin/Super Admin wajib memilih role 'admin' atau 'super_admin' saat login
-            if ($user->isAdmin()) {
-                if (in_array($selectedRole, ['admin', 'super_admin'], true)) {
-                    $isValidRole = true;
-                }
-            } elseif ($selectedRole === 'guru_piket') {
-                // Guru Piket hanya boleh masuk jika terjadwal pada hari & jam ini
-                $isValidRole = $user->sedangBertugasPiket();
-
-                if (! $isValidRole && \Illuminate\Support\Facades\Hash::check($request->input('password'), $user->password)) {
-                    // Pesan detail hanya ditampilkan jika password benar
-                    return back()->withErrors([
-                        'username' => \App\Models\JadwalPiket::pesanTidakBertugas($user->resolveIdGuru()),
-                    ])->onlyInput('username', 'role');
-                }
-            } elseif ($user->role === $selectedRole) {
-                $isValidRole = true;
-            } else {
-                // Resolve id_guru for checking active assignments
-                $idGuru = $user->id_guru ?: optional($user->guru)->id_guru;
-
-                if ($selectedRole === 'wali_kelas') {
-                    if ($idGuru) {
-                        $isValidRole = \App\Models\Kelas::where('id_guru_wali', $idGuru)->exists();
-                    }
-                } elseif ($selectedRole === 'guru_mengajar') {
-                    $isValidRole = ($idGuru || $user->isGuruMengajar() || $user->isWaliKelas() || $user->isGuruPiket());
-                }
-            }
-
-            if (! $isValidRole) {
-                return back()->withErrors([
-                    'username' => 'NIP/Username, role atau password salah.',
-                ])->onlyInput('username', 'role');
-            }
-        }
-
-        // Auth::attempt menggunakan kolom username
         $credentials = [
-            'username' => $user->username,
+            'username' => $request->input('username'),
             'password' => $request->input('password'),
         ];
 
-        $remember = $request->has('remember');
-
-        if (Auth::attempt($credentials, $remember)) {
-            $request->session()->regenerate();
-
-            // Clear intended URL if it points to an API endpoint (e.g. /pengaturan-wa/api/status)
-            $intended = session('url.intended');
-            if ($intended && (str_contains($intended, '/api/') || str_contains($intended, '/api-status'))) {
-                session()->forget('url.intended');
-            }
-
-            $authUser = Auth::user();
-            if ($authUser->isAdmin()) {
-                return redirect()->intended(route('dashboard'))
-                    ->with('success', 'Selamat datang, ' . $authUser->name . '!');
-            }
-
-            $selectedRole = $request->input('role');
-            if (in_array($selectedRole, ['waka', 'waka_kurikulum', 'waka_sdm', 'kepala_sekolah'], true) || in_array($authUser->role, ['waka', 'waka_kurikulum', 'waka_sdm', 'kepala_sekolah'], true)) {
-                if (!in_array($selectedRole, ['guru_mengajar', 'wali_kelas', 'guru_piket'], true)) {
-                    session()->forget('active_role');
-                    return redirect()->intended(route('approver.dashboard'));
-                }
-            }
-
-            if (in_array($selectedRole, ['guru_mengajar', 'wali_kelas', 'guru_piket'], true)) {
-                session(['active_role' => $selectedRole]);
-            } else {
-                session()->forget('active_role');
-            }
-
-            if ($selectedRole === 'guru_piket') {
-                return redirect()->intended(route('guru-piket.dashboard'));
-            } elseif ($selectedRole === 'wali_kelas') {
-                return redirect()->intended(route('wali-kelas.dashboard'));
-            }
-
-            return redirect()->intended(route('role.dashboard'));
+        if (! Auth::attempt($credentials, $request->has('remember'))) {
+            return back()->withErrors([
+                'username' => 'NIP/Username atau password salah.',
+            ])->onlyInput('username');
         }
 
-        return back()->withErrors([
-            'username' => 'Username, role atau password salah.',
-        ])->onlyInput('username', 'role');
+        $request->session()->regenerate();
+
+        // Role aktif di-reset; tujuan dashboard ditentukan dari role akun.
+        session()->forget('active_role');
+
+        // Clear intended URL if it points to an API endpoint (e.g. /pengaturan-wa/api/status)
+        $intended = session('url.intended');
+        if ($intended && (str_contains($intended, '/api/') || str_contains($intended, '/api-status'))) {
+            session()->forget('url.intended');
+        }
+
+        $authUser = Auth::user();
+
+        if ($authUser->isAdmin()) {
+            return redirect()->intended(route('dashboard'))
+                ->with('success', 'Selamat datang, ' . $authUser->name . '!');
+        }
+
+        if (in_array($authUser->role, ['waka', 'waka_kurikulum', 'waka_sdm', 'kepala_sekolah'], true)) {
+            return redirect()->intended(route($authUser->role === 'kepala_sekolah' ? 'kepsek.dashboard' : 'approver.dashboard'));
+        }
+
+        // Guru, Wali Kelas, Guru Piket, Satpam, dll → diarahkan oleh DashboardController::roleDashboard
+        return redirect()->intended(route('role.dashboard'));
     }
 
     /**

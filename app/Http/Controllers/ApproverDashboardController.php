@@ -16,6 +16,11 @@ class ApproverDashboardController extends Controller
         $user = auth()->user();
         $isKepsek = ($user->role === 'kepala_sekolah');
 
+        // Kepala Sekolah punya dashboard & halaman persetujuan sendiri
+        if ($isKepsek) {
+            return redirect()->route('kepsek.dashboard');
+        }
+
         // Kepala sekolah cannot access dispensasi tab
         $activeTab = $isKepsek ? 'izin' : $request->input('tab', 'izin'); // 'izin' or 'dispensasi'
         $statusFilter = $request->input('status', 'all'); // 'all', 'pending', 'disetujui', 'ditolak'
@@ -162,15 +167,7 @@ class ApproverDashboardController extends Controller
             $msg = 'Permohonan izin guru berhasil DISETUJUI.';
         }
 
-        // Recalculate overall status_approval
-        if ($izin->status_waka === 'disetujui' && $izin->status_waka_kurikulum === 'disetujui' && $izin->status_kepsek === 'disetujui') {
-            $izin->status_approval = 'disetujui';
-        } elseif ($izin->status_waka === 'ditolak' || $izin->status_waka_kurikulum === 'ditolak' || $izin->status_kepsek === 'ditolak') {
-            $izin->status_approval = 'ditolak';
-        } else {
-            $izin->status_approval = 'pending';
-        }
-
+        $izin->hitungUlangStatus();
         $izin->disetujui_oleh = $user->id;
         $izin->save();
 
@@ -184,6 +181,7 @@ class ApproverDashboardController extends Controller
     {
         $izin = IzinGuru::findOrFail($id);
         $user = auth()->user();
+
         $catatan = $request->input('catatan_approver', 'Ditolak oleh ' . ($user->role_label ?? 'Approver'));
 
         if ($user->role === 'waka') {
@@ -241,13 +239,10 @@ class ApproverDashboardController extends Controller
             $izin->disetujui_kepsek_oleh = null;
         }
 
-        // Recalculate status_approval
-        if ($izin->status_waka === 'ditolak' || $izin->status_waka_kurikulum === 'ditolak' || $izin->status_kepsek === 'ditolak') {
-            $izin->status_approval = 'ditolak';
-        } elseif ($izin->status_waka === 'disetujui' && $izin->status_waka_kurikulum === 'disetujui' && $izin->status_kepsek === 'disetujui') {
-            $izin->status_approval = 'disetujui';
-        } else {
-            $izin->status_approval = 'pending';
+        // Reset penolakan -> catatan penolakan ikut dibersihkan bila tidak ada lagi tahap yang menolak
+        $izin->hitungUlangStatus();
+        if ($izin->status_approval !== 'ditolak') {
+            $izin->catatan_approver = null;
         }
 
         $izin->save();

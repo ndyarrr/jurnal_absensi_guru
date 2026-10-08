@@ -103,6 +103,47 @@ class IzinGuru extends Model
         return route('izin.approval.show', ['id' => $this->id_izin_guru, 'token' => $this->approval_token]);
     }
 
+    /* ------------------------------------------------------------------
+       Alur persetujuan berurutan: Piket -> Waka -> Waka Kurikulum -> Kepsek
+       ------------------------------------------------------------------ */
+
+    /**
+     * Hitung ulang status_approval keseluruhan dari status tiap tahap.
+     */
+    public function hitungUlangStatus(): void
+    {
+        $tahap = [$this->status_waka, $this->status_waka_kurikulum, $this->status_kepsek];
+
+        if (in_array('ditolak', $tahap, true)) {
+            $this->status_approval = 'ditolak';
+        } elseif ($tahap === ['disetujui', 'disetujui', 'disetujui']) {
+            $this->status_approval = 'disetujui';
+        } else {
+            $this->status_approval = 'pending';
+        }
+    }
+
+    /** Izin yang belum diputuskan Kepala Sekolah (belum disetujui/ditolak siapa pun di alur). */
+    public function scopeMenungguKepsek($query)
+    {
+        return $query->where('status_kepsek', 'pending')
+            ->where('status_approval', '!=', 'ditolak');
+    }
+
+    /** Izin yang sudah disetujui lengkap & berlaku pada tanggal tertentu. */
+    public function scopeBerlakuPada($query, $tanggal)
+    {
+        return $query->where('status_approval', 'disetujui')
+            ->whereDate('tanggal_mulai', '<=', $tanggal)
+            ->whereDate('tanggal_selesai', '>=', $tanggal);
+    }
+
+    /** Lama izin dalam hari kalender (inklusif). */
+    public function getDurasiHariAttribute(): int
+    {
+        return (int) abs($this->tanggal_mulai->diffInDays($this->tanggal_selesai)) + 1;
+    }
+
     public function getKategoriLabelAttribute(): string
     {
         return match ($this->kategori_izin) {

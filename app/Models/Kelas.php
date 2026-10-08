@@ -50,4 +50,14 @@ class Kelas extends Model
         }
         return $this->siswa()->count();
     }
+
+    /** Label kelas, mis. "XI RPL 1" (tingkat + kode jurusan + rombel). */
+    public function getNamaLengkapAttribute(): string
+    {
+        return trim(implode(' ', array_filter([
+            $this->tingkat,
+            optional($this->jurusan)->kode_jurusan,
+            $this->rombel,
+        ])));
+    }
 }

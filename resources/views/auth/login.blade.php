@@ -77,22 +77,6 @@
                         </div>
                     </div>
 
-                    <!-- Role Input / Select -->
-                    <div class="form-group">
-                        <label for="role" class="form-label">Role</label>
-                        <div class="select-wrapper">
-                            <select name="role" id="role" class="form-select">
-                                <option value="" selected disabled>Pilih Role</option>
-                                <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                                <option value="guru_mengajar" {{ old('role') == 'guru_mengajar' || old('role') == 'guru' ? 'selected' : '' }}>Guru</option>
-                                <option value="waka" {{ old('role') == 'waka' ? 'selected' : '' }}>Waka</option>
-                                <option value="waka_kurikulum" {{ old('role') == 'waka_kurikulum' || old('role') == 'waka_sdm' ? 'selected' : '' }}>Waka Kurikulum</option>
-                                <option value="kepala_sekolah" {{ old('role') == 'kepala_sekolah' ? 'selected' : '' }}>Kepala Sekolah</option>
-                                <option value="satpam" {{ old('role') == 'satpam' ? 'selected' : '' }}>Satpam</option>
-                            </select>
-                        </div>
-                    </div>
-
                     <!-- Submit Button -->
                     <button type="submit" class="btn-submit">
                         Masuk
@@ -106,12 +90,12 @@
                         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
                     </button>
                     <div class="demo-tags-dropdown" id="demoDropdown">
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Administrator', 'password', 'admin')">Administrator</button>
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('198501212022212037', '198501212022212037', 'guru_mengajar')">Guru (NIP: 198101152003121003)</button>
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Waka', 'password', 'waka')">Waka</button>
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Waka Kurikulum', 'password', 'waka_kurikulum')">Waka Kurikulum</button>
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Kepala Sekolah', 'password', 'kepala_sekolah')">Kepala Sekolah</button>
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Satpam', 'password', 'satpam')">Satpam</button>
+                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Administrator', 'password')">Administrator</button>
+                        <button type="button" class="demo-tag" onclick="fillQuickAccount('198501212022212037', '198501212022212037')">Guru (NIP: 198501212022212037)</button>
+                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Waka', 'password')">Waka</button>
+                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Waka Kurikulum', 'password')">Waka Kurikulum</button>
+                        <button type="button" class="demo-tag" onclick="fillQuickAccount('198101152003121003', '198101152003121003')">Kepala Sekolah</button>
+                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Satpam', 'password')">Satpam</button>
                     </div>
                 </div>
 
@@ -143,12 +127,9 @@
             });
         }
 
-        function fillQuickAccount(username, pass, role) {
+        function fillQuickAccount(username, pass) {
             document.getElementById('username').value = username;
             document.getElementById('password').value = pass;
-            if (role) {
-                document.getElementById('role').value = role;
-            }
         }
 
         function toggleDemoMenu() {

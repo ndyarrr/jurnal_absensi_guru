@@ -86,6 +86,13 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/dispensasi/{id}/reset', [\App\Http\Controllers\ApproverDashboardController::class, 'resetDispensasi'])->name('dispensasi.reset');
     });
 
+    // Dashboard & Persetujuan Izin Guru khusus Kepala Sekolah
+    Route::middleware([\App\Http\Middleware\EnsureUserIsKepsek::class])->prefix('kepsek')->name('kepsek.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\KepsekDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/izin', [\App\Http\Controllers\KepsekDashboardController::class, 'izinIndex'])->name('izin.index');
+        Route::get('/izin/{id}', [\App\Http\Controllers\KepsekDashboardController::class, 'izinShow'])->whereNumber('id')->name('izin.show');
+    });
+
     // Jurnal & Jadwal routes for all authenticated users (Guru, Admin, etc.)
     Route::get('/jadwal/export/csv', [JadwalPelajaranController::class, 'exportCsv'])->name('jadwal.export-csv');
     Route::get('/jadwal/export/pdf', [JadwalPelajaranController::class, 'exportPdf'])->name('jadwal.export-pdf');
