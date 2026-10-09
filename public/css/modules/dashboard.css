@@ -4252,3 +4252,24 @@ table.mapel-table tr.selected-active-row td:last-child {
         min-width: 800px;
     }
 }
+
+/* Tabel Daftar Mapel di layar HP */
+@media (max-width: 640px) {
+    .mapel-card-container {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .mapel-card-container .table-responsive-clean {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .mapel-card-container .mapel-table {
+        min-width: 700px;
+    }
+}
