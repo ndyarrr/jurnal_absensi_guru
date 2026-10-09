@@ -98,6 +98,7 @@
                                     $existing = $existingDetails[$s->id_siswa] ?? null;
                                     $izin = $izinList->get($s->id_siswa);
                                     $dispen = $dispenList->get($s->id_siswa);
+                                    $suratMasuk = $suratMasukAuto[$s->id_siswa] ?? null;
 
                                     $statusVal = 'Hadir';
                                     $ketVal = '';
@@ -107,6 +108,9 @@
                                     if ($existing) {
                                         $statusVal = $existing['status'];
                                         $ketVal = $existing['keterangan'];
+                                    } elseif ($suratMasuk) {
+                                        $statusVal = $suratMasuk['status'];
+                                        $ketVal = $suratMasuk['keterangan'];
                                     } elseif ($izin) {
                                         $statusVal = strtolower($izin->jenis_izin) === 'sakit' ? 'Sakit' : 'Izin';
                                         $ketVal = '[Surat Piket: ' . $izin->jenis_izin . ']';
@@ -194,12 +198,18 @@
 @endif
                                     </td>
                                     <td style="text-align: center; padding: 14px;">
+                                        @if($suratMasuk)
+                                            <button type="button" class="gm-btn" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 6px 12px; font-size: 0.775rem; font-weight: 700; border-radius: 8px; margin-bottom: 6px;"
+                                                onclick="openDetailSuratModal('{{ $s->nama_siswa }}', {{ json_encode($suratMasuk['detail']) }})">
+                                                <i class="fa-solid fa-door-open"></i> Surat Ijin Masuk
+                                            </button>
+                                        @endif
                                         @if($hasSurat && $suratData)
                                             <button type="button" class="gm-btn" style="background: #fef3c7; color: #b45309; border: 1px solid #fde047; padding: 6px 12px; font-size: 0.775rem; font-weight: 700; border-radius: 8px;"
                                                 onclick="openDetailSuratModal('{{ $s->nama_siswa }}', {{ json_encode($suratData) }})">
                                                 <i class="fa-solid fa-envelope-open-text"></i> Lihat Surat
                                             </button>
-                                        @else
+                                        @elseif(!$suratMasuk)
                                             <span style="font-size: 0.775rem; color: #94a3b8;">-</span>
                                         @endif
                                     </td>
@@ -392,6 +402,49 @@
             } else {
                 html += `<div style="font-size: 0.85rem; color: #94a3b8; font-style: italic;">Tidak ada foto/lampiran surat undangan yang diunggah.</div>`;
             }
+        }
+
+        if (data.type === 'izin_masuk') {
+            const ttdHtml = (data.ttd || []).map(t => `
+                <div style="text-align: center;">
+                    <span style="font-size: 0.75rem; color: #64748b; font-weight: 700; display: block; margin-bottom: 6px;">TTD ${t.label}</span>
+                    ${t.url ? `<img src="${t.url}" alt="TTD ${t.label}" style="max-height: 60px; object-fit: contain; border-bottom: 1px solid #cbd5e1;">` : '<span style="font-size: 0.8rem; color: #94a3b8; font-style: italic;">Belum TTD</span>'}
+                    <div style="font-size: 0.8rem; font-weight: 700; color: #0f172a; margin-top: 4px;">${t.nama || '-'}</div>
+                </div>`).join('');
+
+            html = `
+                <div style="background: #e0f2fe; border: 1px solid #7dd3fc; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; color: #0369a1; font-weight: 700; font-size: 0.9rem;">
+                    <i class="fa-solid fa-door-open" style="margin-right: 6px;"></i> ${data.status_label}
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 16px;">
+                    <div>
+                        <span style="font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Nomor Surat</span>
+                        <div style="font-size: 0.95rem; font-weight: 800; color: #0f172a;">${data.nomor}</div>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Jenis</span>
+                        <div style="font-size: 0.95rem; font-weight: 800; color: #0f172a;">${data.jenis}</div>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Jam Pelajaran</span>
+                        <div style="font-size: 0.9rem; font-weight: 700; color: #334155;">${data.jam}</div>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Tanggal</span>
+                        <div style="font-size: 0.9rem; font-weight: 700; color: #334155;">${data.tanggal}</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 18px;">
+                    <span style="font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Alasan</span>
+                    <div style="font-size: 0.9rem; color: #334155; margin-top: 4px; background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid #e2e8f0;">${data.alasan}</div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; background: #fafafa; padding: 14px; border-radius: 12px; border: 1px solid #f1f5f9;">
+                    ${ttdHtml}
+                </div>
+            `;
         }
 
         contentEl.innerHTML = html;

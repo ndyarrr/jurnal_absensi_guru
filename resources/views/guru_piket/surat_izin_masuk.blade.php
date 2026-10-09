@@ -283,25 +283,14 @@
             .form-group-full { grid-column: span 1; }
         }
 
-        /* Printable Slip Styling */
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            #printableSlipArea, #printableSlipArea * {
-                visibility: visible;
-            }
-            #printableSlipArea {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                margin: 0;
-                padding: 20px;
-                background: #ffffff !important;
-                color: #000000 !important;
-            }
-        }
+        /* Status & aksi tanda tangan digital */
+        .ttd-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 8px; font-size: 0.74rem; font-weight: 800; white-space: nowrap; }
+        .ttd-done { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .ttd-wait { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+        .ttd-btn { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; cursor: pointer; font-family: inherit; }
+        .ttd-btn:hover { background: #dbeafe; }
+        .ttd-print { background: var(--pk-navy); color: #fff; border: 0; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 0.78rem; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+        .ttd-print.disabled { background: #e2e8f0; color: #94a3b8; pointer-events: none; }
     </style>
 </head>
 <body class="dashboard-body">
@@ -499,6 +488,13 @@
                 <div>
                     <label class="form-label" for="sim_input_wakasek">PIKET WAKASEK</label>
                     <input type="text" name="nama_piket_wakasek" id="sim_input_wakasek" class="form-control" value="{{ $namaPiketWaka ?? '' }}" readonly @if(isset($isDutyToday) && !$isDutyToday) disabled @endif>
+                    <small style="display:block; margin-top:6px; font-weight:600; color: {{ !empty($namaPiketWaka) ? '#64748b' : '#dc2626' }};">
+                        @if(!empty($namaPiketWaka))
+                            Terisi otomatis dari Jadwal Piket. Tanda tangannya diberikan sendiri oleh Piket Wakasek lewat akunnya.
+                        @else
+                            Belum ada Piket Waka terjadwal hari ini, surat belum bisa diterbitkan.
+                        @endif
+                    </small>
                 </div>
 
                 <!-- ALASAN -->
@@ -509,122 +505,118 @@
 
                 <div class="form-group-full" style="display: flex; align-items: flex-end; justify-content: flex-end;">
                     <button type="submit" class="btn-submit" @if(isset($isDutyToday) && !$isDutyToday) disabled @endif>
-                        <i class="fa-solid fa-print"></i> Terbitkan & Cetak Surat Ijin
+                        <i class="fa-solid fa-file-signature"></i> Terbitkan Surat Ijin
                     </button>
                 </div>
             </form>
         </section>
 
-    </main>
 
-    <!-- Modal Layout Slip Fisik Surat Ijin Masuk / Meninggalkan Kelas -->
-    <div id="slipModal" style="display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); align-items: center; justify-content: center;" onclick="closeSlipModal()">
-        <div onclick="event.stopPropagation()" style="max-width: 780px; width: 95%; max-height: 90vh; overflow-y: auto; background: #ffffff; border-radius: 16px; padding: 24px; box-shadow: 0 25px 60px rgba(0,0,0,0.35); position: relative; font-family: 'Plus Jakarta Sans', sans-serif;">
-            
-            <button type="button" onclick="closeSlipModal()" style="position: absolute; top: 16px; right: 18px; background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; color: #475569; display: flex; align-items: center; justify-content: center;">&times;</button>
+        <!-- Daftar Surat & Status Tanda Tangan Digital -->
+        <section class="pk-card-box" style="margin-top: 24px;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--pk-navy); margin-bottom: 6px; display: flex; align-items: center; gap: 10px;">
+                <i class="fa-solid fa-signature" style="color: var(--pk-blue);"></i>
+                Tanda Tangan Digital Surat Ijin
+            </h3>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 16px;">
+                Setiap pihak menandatangani slotnya sendiri. Surat baru bisa dicetak setelah siswa, guru piket, dan piket wakasek semuanya selesai tanda tangan.
+            </p>
 
-            <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--pk-navy); margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">Pratinjau Slip Surat Ijin Masuk Kelas</h3>
-
-            <!-- Area Lembar Surat (Warna Pink/Salmon Sesuai Lembar Fisik) -->
-            <div id="printableSlipArea" style="
-                background: #fcd5ce;
-                border: 2px solid #000000;
-                padding: 24px 30px;
-                color: #000000;
-                font-family: 'Arial', sans-serif;
-                border-radius: 4px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            ">
-                <!-- Judul Surat -->
-                <div style="text-align: center; font-weight: 900; font-size: 1.15rem; letter-spacing: 0.02em; text-transform: uppercase; line-height: 1.3;">
-                    SURAT IJIN MASUK KELAS / MENINGGALKAN KELAS
-                </div>
-                <div style="text-align: center; font-weight: 900; font-size: 1.1rem; text-transform: uppercase; margin-top: 4px; margin-bottom: 24px;">
-                    SMK NEGERI 1 BOYOLANGU
-                </div>
-
-                <!-- Form Fields -->
-                <div style="display: flex; flex-direction: column; gap: 14px; font-size: 1rem; font-weight: 900;">
-                    <div style="display: flex; align-items: flex-end;">
-                        <div style="width: 310px; flex-shrink: 0; text-transform: uppercase;">NAMA</div>
-                        <div style="width: 20px; text-align: center;">:</div>
-                        <div style="flex: 1; border-bottom: 1.5px solid #000000; padding-bottom: 2px; font-size: 1.05rem;" id="slip_nama"></div>
-                    </div>
-
-                    <div style="display: flex; align-items: flex-end;">
-                        <div style="width: 310px; flex-shrink: 0; text-transform: uppercase;">KELAS / KONSENTRASI KEAHLIAN</div>
-                        <div style="width: 20px; text-align: center;">:</div>
-                        <div style="flex: 1; border-bottom: 1.5px solid #000000; padding-bottom: 2px; font-size: 1.05rem;" id="slip_kelas"></div>
-                    </div>
-
-                    <div style="display: flex; align-items: flex-end;">
-                        <div style="width: 310px; flex-shrink: 0; text-transform: uppercase;">JAM PELAJARAN KE</div>
-                        <div style="width: 20px; text-align: center;">:</div>
-                        <div style="flex: 1; border-bottom: 1.5px solid #000000; padding-bottom: 2px; font-size: 1.05rem;" id="slip_jam_ke"></div>
-                    </div>
-
-                    <div style="display: flex; align-items: flex-end;">
-                        <div style="width: 310px; flex-shrink: 0; text-transform: uppercase;">ALASAN</div>
-                        <div style="width: 20px; text-align: center;">:</div>
-                        <div style="flex: 1; border-bottom: 1.5px solid #000000; padding-bottom: 2px; font-size: 1.05rem;" id="slip_alasan"></div>
-                    </div>
-                </div>
-
-                <!-- Sub-header Mengetahui -->
-                <div style="text-align: center; font-weight: 900; font-size: 0.95rem; margin-top: 28px; margin-bottom: 12px; letter-spacing: 0.05em; text-transform: uppercase;">
-                    MENGETAHUI / MENYETUJUI
-                </div>
-
-                <!-- Bottom Signature Grid (3 Columns) -->
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; text-align: center; font-size: 0.875rem; font-weight: 900; margin-top: 10px;">
-                    
-                    <!-- Left: Piket Wakasek -->
-                    <div style="width: 30%;">
-                        <div style="text-transform: uppercase;">PIKET WAKASEK</div>
-                        <div style="height: 60px;"></div>
-                        <div style="border-top: 1.5px solid #000000; padding-top: 4px; min-width: 140px; margin: 0 auto;" id="slip_wakasek"></div>
-                    </div>
-
-                    <!-- Center: Guru Piket -->
-<div style="width: 30%;">
-    <div style="text-transform: uppercase;">GURU PIKET</div>
-
-    <div style="height: 60px; display: flex; align-items: center; justify-content: center;">
-        <img id="slip_ttd_guru_piket"
-             src=""
-             alt="TTD Guru Piket"
-             style="max-height: 55px; max-width: 130px; object-fit: contain; display: none;">
-    </div>
-
-    <div style="border-top: 1.5px solid #000000; padding-top: 4px; min-width: 140px; margin: 0 auto;" id="slip_guru_piket"></div>
-</div>
-
-                    <!-- Right: Tulungagung & Ttd Siswa -->
-                    <div style="width: 38%;">
-                    <div>TULUNGAGUNG, <span id="slip_tanggal" style="border-bottom: 1px dotted #000000; padding: 0 4px;"></span></div>
-<div style="text-transform: uppercase; margin-top: 2px;">TANDA TANGAN SISWA</div>
-
-<div style="height: 50px; display: flex; align-items: center; justify-content: center;">
-    <img id="slip_ttd_siswa"
-         src=""
-         alt="TTD Siswa"
-         style="max-height: 48px; max-width: 130px; object-fit: contain; display: none;">
-</div>
-
-<div style="border-top: 1.5px solid #000000; padding-top: 4px; min-width: 140px; margin: 0 auto;"></div>
-                    </div>
-                </div>
+            <div style="overflow-x: auto;">
+                <table class="pk-table">
+                    <thead>
+                        <tr>
+                            <th>No. Surat</th>
+                            <th>Siswa</th>
+                            <th>Jam Ke</th>
+                            <th>Tanda Tangan</th>
+                            <th style="text-align: center;">Cetak</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($suratMasukList as $s)
+                            @php
+                                $slotTtd = [
+                                    'siswa' => ['Siswa', $s->nama_siswa],
+                                    'guru-piket' => ['Guru Piket', $s->nama_guru_piket],
+                                    'wakasek' => ['Piket Wakasek', $s->nama_piket_wakasek],
+                                ];
+                            @endphp
+                            <tr>
+                                <td style="font-weight: 800; font-family: monospace; color: var(--pk-navy);">
+                                    {{ $s->nomor_surat }}
+                                    <div style="font-family: inherit; font-weight: 600; font-size: 0.72rem; color: #64748b;">{{ $s->tanggal ? $s->tanggal->format('d/m/Y') : '-' }}</div>
+                                </td>
+                                <td style="font-weight: 800; color: var(--pk-navy);">
+                                    {{ $s->nama_siswa }}
+                                    <div style="font-weight: 600; font-size: 0.72rem; color: #64748b;">{{ $s->kelas_str }}</div>
+                                </td>
+                                <td style="font-weight: 700; color: #334155;">{{ $s->jam_pelajaran_ke }}</td>
+                                <td>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                        @foreach($slotTtd as $peran => [$label, $namaSlot])
+                                            @if($s->sudahTtd($peran))
+                                                <span class="ttd-chip ttd-done" title="Ditandatangani {{ optional($s->{\App\Models\SuratIzinMasuk::PERAN_TTD[$peran] . '_signed_at'})->format('d/m/Y H:i') }}">
+                                                    <i class="fa-solid fa-circle-check"></i> {{ $label }}
+                                                </span>
+                                            @elseif($s->bolehDitandatangani($user, $peran))
+                                                <button type="button" class="ttd-chip ttd-btn"
+                                                    onclick="openSignModal({{ $s->id_surat_izin_masuk }}, '{{ $peran }}', 'Tanda Tangan {{ $label }}', @js($namaSlot ?? '-'), @js($s->nomor_surat))">
+                                                    <i class="fa-solid fa-pen-nib"></i> TTD {{ $label }}
+                                                </button>
+                                            @else
+                                                <span class="ttd-chip ttd-wait" title="Menunggu {{ $namaSlot ?: $label }}">
+                                                    <i class="fa-regular fa-clock"></i> {{ $label }}
+                                                </span>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                </td>
+                                <td style="text-align: center;">
+                                    @if($s->ttdLengkap())
+                                        <a href="{{ route('guru-piket.surat-izin-masuk.cetak', $s->id_surat_izin_masuk) }}" target="_blank" rel="noopener" class="ttd-print">
+                                            <i class="fa-solid fa-print"></i> Cetak
+                                        </a>
+                                    @else
+                                        <span class="ttd-print disabled" title="Cetak aktif setelah semua tanda tangan lengkap">
+                                            <i class="fa-solid fa-lock"></i> {{ $s->jumlahTtd() }}/3 TTD
+                                        </span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #64748b; padding: 24px;">Belum ada surat ijin masuk yang diterbitkan.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
 
-            <!-- Modal Action Buttons -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
-                <button type="button" onclick="close
-                ipModal()" style="background: #ffffff; border: 1px solid #cbd5e1; color: #475569; padding: 10px 20px; border-radius: 10px; font-weight: 700; cursor: pointer;">
-                    Tutup
-                </button>
-                <button type="button" onclick="printSlip()" style="background: var(--pk-navy); color: #ffffff; border: none; padding: 11px 24px; border-radius: 10px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-solid fa-print"></i> Cetak Lembar Surat Ijin
-                </button>
+            <div style="margin-top: 16px;">
+                {{ $suratMasukList->links('pagination::bootstrap-4') }}
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal Tanda Tangan Digital -->
+    <div id="signModal" style="display: none; position: fixed; z-index: 9999; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); align-items: center; justify-content: center;" onclick="closeSignModal()">
+        <div onclick="event.stopPropagation()" style="max-width: 460px; width: 94%; background: #ffffff; border-radius: 16px; padding: 24px; box-shadow: 0 25px 60px rgba(0,0,0,0.35); font-family: 'Plus Jakarta Sans', sans-serif;">
+            <h3 id="sign_title" style="font-size: 1.05rem; font-weight: 800; color: var(--pk-navy); margin-bottom: 4px;"></h3>
+            <p id="sign_sub" style="font-size: 0.82rem; color: #64748b; margin-bottom: 14px;"></p>
+
+            <div style="border: 1.5px dashed #94a3b8; border-radius: 10px; background: #fafafa; padding: 6px;">
+                <canvas id="sign_canvas" width="680" height="340" style="width: 100%; height: 170px; background: #fff; touch-action: none; display: block; cursor: crosshair; border-radius: 6px;"></canvas>
+            </div>
+            <div id="sign_error" style="display: none; margin-top: 10px; color: #dc2626; font-size: 0.82rem; font-weight: 700;"></div>
+
+            <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 16px;">
+                <button type="button" onclick="closeSignModal()" style="background: #fff; border: 1px solid #cbd5e1; color: #475569; padding: 10px 16px; border-radius: 10px; font-weight: 700; cursor: pointer;">Batal</button>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" id="sign_clear" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; padding: 10px 16px; border-radius: 10px; font-weight: 700; cursor: pointer;">Bersihkan</button>
+                    <button type="button" id="sign_save" style="background: var(--pk-navy); border: 0; color: #fff; padding: 10px 18px; border-radius: 10px; font-weight: 800; cursor: pointer;" disabled>Simpan TTD</button>
+                </div>
             </div>
         </div>
     </div>
@@ -770,54 +762,129 @@
             }
         });
 
-        function showSlipModal(id, nama, kelas, jamKe, alasan, tanggal, guruPiket, wakasek, ttdSiswa, ttdGuru) {
-            document.getElementById('slip_nama').textContent = nama || '-';
-            document.getElementById('slip_kelas').textContent = kelas || '-';
-            document.getElementById('slip_jam_ke').textContent = jamKe || '-'
-            document.getElementById('slip_alasan').textContent = alasan || '-';
-            document.getElementById('slip_tanggal').textContent = tanggal || '-';
-            const ttdSiswaEl = document.getElementById('slip_ttd_siswa');
-if (ttdSiswaEl) {
-    ttdSiswaEl.src = ttdSiswa || '';
-    ttdSiswaEl.style.display = ttdSiswa ? 'block' : 'none';
-}
+        let signTarget = null;
+        let signHasInk = false;
 
-const ttdGuruEl = document.getElementById('slip_ttd_guru_piket');
-if (ttdGuruEl) {
-    ttdGuruEl.src = ttdGuru || '';
-    ttdGuruEl.style.display = ttdGuru ? 'block' : 'none';
-}
-            document.getElementById('slip_guru_piket').textContent = guruPiket && guruPiket !== '-' ? guruPiket : '';
-            document.getElementById('slip_wakasek').textContent = wakasek && wakasek !== '-' ? wakasek : '';
+        // Kanvas TTD digambar dengan kode sendiri (mouse, sentuh, pena) seperti di surat dispensasi,
+        // jadi tidak bergantung pada library dari CDN.
+        (function initSignCanvas() {
+            const canvas = document.getElementById('sign_canvas');
+            const btnSave = document.getElementById('sign_save');
+            const ctx = canvas.getContext('2d');
+            let drawing = false;
 
-            const modal = document.getElementById('slipModal');
-            modal.style.display = 'flex';
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                return {
+                    x: (e.clientX - rect.left) * (canvas.width / rect.width),
+                    y: (e.clientY - rect.top) * (canvas.height / rect.height)
+                };
+            }
+
+            function startDraw(e) {
+                drawing = true;
+                try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+                const pos = getPos(e);
+                ctx.beginPath();
+                ctx.moveTo(pos.x, pos.y);
+                ctx.lineTo(pos.x + 0.01, pos.y + 0.01);
+                ctx.strokeStyle = '#0f172a';
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.stroke();
+                signHasInk = true;
+                btnSave.disabled = false;
+                e.preventDefault();
+            }
+
+            function draw(e) {
+                if (!drawing) return;
+                const pos = getPos(e);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+                e.preventDefault();
+            }
+
+            function stopDraw() {
+                drawing = false;
+            }
+
+            canvas.addEventListener('pointerdown', startDraw);
+            canvas.addEventListener('pointermove', draw);
+            canvas.addEventListener('pointerup', stopDraw);
+            canvas.addEventListener('pointercancel', stopDraw);
+            canvas.addEventListener('pointerleave', stopDraw);
+        })();
+
+        function clearSignCanvas() {
+            const canvas = document.getElementById('sign_canvas');
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            signHasInk = false;
+            document.getElementById('sign_save').disabled = true;
         }
 
-        function closeSlipModal() {
-            document.getElementById('slipModal').style.display = 'none';
+        function openSignModal(id, peran, judul, nama, nomor) {
+            signTarget = { id: id, peran: peran };
+            document.getElementById('sign_title').textContent = judul;
+            document.getElementById('sign_sub').textContent = (nama && nama !== '-' ? nama + ' · ' : '') + nomor;
+            document.getElementById('sign_error').style.display = 'none';
+            document.getElementById('sign_save').textContent = 'Simpan TTD';
+            clearSignCanvas();
+            document.getElementById('signModal').style.display = 'flex';
         }
 
-        function printSlip() {
-            window.print();
+        function closeSignModal() {
+            document.getElementById('signModal').style.display = 'none';
         }
 
-        @if(session('auto_print_surat_id'))
-            @php
-                $autoSurat = \App\Models\SuratIzinMasuk::find(session('auto_print_surat_id'));
-            @endphp
-            @if($autoSurat)
-                document.addEventListener('DOMContentLoaded', function() {
-                    showSlipModal(
-                        '{{ $autoSurat->id_surat_izin_masuk }}',
-                        '{{ addslashes($autoSurat->nama_siswa) }}',
-                        '{{ addslashes($autoSurat->kelas_str) }}',
-                        '{{ addslashes($autoSurat->jam_pelajaran_ke) }}',
-                        '{{ addslashes($autoSurat->alasan) }}',
-                        '{{ $autoSurat->tanggal->format('d-m-Y') }}',
-                        '{{ addslashes($autoSurat->nama_guru_piket ?? '-') }}',
-                        '{{ addslashes($autoSurat->nama_piket_wakasek ?? '-') }}'
-                    );
+        document.getElementById('sign_clear').addEventListener('click', clearSignCanvas);
+
+        document.getElementById('sign_save').addEventListener('click', function () {
+            if (!signHasInk || !signTarget) return;
+
+            const btn = this;
+            const errEl = document.getElementById('sign_error');
+            const canvas = document.getElementById('sign_canvas');
+            btn.disabled = true;
+            btn.textContent = 'Menyimpan...';
+            errEl.style.display = 'none';
+
+            fetch(`/guru-piket/surat-izin-masuk/${signTarget.id}/ttd/${signTarget.peran}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ signature: canvas.toDataURL('image/png') })
+            })
+            .then(r => r.json().then(j => ({ ok: r.ok, body: j })))
+            .then(({ ok, body }) => {
+                if (ok && body.success) {
+                    window.location.reload();
+                    return;
+                }
+                errEl.textContent = body.message || 'Gagal menyimpan tanda tangan.';
+                errEl.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Simpan TTD';
+            })
+            .catch(() => {
+                errEl.textContent = 'Terjadi kesalahan saat menyimpan tanda tangan.';
+                errEl.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Simpan TTD';
+            });
+        });
+
+        // Setelah surat diterbitkan, langsung buka kotak TTD siswa (perangkat diserahkan ke siswa).
+        @if(session('open_sign_surat_id'))
+            @php $autoSurat = \App\Models\SuratIzinMasuk::find(session('open_sign_surat_id')); @endphp
+            @if($autoSurat && $autoSurat->bolehDitandatangani($user, 'siswa'))
+                document.addEventListener('DOMContentLoaded', function () {
+                    openSignModal({{ $autoSurat->id_surat_izin_masuk }}, 'siswa', 'Tanda Tangan Siswa', @js($autoSurat->nama_siswa), @js($autoSurat->nomor_surat));
                 });
             @endif
         @endif

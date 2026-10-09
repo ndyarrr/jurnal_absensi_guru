@@ -1616,11 +1616,20 @@ class GuruPiketController extends Controller
                 'required|string|max:100',
             'alasan' =>
                 'required|string',
-            'nama_piket_wakasek' =>
-                'nullable|string|max:255',
-            'nama_guru_piket' =>
-                'nullable|string|max:255',
         ]);
+
+        // Piket Wakasek diambil otomatis dari Jadwal Piket (bukan dari input form)
+        // karena slot tanda tangannya harus diisi oleh Piket Waka yang bertugas.
+        $namaPiketWaka = $this->namaPiketWakaHariIni();
+
+        if (!$namaPiketWaka) {
+            return back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Belum ada Piket Waka yang terjadwal hari ini. Surat belum bisa diterbitkan karena butuh tanda tangan Piket Waka.'
+                );
+        }
 
         $todayNow =
             Carbon::now('Asia/Jakarta');
@@ -1643,13 +1652,11 @@ class GuruPiketController extends Controller
 
         $guru = $user ? $user->guru : null;
 
+        // Nama guru piket selalu dari akun yang login (tanda tangannya juga akun ini).
         $namaGuruPiket =
-            $request->nama_guru_piket
-            ?: (
-                $guru
-                    ? $guru->nama_guru
-                    : ($user->name ?? 'Guru Piket')
-            );
+            $guru
+                ? $guru->nama_guru
+                : ($user->name ?? 'Guru Piket');
 
         $idKelas = null;
 
@@ -1676,24 +1683,178 @@ class GuruPiketController extends Controller
                 'jenis_surat' =>
                     'SURAT IJIN MASUK KELAS / MENINGGALKAN KELAS',
                 'tanggal' => $todayStr,
-                'nama_piket_wakasek' =>
-                    $request->nama_piket_wakasek
-                    ?: $this->namaPiketWakaHariIni(),
+                'nama_piket_wakasek' => $namaPiketWaka,
                 'nama_guru_piket' =>
                     $namaGuruPiket,
                 'id_user_piket' =>
                     $user->id ?? null,
             ]);
 
+        // Jurnal guru mapel yang sudah tersimpan ikut disesuaikan (terlambat = Alpa, dst).
+        $this->terapkanSuratKeJurnal($surat, $user);
+
         return back()
             ->with(
                 'success',
-                'Surat Ijin Masuk berhasil diterbitkan dan dicatat.'
+                'Surat Ijin Masuk berhasil diterbitkan. Lengkapi tanda tangan digital (siswa, guru piket, piket wakasek); surat bisa dicetak setelah semuanya selesai.'
             )
             ->with(
-                'auto_print_surat_id',
+                'open_sign_surat_id',
                 $surat->id_surat_izin_masuk
             );
+    }
+
+    /**
+     * Terapkan Surat Ijin Masuk / Meninggalkan Kelas ke jurnal guru mapel yang SUDAH tersimpan hari itu.
+     *  - Izin masuk jam ke-N        : jam sebelum N -> Alpa (terlambat)
+     *  - Meninggalkan jam ke-A s/d B: jam A..B      -> Sakit (alasan mengandung "sakit") atau Dispen Keluar
+     * Hanya mengisi siswa yang masih tercatat Hadir; status yang sudah dipilih guru mapel tidak ditimpa.
+     * Jurnal yang belum diisi akan terisi otomatis lewat form jurnal (lihat GuruMengajarController).
+     */
+    private function terapkanSuratKeJurnal(\App\Models\SuratIzinMasuk $surat, $user = null): void
+    {
+        try {
+            $siswa = $surat->id_siswa ? Siswa::find($surat->id_siswa) : null;
+            if (!$siswa || !$siswa->id_kelas) {
+                return;
+            }
+
+            $jurnals = JurnalMengajar::with('jadwal')
+                ->whereDate('tanggal', $surat->tanggal)
+                ->whereHas('jadwal', fn ($q) => $q->where('id_kelas', $siswa->id_kelas))
+                ->get();
+
+            foreach ($jurnals as $jurnal) {
+                $auto = $surat->statusUntukJam((int) optional($jurnal->jadwal)->jam_ke);
+                if (!$auto) {
+                    continue;
+                }
+
+                $sudahAda = DetailKetidakhadiran::where('id_jurnal', $jurnal->id_jurnal)
+                    ->where('id_siswa', $siswa->id_siswa)
+                    ->exists();
+                if ($sudahAda) {
+                    continue;
+                }
+
+                $sakit = $auto['status'] === 'Sakit';
+                $dispenKeluar = $auto['status'] === 'Dispen Keluar';
+
+                DetailKetidakhadiran::create([
+                    'id_jurnal' => $jurnal->id_jurnal,
+                    'id_siswa' => $siswa->id_siswa,
+                    'status' => $sakit ? 'S' : ($dispenKeluar ? 'I' : 'A'),
+                    'kategori' => $sakit ? 'sakit' : ($dispenKeluar ? 'dispensasi' : 'alpa'),
+                    'jenis_dispen' => $dispenKeluar ? 'keluar' : null,
+                    'catatan' => $auto['keterangan'],
+                    'id_guru_piket' => $user && method_exists($user, 'resolveIdGuru') ? $user->resolveIdGuru() : null,
+                    'waktu_input' => Carbon::now('Asia/Jakarta'),
+                ]);
+
+                $total = (int) $jurnal->jumlah_hadir + (int) $jurnal->jumlah_tidak_hadir;
+                $tidakHadir = DetailKetidakhadiran::where('id_jurnal', $jurnal->id_jurnal)->count();
+                $jurnal->jumlah_tidak_hadir = $tidakHadir;
+                $jurnal->jumlah_hadir = max(0, $total - $tidakHadir);
+                $jurnal->save();
+            }
+        } catch (\Throwable $e) {
+            // Gagal menyesuaikan jurnal tidak boleh menggagalkan penerbitan surat.
+            report($e);
+        }
+    }
+
+    /**
+     * Simpan tanda tangan digital Surat Ijin Masuk untuk satu peran
+     * (siswa | guru-piket | wakasek). Tiap slot hanya bisa diisi oleh pihak yang sesuai.
+     */
+    public function simpanTtdSuratIzinMasuk(Request $request, $id, string $peran)
+    {
+        $request->validate([
+            'signature' => ['required', 'string', 'regex:/^data:image\/png;base64,/'],
+        ]);
+
+        $surat = \App\Models\SuratIzinMasuk::findOrFail($id);
+        $user = auth()->user();
+
+        if ($surat->sudahTtd($peran)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Slot tanda tangan ini sudah terisi dan tidak bisa diubah.',
+            ], 422);
+        }
+
+        if (!$surat->bolehDitandatangani($user, $peran)) {
+            $pesan = match ($peran) {
+                'guru-piket' => 'Tanda tangan Guru Piket hanya bisa diberikan oleh guru piket yang menerbitkan surat ini.',
+                'wakasek' => 'Tanda tangan Piket Wakasek hanya bisa diberikan oleh akun Piket Waka yang bertugas hari ini (bukan oleh guru piket penerbit surat).',
+                default => 'Tanda tangan hanya bisa diberikan pada hari surat diterbitkan.',
+            };
+
+            return response()->json(['success' => false, 'message' => $pesan], 403);
+        }
+
+        $binary = base64_decode(
+            preg_replace('/^data:image\/png;base64,/', '', $request->input('signature')),
+            true
+        );
+
+        if ($binary === false || strlen($binary) < 100) {
+            return response()->json(['success' => false, 'message' => 'Tanda tangan tidak valid.'], 422);
+        }
+
+        if (strlen($binary) > 2 * 1024 * 1024) {
+            return response()->json(['success' => false, 'message' => 'Ukuran tanda tangan terlalu besar (maks 2MB).'], 413);
+        }
+
+        $kolom = \App\Models\SuratIzinMasuk::PERAN_TTD[$peran];
+
+        $nama = match ($peran) {
+            'siswa' => $surat->nama_siswa,
+            'guru-piket' => $surat->nama_guru_piket,
+            'wakasek' => optional($user->guru)->nama_guru ?: ($user->name ?? $surat->nama_piket_wakasek),
+        };
+
+        $filename = 'ttd_surat_izin_masuk/' . str_replace('-', '_', $peran) . '_'
+            . $surat->id_surat_izin_masuk . '_'
+            . Carbon::now('Asia/Jakarta')->format('Ymd_His') . '.png';
+
+        Storage::disk('public')->put($filename, $binary);
+
+        $data = [
+            $kolom . '_path' => $filename,
+            $kolom . '_signed_at' => Carbon::now('Asia/Jakarta'),
+            $kolom . '_signed_name' => $nama,
+        ];
+
+        if ($peran === 'wakasek') {
+            $data['ttd_wakasek_id_user'] = $user->id;
+        }
+
+        $surat->update($data);
+        $surat->refresh();
+
+        return response()->json([
+            'success' => true,
+            'url' => $surat->ttdUrl($peran),
+            'signed_at' => optional($surat->{$kolom . '_signed_at'})->format('d/m/Y H:i'),
+            'lengkap' => $surat->ttdLengkap(),
+        ]);
+    }
+
+    /**
+     * Halaman cetak Surat Ijin Masuk. Hanya bisa dibuka jika semua tanda tangan lengkap.
+     */
+    public function cetakSuratIzinMasuk($id)
+    {
+        $surat = \App\Models\SuratIzinMasuk::findOrFail($id);
+
+        if (!$surat->ttdLengkap()) {
+            return redirect()
+                ->route('guru-piket.surat-izin-masuk')
+                ->with('error', 'Surat belum bisa dicetak: tanda tangan digital siswa, guru piket, dan piket wakasek harus lengkap dulu.');
+        }
+
+        return view('guru_piket.surat_izin_masuk_cetak', compact('surat'));
     }
 
     /**

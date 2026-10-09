@@ -92,10 +92,9 @@
                     <div class="demo-tags-dropdown" id="demoDropdown">
                         <button type="button" class="demo-tag" onclick="fillQuickAccount('Administrator', 'password')">Administrator</button>
                         <button type="button" class="demo-tag" onclick="fillQuickAccount('198501212022212037', '198501212022212037')">Guru (NIP: 198501212022212037)</button>
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Waka', 'password')">Waka</button>
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Waka Kurikulum', 'password')">Waka Kurikulum</button>
                         <button type="button" class="demo-tag" onclick="fillQuickAccount('198101152003121003', '198101152003121003')">Kepala Sekolah</button>
-                        <button type="button" class="demo-tag" onclick="fillQuickAccount('Satpam', 'password')">Satpam</button>
+                        <button type="button" class="demo-tag" onclick="fillQuickAccount('udin', '1234567')">Satpam</button>
+                        <button type="button" class="demo-tag" onclick="fillQuickAccount('sribunga', 'flowerr')">Orang Tua</button>
                     </div>
                 </div>
 

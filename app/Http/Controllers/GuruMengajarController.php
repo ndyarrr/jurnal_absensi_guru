@@ -265,6 +265,9 @@ class GuruMengajarController extends Controller
             ->get()
             ->keyBy('id_siswa');
 
+        // Surat Ijin Masuk / Meninggalkan Kelas dari guru piket: status otomatis per jam pelajaran
+        $suratMasukAuto = \App\Models\SuratIzinMasuk::autoPerSiswa($siswaIds, $tanggal, (int) $jadwal->jam_ke);
+
         // Fetch existing journal (if editing)
         $jurnal = JurnalMengajar::where('id_jadwal', $jadwal->id_jadwal)
             ->whereDate('tanggal', $tanggal)
@@ -301,7 +304,7 @@ foreach ($jurnal->detailKetidakhadiran as $d) {
         $jamStr = optional($jadwal->jamPelajaran)->keterangan ?? ('Jam Ke-' . $jadwal->jam_ke);
 
         return view('guru_mengajar.input_jurnal', compact(
-            'guru', 'jadwal', 'tanggal', 'jurnal', 'siswaList', 'izinList', 'dispenList',
+            'guru', 'jadwal', 'tanggal', 'jurnal', 'siswaList', 'izinList', 'dispenList', 'suratMasukAuto',
             'existingDetails', 'waktuStr', 'kelasName', 'mapelName', 'jamStr'
         ));
     }
@@ -350,6 +353,8 @@ foreach ($jurnal->detailKetidakhadiran as $d) {
             ->get()
             ->keyBy('id_siswa');
 
+        $suratMasukAuto = \App\Models\SuratIzinMasuk::autoPerSiswa($siswaIds, $tanggal, (int) $jadwal->jam_ke);
+
         $jurnal = JurnalMengajar::where('id_jadwal', $jadwal->id_jadwal)
             ->whereDate('tanggal', $tanggal)
             ->with('detailKetidakhadiran')
@@ -367,14 +372,20 @@ foreach ($jurnal->detailKetidakhadiran as $d) {
                 'waktu' => $waktuStr,
                 'jam' => optional($jadwal->jamPelajaran)->keterangan ?? ('Jam Ke-' . $jadwal->jam_ke),
             ],
-            'siswa' => $siswaList->map(function ($s) use ($izinList, $dispenList) {
+            'siswa' => $siswaList->map(function ($s) use ($izinList, $dispenList, $suratMasukAuto) {
                 $izin = $izinList->get($s->id_siswa);
                 $dispen = $dispenList->get($s->id_siswa);
                 $autoStatus = null;
                 $autoKet = null;
                 $badge = null;
 
-                if ($izin) {
+                $suratMasuk = $suratMasukAuto[$s->id_siswa] ?? null;
+
+                if ($suratMasuk) {
+                    $autoStatus = $suratMasuk['status'];
+                    $autoKet = $suratMasuk['keterangan'];
+                    $badge = 'Surat Ijin Masuk ' . $suratMasuk['nomor_surat'];
+                } elseif ($izin) {
                     $autoStatus = strtolower($izin->jenis_izin) === 'sakit' ? 'Sakit' : 'Izin';
                     $autoKet = '[Surat Piket: ' . $izin->jenis_izin . ']';
                     $badge = 'Surat ' . $izin->jenis_izin . ' (Piket)';

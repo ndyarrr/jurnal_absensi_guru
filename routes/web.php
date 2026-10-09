@@ -66,6 +66,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/guru-piket/surat-izin-masuk', [\App\Http\Controllers\GuruPiketController::class, 'suratIzinMasuk'])->name('guru-piket.surat-izin-masuk');
         Route::post('/guru-piket/surat-izin-masuk', [\App\Http\Controllers\GuruPiketController::class, 'storeSuratIzinMasuk'])->name('guru-piket.store-surat-izin-masuk');
         Route::delete('/guru-piket/surat-izin-masuk/{id}', [\App\Http\Controllers\GuruPiketController::class, 'destroySuratIzinMasuk'])->name('guru-piket.destroy-surat-izin-masuk');
+        Route::post('/guru-piket/surat-izin-masuk/{id}/ttd/{peran}', [\App\Http\Controllers\GuruPiketController::class, 'simpanTtdSuratIzinMasuk'])->whereNumber('id')->whereIn('peran', ['siswa', 'guru-piket', 'wakasek'])->name('guru-piket.surat-izin-masuk.ttd');
+        Route::get('/guru-piket/surat-izin-masuk/{id}/cetak', [\App\Http\Controllers\GuruPiketController::class, 'cetakSuratIzinMasuk'])->whereNumber('id')->name('guru-piket.surat-izin-masuk.cetak');
         Route::get('/guru-piket/export/csv', [\App\Http\Controllers\GuruPiketController::class, 'exportCsv'])->name('guru-piket.export-csv');
         Route::post('/guru-piket/dispensasi/{id}/ttd-siswa', [\App\Http\Controllers\GuruPiketController::class, 'simpanTtdSiswa'])->name('guru-piket.dispensasi.ttd-siswa');
         Route::post('/guru-piket/dispensasi/{id}/ttd-guru', [\App\Http\Controllers\GuruPiketController::class, 'simpanTtdGuru'])->name('guru-piket.dispensasi.ttd-guru');
@@ -138,9 +140,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('siswa', SiswaController::class);
         Route::post('/jadwal-piket/import', [JadwalPiketController::class, 'import'])->name('jadwal-piket.import');
         Route::get('/jadwal-piket/export/csv', [JadwalPiketController::class, 'exportCsv'])->name('jadwal-piket.export-csv');
-        Route::get('/jadwal-piket/export/pdf/{shift}', [JadwalPiketController::class, 'exportPdf'])
-    ->where('shift', 'pagi|siang|waka')
-    ->name('jadwal-piket.export-pdf');
+        Route::get('/jadwal-piket/export/pdf/{shift}', [JadwalPiketController::class, 'exportPdf'])->whereIn('shift', ['pagi', 'siang', 'waka'])->name('jadwal-piket.export-pdf');
         Route::resource('jadwal-piket', JadwalPiketController::class);
         Route::get('/users/cari-siswa', [UserController::class, 'cariSiswa'])->name('users.cari-siswa');
         Route::get('/users/{user}/anak', [UserController::class, 'anak'])->whereNumber('user')->name('users.anak');
