@@ -123,6 +123,9 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('siswa', SiswaController::class);
         Route::post('/jadwal-piket/import', [JadwalPiketController::class, 'import'])->name('jadwal-piket.import');
         Route::get('/jadwal-piket/export/csv', [JadwalPiketController::class, 'exportCsv'])->name('jadwal-piket.export-csv');
+        Route::get('/jadwal-piket/export/pdf/{shift}', [JadwalPiketController::class, 'exportPdf'])
+    ->where('shift', 'pagi|siang|waka')
+    ->name('jadwal-piket.export-pdf');
         Route::resource('jadwal-piket', JadwalPiketController::class);
         Route::post('/users/bulk-delete', [UserController::class, 'bulkDelete'])->name('users.bulk-delete');
         Route::resource('users', UserController::class);

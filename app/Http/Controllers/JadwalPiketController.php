@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use App\Models\JadwalPiket;
 use App\Models\Guru;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class JadwalPiketController extends Controller
 {
@@ -329,6 +330,69 @@ class JadwalPiketController extends Controller
      * ?minggu=YYYY-MM-DD -> hanya minggu itu (Senin-Jumat), termasuk jadwal mingguan lama yang berlaku.
      * ?semua=1           -> seluruh data di tabel jadwal_piket, urut tanggal lalu peran.
      */
+
+    public function exportPdf(Request $request, string $shift)
+{
+    $this->ensureTableExists();
+
+    $peranShift = [
+        'pagi' => ['Petugas KBM Pagi', 'Koordinator KBM Pagi'],
+        'siang' => ['Petugas KBM Siang', 'Koordinator KBM Siang'],
+        'waka' => ['Piket Waka'],
+    ];
+
+    abort_unless(isset($peranShift[$shift]), 404);
+
+    try {
+        $acuan = $request->filled('minggu')
+            ? Carbon::parse($request->query('minggu'), 'Asia/Jakarta')
+            : Carbon::now('Asia/Jakarta');
+    } catch (\Throwable $e) {
+        $acuan = Carbon::now('Asia/Jakarta');
+    }
+
+    $senin = $acuan->copy()->startOfWeek(Carbon::MONDAY)->startOfDay();
+    $jumat = $senin->copy()->addDays(4);
+    $rows = collect();
+
+    for ($i = 0; $i < 5; $i++) {
+        $tgl = $senin->copy()->addDays($i);
+
+        $harian = JadwalPiket::with('guru')
+            ->berlakuPada($tgl)
+            ->whereIn('peran', $peranShift[$shift])
+            ->get()
+            ->map(function ($r) use ($tgl) {
+                $r->tanggal_tampil = $tgl->copy();
+                return $r;
+            });
+
+        $rows = $rows->merge($harian);
+    }
+
+    $rows = $rows->sortBy(function ($r) use ($peranShift, $shift) {
+        return $r->tanggal_tampil->format('Y-m-d')
+            . '-' . array_search($r->peran, $peranShift[$shift]);
+    })->values();
+
+    $judulShift = [
+        'pagi' => 'Piket Pagi',
+        'siang' => 'Piket Siang',
+        'waka' => 'Piket Waka',
+    ][$shift];
+
+    $pdf = Pdf::loadView('admin.jadwal_piket.pdf', [
+        'rows' => $rows,
+        'senin' => $senin,
+        'jumat' => $jumat,
+        'judulShift' => $judulShift,
+    ])->setPaper('a4', 'landscape');
+
+    return $pdf->download(
+        'jadwal-' . $shift . '-' . $senin->format('Y-m-d') . '.pdf'
+    );
+}
+
     public function exportCsv(Request $request)
     {
         $this->ensureTableExists();

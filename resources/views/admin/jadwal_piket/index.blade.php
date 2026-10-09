@@ -174,6 +174,14 @@
             <a href="{{ route('jadwal-piket.index', ['minggu' => $nextMinggu]) }}" class="pk-nav-btn">Minggu berikutnya <i class="fa-solid fa-chevron-right"></i></a>
             <button type="button" class="pk-import-btn" onclick="openImportModal()"><i class="fa-solid fa-file-import"></i> Impor Lembar Piket</button>
             <a href="{{ route('jadwal-piket.export-csv', ['minggu' => $senin->toDateString()]) }}" class="pk-nav-btn" style="border-color:#16a34a;color:#16a34a;"><i class="fa-solid fa-file-csv"></i> Export CSV (minggu ini)</a>
+            <a href="{{ route('jadwal-piket.export-pdf', ['shift' => 'pagi', 'minggu' => $senin->toDateString()]) }}"
+   class="pk-nav-btn">PDF Piket Pagi</a>
+
+<a href="{{ route('jadwal-piket.export-pdf', ['shift' => 'siang', 'minggu' => $senin->toDateString()]) }}"
+   class="pk-nav-btn">PDF Piket Siang</a>
+
+<a href="{{ route('jadwal-piket.export-pdf', ['shift' => 'waka', 'minggu' => $senin->toDateString()]) }}"
+   class="pk-nav-btn">PDF Piket Waka</a>
             <a href="{{ route('jadwal-piket.export-csv', ['semua' => 1]) }}" class="pk-nav-btn"><i class="fa-solid fa-file-csv"></i> Export Semua</a>
         </div>
 
