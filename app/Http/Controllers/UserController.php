@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Guru;
+use App\Models\Siswa;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -85,8 +87,8 @@ class UserController extends Controller
     {
         $isSuper = auth()->user()->isSuperAdmin();
         $rolesAllowed = $isSuper
-            ? 'admin,super_admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_kurikulum,satpam'
-            : 'admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_kurikulum,satpam';
+            ? 'admin,super_admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_kurikulum,satpam,orang_tua'
+            : 'admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_kurikulum,satpam,orang_tua';
 
         $requiredGuruRoles = ['guru_mengajar', 'wali_kelas', 'guru_piket'];
         $isRequiredGuruRole = in_array($request->input('role'), $requiredGuruRoles, true);
@@ -102,7 +104,12 @@ class UserController extends Controller
                 Rule::unique('users', 'id_guru')->whereNotNull('id_guru'),
             ],
             'avatar'   => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'anak'     => [Rule::requiredIf($request->input('role') === 'orang_tua'), 'nullable', 'array'],
+            'anak.*'   => ['integer', Rule::exists('siswa', 'id_siswa')->whereNull('deleted_at')],
+            'hubungan' => 'nullable|in:ayah,ibu,wali',
         ], [
+            'anak.required'     => 'Pilih minimal satu anak (siswa) untuk akun Orang Tua.',
+            'anak.*.exists'     => 'Siswa yang dipilih tidak ditemukan.',
             'name.required'     => 'Nama pengguna wajib diisi.',
             'password.min'      => 'Password minimal 6 karakter.',
             'role.in'           => 'Role tidak valid atau Anda tidak memiliki akses membuat Super Admin.',
@@ -132,7 +139,7 @@ class UserController extends Controller
         }
 
         // Roles yang hanya boleh 1 user
-        $singletonRoles = ['waka', 'waka_kurikulum', 'kepala_sekolah'];
+        $singletonRoles = ['kepala_sekolah'];
         if (in_array($validated['role'], $singletonRoles)) {
             $roleLabels = ['waka' => 'Waka', 'waka_kurikulum' => 'Waka Kurikulum', 'kepala_sekolah' => 'Kepala Sekolah'];
             $exists = User::where('role', $validated['role'])->exists();
@@ -150,7 +157,20 @@ class UserController extends Controller
             unset($validated['avatar']);
         }
 
-        User::create($validated);
+        $anakIds = array_map('intval', $validated['anak'] ?? []);
+        $hubungan = $validated['hubungan'] ?? 'wali';
+        $validated = Arr::except($validated, ['anak', 'hubungan']);
+
+        // Akun orang tua tidak memakai profil guru
+        if ($validated['role'] === 'orang_tua') {
+            $validated['id_guru'] = null;
+        }
+
+        $newUser = User::create($validated);
+
+        if ($newUser->role === 'orang_tua') {
+            $this->syncAnak($newUser, $anakIds, $hubungan);
+        }
 
         return redirect()->route('users.index')->with('success', 'Pengguna baru berhasil ditambahkan');
     }
@@ -174,7 +194,72 @@ class UserController extends Controller
             'created_at'     => $user->created_at ? $user->created_at->format('d-m-Y H:i') : '-',
             'avatar_url'     => $user->avatar_url,
             'avatar_initial' => $user->avatar_initial,
+            'anak'           => $user->role === 'orang_tua'
+                ? $user->anak()->orderBy('nama_siswa')->pluck('nama_siswa')->all()
+                : [],
         ]);
+    }
+
+    /**
+     * Cari siswa untuk ditautkan ke akun orang tua (dipakai form tambah/edit pengguna).
+     */
+    public function cariSiswa(Request $request)
+    {
+        $q = trim((string) $request->query('q', ''));
+        if (mb_strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        $rows = Siswa::with('kelas.jurusan')
+            ->where(function ($w) use ($q) {
+                $w->where('nama_siswa', 'like', "%{$q}%")
+                  ->orWhere('nisn', 'like', "%{$q}%");
+            })
+            ->orderBy('nama_siswa')
+            ->limit(15)
+            ->get();
+
+        return response()->json($rows->map(fn ($s) => [
+            'id'    => $s->id_siswa,
+            'nama'  => $s->nama_siswa,
+            'nisn'  => $s->nisn,
+            'kelas' => optional($s->kelas)->nama_lengkap ?: '-',
+        ])->values());
+    }
+
+    /**
+     * Daftar anak yang sudah ditautkan ke satu akun orang tua (prefill form edit).
+     */
+    public function anak(User $user)
+    {
+        if ($user->role !== 'orang_tua') {
+            return response()->json(['hubungan' => 'wali', 'anak' => []]);
+        }
+
+        $anak = $user->anak()->with('kelas.jurusan')->orderBy('nama_siswa')->get();
+
+        return response()->json([
+            'hubungan' => optional($anak->first())->pivot->hubungan ?? 'wali',
+            'anak'     => $anak->map(fn ($s) => [
+                'id'    => $s->id_siswa,
+                'nama'  => $s->nama_siswa,
+                'nisn'  => $s->nisn,
+                'kelas' => optional($s->kelas)->nama_lengkap ?: '-',
+            ])->values(),
+        ]);
+    }
+
+    /**
+     * Samakan daftar anak akun orang tua dengan pilihan di form.
+     */
+    private function syncAnak(User $user, array $anakIds, string $hubungan): void
+    {
+        $payload = [];
+        foreach (array_unique($anakIds) as $id) {
+            $payload[$id] = ['hubungan' => $hubungan];
+        }
+
+        $user->anak()->sync($payload);
     }
 
     /**
@@ -204,8 +289,8 @@ class UserController extends Controller
 
         $isSuper = auth()->user()->isSuperAdmin();
         $rolesAllowed = $isSuper
-            ? 'admin,super_admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_kurikulum,satpam'
-            : 'admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_kurikulum,satpam';
+            ? 'admin,super_admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_kurikulum,satpam,orang_tua'
+            : 'admin,guru_mengajar,wali_kelas,guru_piket,kepala_sekolah,waka,waka_kurikulum,satpam,orang_tua';
 
         $requiredGuruRoles = ['guru_mengajar', 'wali_kelas', 'guru_piket'];
         $isRequiredGuruRole = in_array($request->input('role'), $requiredGuruRoles, true);
@@ -221,7 +306,12 @@ class UserController extends Controller
                 Rule::unique('users', 'id_guru')->ignore($user->id)->whereNotNull('id_guru'),
             ],
             'avatar'   => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'anak'     => [Rule::requiredIf($request->input('role') === 'orang_tua'), 'nullable', 'array'],
+            'anak.*'   => ['integer', Rule::exists('siswa', 'id_siswa')->whereNull('deleted_at')],
+            'hubungan' => 'nullable|in:ayah,ibu,wali',
         ], [
+            'anak.required'    => 'Pilih minimal satu anak (siswa) untuk akun Orang Tua.',
+            'anak.*.exists'    => 'Siswa yang dipilih tidak ditemukan.',
             'role.in'          => 'Role tidak valid atau Anda tidak memiliki akses memilih Super Admin.',
             'id_guru.required' => 'Relasi Profil Guru wajib dipilih untuk role ini.',
             'id_guru.unique'   => 'Guru ini sudah memiliki akun pengguna lain.',
@@ -255,7 +345,7 @@ class UserController extends Controller
         }
 
         // Roles yang hanya boleh 1 user — cek jika role BERUBAH ke singleton role
-        $singletonRoles = ['waka', 'waka_kurikulum', 'kepala_sekolah'];
+        $singletonRoles = ['kepala_sekolah'];
         if (in_array($validated['role'], $singletonRoles) && $validated['role'] !== $user->role) {
             $roleLabels = ['waka' => 'Waka', 'waka_kurikulum' => 'Waka Kurikulum', 'kepala_sekolah' => 'Kepala Sekolah'];
             $exists = User::where('role', $validated['role'])->where('id', '!=', $user->id)->exists();
@@ -287,7 +377,18 @@ class UserController extends Controller
             $validated['avatar'] = null;
         }
 
+        $anakIds = array_map('intval', $validated['anak'] ?? []);
+        $hubungan = $validated['hubungan'] ?? 'wali';
+        $validated = Arr::except($validated, ['anak', 'hubungan']);
+
+        if ($validated['role'] === 'orang_tua') {
+            $validated['id_guru'] = null;
+        }
+
         $user->update($validated);
+
+        // Orang tua: sinkronkan anak. Role lain: lepas semua tautan anak.
+        $this->syncAnak($user, $user->role === 'orang_tua' ? $anakIds : [], $hubungan);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['success' => 'Data pengguna berhasil diperbarui']);

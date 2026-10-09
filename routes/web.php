@@ -75,15 +75,30 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/satpam/dashboard', [\App\Http\Controllers\SatpamController::class, 'dashboard'])->name('satpam.dashboard');
     Route::get('/satpam/cek-izin', [\App\Http\Controllers\SatpamController::class, 'cekIzin'])->name('satpam.cek-izin');
 
+    // Portal Orang Tua (read-only, dibatasi ke anak yang ditautkan ke akun)
+    Route::middleware([\App\Http\Middleware\EnsureUserIsOrangTua::class])->prefix('orang-tua')->name('orang-tua.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\OrangTuaController::class, 'dashboard'])->name('dashboard');
+        Route::get('/kehadiran', [\App\Http\Controllers\OrangTuaController::class, 'kehadiran'])->name('kehadiran');
+        Route::get('/surat', [\App\Http\Controllers\OrangTuaController::class, 'surat'])->name('surat');
+    });
+
     // Dedicated Routes for Waka, Waka SDM, and Kepala Sekolah (Approver Dashboard)
     Route::middleware([\App\Http\Middleware\EnsureUserIsApprover::class])->prefix('approver')->name('approver.')->group(function () {
-        Route::get('/dashboard', [\App\Http\Controllers\ApproverDashboardController::class, 'index'])->name('dashboard');
         Route::post('/izin/{id}/setujui', [\App\Http\Controllers\ApproverDashboardController::class, 'approveIzin'])->name('izin.approve');
         Route::post('/izin/{id}/tolak', [\App\Http\Controllers\ApproverDashboardController::class, 'rejectIzin'])->name('izin.reject');
         Route::post('/izin/{id}/reset', [\App\Http\Controllers\ApproverDashboardController::class, 'resetIzin'])->name('izin.reset');
         Route::post('/dispensasi/{id}/setujui', [\App\Http\Controllers\ApproverDashboardController::class, 'approveDispensasi'])->name('dispensasi.approve');
         Route::post('/dispensasi/{id}/tolak', [\App\Http\Controllers\ApproverDashboardController::class, 'rejectDispensasi'])->name('dispensasi.reject');
         Route::post('/dispensasi/{id}/reset', [\App\Http\Controllers\ApproverDashboardController::class, 'resetDispensasi'])->name('dispensasi.reset');
+    });
+
+    // Dashboard & Persetujuan Izin (Guru + Siswa) khusus Waka dan Waka Kurikulum
+    Route::middleware([\App\Http\Middleware\EnsureUserIsWaka::class])->prefix('approver')->name('approver.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\WakaDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/izin-guru', [\App\Http\Controllers\WakaDashboardController::class, 'izinGuruIndex'])->name('izin-guru.index');
+        Route::get('/izin-guru/{id}', [\App\Http\Controllers\WakaDashboardController::class, 'izinGuruShow'])->whereNumber('id')->name('izin-guru.show');
+        Route::get('/izin-siswa', [\App\Http\Controllers\WakaDashboardController::class, 'izinSiswaIndex'])->name('izin-siswa.index');
+        Route::get('/izin-siswa/{id}', [\App\Http\Controllers\WakaDashboardController::class, 'izinSiswaShow'])->whereNumber('id')->name('izin-siswa.show');
     });
 
     // Dashboard & Persetujuan Izin Guru khusus Kepala Sekolah
@@ -127,6 +142,8 @@ Route::middleware(['auth'])->group(function () {
     ->where('shift', 'pagi|siang|waka')
     ->name('jadwal-piket.export-pdf');
         Route::resource('jadwal-piket', JadwalPiketController::class);
+        Route::get('/users/cari-siswa', [UserController::class, 'cariSiswa'])->name('users.cari-siswa');
+        Route::get('/users/{user}/anak', [UserController::class, 'anak'])->whereNumber('user')->name('users.anak');
         Route::post('/users/bulk-delete', [UserController::class, 'bulkDelete'])->name('users.bulk-delete');
         Route::resource('users', UserController::class);
         Route::get('/pengguna', [UserController::class, 'index'])->name('pengguna.index');

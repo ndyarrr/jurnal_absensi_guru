@@ -77,6 +77,15 @@ class SuratDispensasi extends Model
         return $this->belongsTo(Siswa::class, 'id_siswa')->withTrashed();
     }
 
+    public function siswaList()
+    {
+        return $this->hasMany(
+            SuratDispensasiSiswa::class,
+            'id_dispen',
+            'id_dispen'
+        )->with('siswa');
+    }
+
     public function guru()
     {
         return $this->belongsTo(Guru::class, 'id_guru', 'id_guru')->withTrashed();
@@ -141,4 +150,65 @@ class SuratDispensasi extends Model
         }
         return route('dispensasi.approval.show', ['id' => $this->id_dispen, 'token' => $this->barcode_token]);
     }
+
+    /* ------------------------------------------------------------------
+       Aksesor tampilan (dipakai halaman persetujuan Waka / Waka Kurikulum)
+       ------------------------------------------------------------------ */
+
+    /** Daftar nama siswa pada surat (multi siswa), fallback ke siswa tunggal. */
+    public function getNamaSiswaListAttribute(): \Illuminate\Support\Collection
+    {
+        $nama = $this->siswaList
+            ->map(fn ($row) => optional($row->siswa)->nama_siswa)
+            ->filter()
+            ->values();
+
+        if ($nama->isEmpty() && $this->siswa) {
+            $nama = collect([$this->siswa->nama_siswa]);
+        }
+
+        return $nama;
+    }
+
+    /** Ringkasan nama siswa, mis. "Andi, Budi +3 siswa". */
+    public function getRingkasSiswaAttribute(): string
+    {
+        $nama = $this->nama_siswa_list;
+        $teks = $nama->take(2)->implode(', ');
+
+        if ($nama->count() > 2) {
+            $teks .= ' +' . ($nama->count() - 2) . ' siswa';
+        }
+
+        return $teks !== '' ? $teks : 'Siswa';
+    }
+
+    public function getKelasLabelAttribute(): string
+    {
+        $kelas = $this->kelas ?: optional($this->siswa)->kelas;
+
+        return $kelas ? $kelas->nama_lengkap : '-';
+    }
+
+    public function getPeriodeLabelAttribute(): string
+    {
+        if (!$this->tanggal_mulai) {
+            return '-';
+        }
+
+        $mulai = \Carbon\Carbon::parse($this->tanggal_mulai);
+        $selesai = $this->tanggal_selesai ? \Carbon\Carbon::parse($this->tanggal_selesai) : null;
+
+        return $mulai->format('d/m/Y') . ($selesai && !$mulai->isSameDay($selesai) ? ' - ' . $selesai->format('d/m/Y') : '');
+    }
+
+    public function getJamLabelAttribute(): string
+    {
+        if (!$this->jam_mulai || !$this->jam_selesai) {
+            return '-';
+        }
+
+        return \Carbon\Carbon::parse($this->jam_mulai)->format('H:i') . ' - ' . \Carbon\Carbon::parse($this->jam_selesai)->format('H:i');
+    }
+
 }

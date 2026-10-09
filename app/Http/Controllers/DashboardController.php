@@ -162,6 +162,11 @@ class DashboardController extends Controller
             return redirect()->route('dashboard');
         }
 
+        // Orang tua langsung diarahkan ke portal orang tua
+        if ($user->isOrangTua()) {
+            return redirect()->route('orang-tua.dashboard');
+        }
+
         // 0. Check if user is Waka, Waka Kurikulum, or Kepala Sekolah
         if (in_array($user->role, ['waka', 'waka_kurikulum', 'waka_sdm', 'kepala_sekolah'], true) && !in_array(session('active_role'), ['guru_mengajar', 'wali_kelas', 'guru_piket'], true)) {
             return redirect()->route($user->role === 'kepala_sekolah' ? 'kepsek.dashboard' : 'approver.dashboard');

@@ -98,6 +98,11 @@ class User extends Authenticatable
         return $this->role === 'satpam';
     }
 
+    public function isOrangTua(): bool
+    {
+        return $this->role === 'orang_tua';
+    }
+
     public function hasRole(string $role): bool
     {
         return $this->role === $role;
@@ -119,6 +124,16 @@ class User extends Authenticatable
     public function guru()
     {
         return $this->belongsTo(Guru::class, 'id_guru', 'id_guru');
+    }
+
+    /**
+     * Anak (siswa) yang ditautkan ke akun orang tua ini.
+     */
+    public function anak()
+    {
+        return $this->belongsToMany(Siswa::class, 'orang_tua_siswa', 'id_user', 'id_siswa', 'id', 'id_siswa')
+            ->withPivot('hubungan')
+            ->withTimestamps();
     }
 
     /** Cari id_guru akun ini: kolom id_guru, relasi guru, atau kecocokan nama. */
@@ -165,6 +180,7 @@ class User extends Authenticatable
             'waka' => 'Waka',
             'waka_kurikulum', 'waka_sdm' => 'Waka Kurikulum',
             'satpam' => 'Satpam',
+            'orang_tua' => 'Orang Tua',
             default => ucwords(str_replace('_', ' ', $role ?? 'Guru Mengajar')),
         };
     }
@@ -187,6 +203,7 @@ class User extends Authenticatable
             'waka' => 'Waka',
             'waka_kurikulum', 'waka_sdm' => 'Waka Kurikulum',
             'satpam' => 'Satpam',
+            'orang_tua' => 'Orang Tua',
             default => 'Guru Mapel',
         };
 
@@ -200,6 +217,7 @@ class User extends Authenticatable
             'waka' => 'background: #ffedd5; color: #c2410c; border: 1px solid #fdba74;',
             'waka_kurikulum', 'waka_sdm' => 'background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe;',
             'satpam' => 'background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;',
+            'orang_tua' => 'background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8;',
             default => 'background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;',
         };
 

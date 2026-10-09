@@ -2,7 +2,14 @@
     $user = Auth::user();
 @endphp
 
-@if($user && !$user->isAdmin() && (in_array($user->role, ['guru', 'guru_mengajar', 'wali_kelas', 'guru_piket'], true) || session()->has('active_role')))
+@php
+    // Waka / Waka Kurikulum yang juga mengajar (akun terhubung ke profil guru) bisa beralih ke tampilan guru
+    $isWakaGuru = $user
+        && in_array($user->role, ['waka', 'waka_kurikulum', 'waka_sdm'], true)
+        && ($user->id_guru || optional($user->guru)->id_guru);
+@endphp
+
+@if($user && !$user->isAdmin() && (in_array($user->role, ['guru', 'guru_mengajar', 'wali_kelas', 'guru_piket'], true) || $isWakaGuru || session()->has('active_role')))
     @php
         $idGuru = $user->id_guru ?: optional($user->guru)->id_guru;
         if (!$idGuru && !empty($user->name)) {
@@ -25,6 +32,15 @@
             : null;
 
         $availableRoles = [];
+
+        // 0. Tampilan Waka / Waka Kurikulum (dashboard persetujuan)
+        if ($isWakaGuru) {
+            $availableRoles[] = [
+                'key' => 'approver',
+                'label' => $user->role === 'waka' ? 'Waka' : 'Waka Kurikulum',
+                'icon' => 'fa-user-tie',
+            ];
+        }
 
         // 1. Guru Mengajar (Mapel) - Always present for teachers
         $availableRoles[] = [
@@ -51,7 +67,7 @@
             ];
         }
 
-        $activeRole = session('active_role', $user->role === 'guru' ? 'guru_mengajar' : $user->role);
+        $activeRole = session('active_role', $isWakaGuru ? 'approver' : ($user->role === 'guru' ? 'guru_mengajar' : $user->role));
     @endphp
 
     @if(count($availableRoles) > 1)

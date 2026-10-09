@@ -8,8 +8,10 @@ class SuratDispensasiSiswa extends Model
 {
     protected $table = 'surat_dispensasi_siswa';
 
-    protected $primaryKey = 'id';
-
+    /**
+     * Tabel surat_dispensasi_siswa tidak memiliki
+     * kolom created_at dan updated_at.
+     */
     public $timestamps = false;
 
     protected $fillable = [
@@ -17,22 +19,27 @@ class SuratDispensasiSiswa extends Model
         'id_siswa',
     ];
 
-    public function suratDispensasi()
-    {
-        return $this->belongsTo(SuratDispensasi::class, 'id_dispen', 'id_dispen');
-    }
-
+    /**
+     * Relasi ke siswa
+     */
     public function siswa()
     {
-        return $this->belongsTo(Siswa::class, 'id_siswa', 'id_siswa');
+        return $this->belongsTo(
+            Siswa::class,
+            'id_siswa',
+            'id_siswa'
+        );
     }
 
-public function siswaList()
-{
-    return $this->hasMany(
-        SuratDispensasiSiswa::class,
-        'id_dispen',
-        'id_dispen'
-    );
-}
+    /**
+     * Relasi ke surat dispensasi
+     */
+    public function surat()
+    {
+        return $this->belongsTo(
+            SuratDispensasi::class,
+            'id_dispen',
+            'id_dispen'
+        );
+    }
 }

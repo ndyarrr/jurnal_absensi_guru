@@ -209,6 +209,7 @@
                             <a href="{{ route('users.index', ['role' => 'waka_kurikulum']) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Waka Kurikulum</a>
                             <a href="{{ route('users.index', ['role' => 'kepala_sekolah']) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Kepala Sekolah</a>
                             <a href="{{ route('users.index', ['role' => 'satpam']) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Satpam</a>
+                            <a href="{{ route('users.index', ['role' => 'orang_tua']) }}" style="display: block; padding: 8px 12px; font-size: 0.825rem; font-weight: 600; color: #334155; text-decoration: none; border-radius: 6px;">Orang Tua</a>
                         </div>
                     </div>
                 </div>
@@ -374,7 +375,7 @@
 
                 <div class="form-field-group">
                     <label for="create_password">Password</label>
-                    <input type="password" name="password" id="create_password" class="form-field-input" placeholder="Minimal 6 karakter" required>
+                    <input type="text" name="password" id="create_password" class="form-field-input" placeholder="Minimal 6 karakter" required style="-webkit-text-security: disc; text-security: disc;" autocomplete="off" autocapitalize="off" spellcheck="false" readonly onfocus="this.removeAttribute('readonly')">
                 </div>
 
                 <div class="form-field-group">
@@ -389,6 +390,7 @@
                         <option value="waka_kurikulum">Waka Kurikulum</option>
                         <option value="kepala_sekolah">Kepala Sekolah</option>
                         <option value="satpam">Satpam</option>
+                        <option value="orang_tua">Orang Tua (Wali Murid)</option>
                     </select>
                     <small style="color: #0284c7; background: #e0f2fe; border: 1px solid #bae6fd; padding: 6px 10px; border-radius: 6px; display: block; margin-top: 6px; font-weight: 500; font-size: 0.78rem;">
                         💡 <strong>Info Role Guru:</strong> Cukup pilih <strong>Guru</strong>. Fitur <strong>Wali Kelas</strong> dan <strong>Guru Piket</strong> akan otomatis aktif secara dinamis apabila guru ditugaskan di Master Kelas atau Jadwal Piket.
@@ -424,6 +426,24 @@
                             @endforeach
                         </div>
                     </div>
+                </div>
+
+                <!-- Anak (khusus role Orang Tua) -->
+                <div class="form-field-group" id="create_anak_group" style="display: none;">
+                    <label>Anak (Siswa) <span style="color: #dc2626;">*</span></label>
+                    <select name="hubungan" id="create_hubungan" class="form-field-input">
+                        <option value="ayah">Ayah</option>
+                        <option value="ibu">Ibu</option>
+                        <option value="wali" selected>Wali</option>
+                    </select>
+                    <div class="searchable-select" style="position: relative; margin-top: 8px;">
+                        <input type="text" id="create_anak_search" class="form-field-input" placeholder="Ketik nama atau NISN siswa (min. 2 huruf)..." autocomplete="off" oninput="anakSearch('create')">
+                        <div class="ss-dropdown ss-down" id="create_anak_results"></div>
+                    </div>
+                    <div id="create_anak_chips" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;"></div>
+                    <small style="color: #be185d; background: #fdf2f8; border: 1px solid #fbcfe8; padding: 6px 10px; border-radius: 6px; display: block; margin-top: 8px; font-weight: 500; font-size: 0.78rem;">
+                        Akun ini hanya dapat melihat data anak yang dipilih di sini. Satu akun boleh memiliki lebih dari satu anak.
+                    </small>
                 </div>
 
                 <div class="modal-actions-footer">
@@ -469,8 +489,15 @@
 
 
                 <div class="form-field-group">
-                    <label for="edit_password">Password Baru (Kosongkan jika tidak diubah)</label>
-                    <input type="password" name="password" id="edit_password" class="form-field-input" placeholder="Opsional">
+                    <label>Password</label>
+                    <div id="edit_pw_closed">
+                        <button type="button" class="btn-modal-cancel" onclick="toggleEditPassword(true)" style="width: 100%;">Ubah Password</button>
+                        <small style="color: #64748b; margin-top: 4px; display: block;">Password akun tidak akan berubah kecuali Anda menekan tombol ini.</small>
+                    </div>
+                    <div id="edit_pw_open" style="display: none;">
+                        <input type="text" name="password" id="edit_password" class="form-field-input" placeholder="Masukkan password baru (min. 6 karakter)" style="-webkit-text-security: disc; text-security: disc;" autocomplete="off" disabled>
+                        <a href="#" onclick="toggleEditPassword(false); return false;" style="font-size: 0.8rem; font-weight: 700; color: #dc2626; margin-top: 6px; display: inline-block;">Batal ubah password</a>
+                    </div>
                 </div>
 
                 <div class="form-field-group">
@@ -485,6 +512,7 @@
                         <option value="waka_kurikulum">Waka Kurikulum</option>
                         <option value="kepala_sekolah">Kepala Sekolah</option>
                         <option value="satpam">Satpam</option>
+                        <option value="orang_tua">Orang Tua (Wali Murid)</option>
                     </select>
                     <small style="color: #0284c7; background: #e0f2fe; border: 1px solid #bae6fd; padding: 6px 10px; border-radius: 6px; display: block; margin-top: 6px; font-weight: 500; font-size: 0.78rem;">
                         💡 <strong>Info Role Guru:</strong> Cukup pilih <strong>Guru</strong>. Fitur <strong>Wali Kelas</strong> dan <strong>Guru Piket</strong> akan otomatis aktif secara dinamis apabila guru ditugaskan di Master Kelas atau Jadwal Piket.
@@ -513,6 +541,24 @@
                             @endforeach
                         </div>
                     </div>
+                </div>
+
+                <!-- Anak (khusus role Orang Tua) -->
+                <div class="form-field-group" id="edit_anak_group" style="display: none;">
+                    <label>Anak (Siswa) <span style="color: #dc2626;">*</span></label>
+                    <select name="hubungan" id="edit_hubungan" class="form-field-input">
+                        <option value="ayah">Ayah</option>
+                        <option value="ibu">Ibu</option>
+                        <option value="wali" selected>Wali</option>
+                    </select>
+                    <div class="searchable-select" style="position: relative; margin-top: 8px;">
+                        <input type="text" id="edit_anak_search" class="form-field-input" placeholder="Ketik nama atau NISN siswa (min. 2 huruf)..." autocomplete="off" oninput="anakSearch('edit')">
+                        <div class="ss-dropdown ss-down" id="edit_anak_results"></div>
+                    </div>
+                    <div id="edit_anak_chips" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;"></div>
+                    <small style="color: #be185d; background: #fdf2f8; border: 1px solid #fbcfe8; padding: 6px 10px; border-radius: 6px; display: block; margin-top: 8px; font-weight: 500; font-size: 0.78rem;">
+                        Akun ini hanya dapat melihat data anak yang dipilih di sini. Satu akun boleh memiliki lebih dari satu anak.
+                    </small>
                 </div>
 
                 <div class="modal-actions-footer">
@@ -581,6 +627,98 @@
 
     <!-- Toggle & Modal Scripts -->
     <script>
+        /* ---- Picker anak (role Orang Tua) ---- */
+        const anakPicked = { create: new Map(), edit: new Map() };
+        let anakSearchTimer = null;
+
+        function renderAnakChips(prefix) {
+            const box = document.getElementById(prefix + '_anak_chips');
+            box.innerHTML = '';
+            anakPicked[prefix].forEach((siswa, id) => {
+                const chip = document.createElement('span');
+                chip.style.cssText = 'display:inline-flex;align-items:center;gap:8px;background:#fdf2f8;color:#9d174d;border:1px solid #fbcfe8;border-radius:999px;padding:5px 6px 5px 12px;font-size:0.8rem;font-weight:700;';
+                chip.appendChild(document.createTextNode(siswa.nama + ' · ' + siswa.kelas));
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.textContent = '×';
+                remove.title = 'Hapus';
+                remove.style.cssText = 'border:none;background:#fbcfe8;color:#9d174d;border-radius:50%;width:20px;height:20px;cursor:pointer;font-weight:800;line-height:1;';
+                remove.onclick = () => { anakPicked[prefix].delete(id); renderAnakChips(prefix); };
+
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = 'anak[]';
+                hidden.value = id;
+
+                chip.append(remove, hidden);
+                box.appendChild(chip);
+            });
+        }
+
+        function anakSearch(prefix) {
+            clearTimeout(anakSearchTimer);
+            const input = document.getElementById(prefix + '_anak_search');
+            const results = document.getElementById(prefix + '_anak_results');
+            const q = input.value.trim();
+
+            if (q.length < 2) {
+                results.classList.remove('ss-open');
+                return;
+            }
+
+            anakSearchTimer = setTimeout(() => {
+                fetch('{{ route("users.cari-siswa") }}?q=' + encodeURIComponent(q), {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then(r => r.json())
+                    .then(rows => {
+                        results.innerHTML = '';
+                        if (!rows.length) {
+                            const empty = document.createElement('div');
+                            empty.className = 'ss-option';
+                            empty.style.cssText = 'color:#94a3b8;pointer-events:none;';
+                            empty.textContent = 'Siswa tidak ditemukan';
+                            results.appendChild(empty);
+                        }
+                        rows.forEach(siswa => {
+                            const already = anakPicked[prefix].has(String(siswa.id));
+                            const row = document.createElement('div');
+                            row.className = 'ss-option';
+                            if (already) row.style.cssText = 'opacity:0.5;pointer-events:none;';
+
+                            const nama = document.createElement('strong');
+                            nama.style.color = '#0f172a';
+                            nama.textContent = siswa.nama;
+                            const meta = document.createElement('small');
+                            meta.style.cssText = 'display:block;color:#64748b;';
+                            meta.textContent = 'NISN: ' + (siswa.nisn || '-') + ' · Kelas ' + siswa.kelas + (already ? ' · sudah dipilih' : '');
+                            row.append(nama, meta);
+
+                            row.onclick = () => {
+                                anakPicked[prefix].set(String(siswa.id), siswa);
+                                renderAnakChips(prefix);
+                                input.value = '';
+                                results.classList.remove('ss-open');
+                            };
+                            results.appendChild(row);
+                        });
+                        results.classList.add('ss-open');
+                    })
+                    .catch(() => results.classList.remove('ss-open'));
+            }, 250);
+        }
+
+        document.addEventListener('click', (e) => {
+            ['create', 'edit'].forEach(prefix => {
+                const results = document.getElementById(prefix + '_anak_results');
+                const input = document.getElementById(prefix + '_anak_search');
+                if (results && !results.contains(e.target) && e.target !== input) {
+                    results.classList.remove('ss-open');
+                }
+            });
+        });
+
         /* ---- Guru data for JS lookup ---- */
         const GURU_DATA = [
             @foreach($guruList as $g)
@@ -593,6 +731,12 @@
         function validateUserForm(prefix) {
             const roleVal = document.getElementById(prefix + '_role').value;
             const idGuruVal = document.getElementById(prefix + '_id_guru').value;
+
+            if (roleVal === 'orang_tua' && anakPicked[prefix].size === 0) {
+                alert('Pilih minimal satu anak (siswa) untuk akun Orang Tua! Ketik nama atau NISN siswa lalu pilih dari daftar.');
+                document.getElementById(prefix + '_anak_search').focus();
+                return false;
+            }
 
             if (REQUIRED_TEACHER_ROLES.includes(roleVal) && (!idGuruVal || idGuruVal.trim() === '')) {
                 alert('Relasi Profil Guru wajib dipilih untuk role Guru! Silakan klik dan pilih nama guru dari daftar dropdown.');
@@ -643,8 +787,11 @@
             const starEl = document.getElementById(prefix + '_guru_star');
             const hintEl = document.getElementById(prefix + '_guru_hint');
 
-            // Guru profile relation field is visible for ALL roles (Kepala Sekolah, Waka, Guru, etc.)
-            if (guruGroup) guruGroup.style.display = 'flex';
+            // Guru profile relation field is visible for all roles except Orang Tua (yang memakai pilihan anak)
+            const isOrangTua = roleVal === 'orang_tua';
+            if (guruGroup) guruGroup.style.display = isOrangTua ? 'none' : 'flex';
+            const anakGroup = document.getElementById(prefix + '_anak_group');
+            if (anakGroup) anakGroup.style.display = isOrangTua ? 'flex' : 'none';
 
             if (REQUIRED_TEACHER_ROLES.includes(roleVal)) {
                 if (starEl) starEl.style.display = 'inline';
@@ -740,6 +887,10 @@
         function openCreateModal() {
             document.getElementById('create_guru_input').value = '';
             document.getElementById('create_id_guru').value = '';
+            anakPicked.create.clear();
+            renderAnakChips('create');
+            document.getElementById('create_anak_search').value = '';
+            document.getElementById('create_hubungan').value = 'wali';
             document.getElementById('createModal').style.display = 'flex';
             handleRoleChange('create');
         }
@@ -752,6 +903,7 @@
             document.getElementById('editForm').action = '/users/' + id;
             document.getElementById('edit_name').value = name;
             document.getElementById('edit_role').value = role;
+            toggleEditPassword(false);
             document.getElementById('edit_id_guru').value = idGuru || '';
 
             // Reset avatar file input & remove checkbox
@@ -786,7 +938,33 @@
 
             updateEditGuruDropdown(id);
             handleRoleChange('edit');
+
+            // Orang tua: muat anak yang sudah ditautkan
+            anakPicked.edit.clear();
+            renderAnakChips('edit');
+            document.getElementById('edit_anak_search').value = '';
+            document.getElementById('edit_hubungan').value = 'wali';
+            if (role === 'orang_tua') {
+                fetch('/users/' + id + '/anak', { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(r => r.json())
+                    .then(data => {
+                        document.getElementById('edit_hubungan').value = data.hubungan || 'wali';
+                        (data.anak || []).forEach(siswa => anakPicked.edit.set(String(siswa.id), siswa));
+                        renderAnakChips('edit');
+                    });
+            }
+
             document.getElementById('editModal').style.display = 'flex';
+        }
+
+        /* Password edit hanya ikut terkirim jika tombol "Ubah Password" ditekan */
+        function toggleEditPassword(show) {
+            const pw = document.getElementById('edit_password');
+            document.getElementById('edit_pw_open').style.display = show ? 'block' : 'none';
+            document.getElementById('edit_pw_closed').style.display = show ? 'none' : 'block';
+            pw.value = '';
+            pw.disabled = !show;
+            if (show) pw.focus();
         }
 
         function updateEditGuruDropdown(currentUserId) {
@@ -888,7 +1066,9 @@
                 .then(data => {
                     document.getElementById('view_name').innerText = data.name;
                     document.getElementById('view_role').innerText = data.role_label;
-                    document.getElementById('view_guru').innerText = data.nama_guru;
+                    document.getElementById('view_guru').innerText = (data.role === 'orang_tua')
+                        ? (data.anak && data.anak.length ? 'Anak: ' + data.anak.join(', ') : 'Belum ada anak ditautkan')
+                        : data.nama_guru;
                     document.getElementById('view_created_at').innerText = data.created_at;
                     document.getElementById('view_password').setAttribute('data-pwd', data.plain_password || data.nip || '');
                     document.getElementById('view_password').innerText = '••••••••••••';
