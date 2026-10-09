@@ -4211,5 +4211,44 @@ table.mapel-table tr.selected-active-row td:last-child {
     font-weight: 700;
 }
 
+/* Responsif: tabel pengguna di layar HP */
+@media (max-width: 640px) {
+    .pengguna-table-card {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
 
+    .pengguna-table-card .table-responsive-clean {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
 
+    .pengguna-table-card table.pengguna-table {
+        min-width: 700px;
+    }
+}
+
+/* Tabel Master Data Siswa di layar HP */
+@media (max-width: 640px) {
+    .siswa-table-card {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .siswa-table-card .table-responsive-clean {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .siswa-table-card .siswa-table {
+        min-width: 800px;
+    }
+}
